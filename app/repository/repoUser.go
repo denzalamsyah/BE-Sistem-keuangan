@@ -27,5 +27,6 @@ func (r *userRepository) GetUserByEmail(email string) (models.User, error) {
 		}
 		return user, result.Error
 	}
-	return user, nil // TODO: replace this
+	return user, nil
 }
+

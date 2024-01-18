@@ -9,8 +9,8 @@ type SPPServices interface {
 	Store(PembayaranSPP *models.PembayaranSPP) error
 	Update(id int, PembayaranSPP models.PembayaranSPP) error
 	Delete(id int) error
-	GetByID(id int) (*models.PembayaranSPP, error)
-	GetList() ([]models.PembayaranSPP, error)
+	GetByID(id int) (*models.PembayaranSPPResponse, error)
+	GetList() ([]models.PembayaranSPPResponse, error)
 }
 
 type sppServices struct {
@@ -46,7 +46,7 @@ func (c *sppServices) Delete(id int) error {
 	return nil
 }
 
-func (c *sppServices) GetByID(id int) (*models.PembayaranSPP, error) {
+func (c *sppServices) GetByID(id int) (*models.PembayaranSPPResponse, error) {
 	PembayaranSPP, err := c.sppRepo.GetByID(id)
 	if err != nil {
 		return nil, err
@@ -54,7 +54,7 @@ func (c *sppServices) GetByID(id int) (*models.PembayaranSPP, error) {
 	return PembayaranSPP, nil
 }
 
-func (c *sppServices) GetList() ([]models.PembayaranSPP, error) {
+func (c *sppServices) GetList() ([]models.PembayaranSPPResponse, error) {
 	PembayaranSPPs, err := c.sppRepo.GetList()
 	if err != nil {
 		return nil, err

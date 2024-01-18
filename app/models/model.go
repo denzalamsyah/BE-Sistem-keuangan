@@ -16,6 +16,8 @@ type Siswa struct {
 	NISN         int    `json:"nisn"`
 	KelasID      int    `gorm:"foreignKey:FkId_kelas;references:IDKelas" json:"id_kelas"`
 	Kelas        Kelas  `json:"kelas"`
+	JurusanID    int    `gorm:"foreignKey:FkId_jurusan;references:IDJurusan" json:"id_jurusan"`
+	Jurusan      Jurusan  `json:"jurusan"`
 	AgamaID      int    `gorm:"foreignKey:FkId_agama;references:IDAgama" json:"id_agama"`
 	Agama        Agama  `json:"agama"`
 	TempatLahir  string `gorm:"type:varchar(15)" json:"tempat_lahir"`
@@ -29,57 +31,64 @@ type Siswa struct {
 	Alamat       string `gorm:"type:varchar(100)" json:"alamat"`
 }
 
-type HistoryPembayaran struct {
-	ID             int         `gorm:"primaryKey" json:"id"`
-	SiswaID        int         `gorm:"foreignKey:FkId_siswa;references:ID" json:"id_siswa"`
-	Siswa          Siswa       `json:"siswa"`
-	Nama_transaksi string      `gorm:"type:varchar(35)" json:"nama_transaksi"`
-	Biaya          int         `json:"biaya"`
-	Tanggal        string      `json:"tanggal"`
-	PenerimaID     int         `gorm:"foreignKey:FkId_stakeholder;references:ID" json:"id_penerima"`
-	Penerima       Stakeholder `json:"penerima"`
-}
-
-type ReportPembayaran struct {
-	ID              int    `gorm:"primaryKey" json:"id"`
-	SiswaID         int    `gorm:"foreignKey:FkId_siswa;references:ID" json:"id_siswa"`
-	Siswa           Siswa  `json:"siswa"`
-	Tahun_pelajaran string `json:"tahun_pelajaran"`
-}
 
 type Pemasukan struct {
-	ID      int    `gorm:"primaryKey" json:"id"`
-	Nama    string `json:"nama_pemasukan"`
-	Tanggal string `json:"tanggal"`
-	Jumlah  int    `json:"total_jumlah"`
+	ID        int    `gorm:"primaryKey" json:"id"`
+	IDBayar   int    `gorm:"foreignKey:ID" json:"id_bayar"`
+	Nama      string `json:"nama_pemasukan"`
+	Tanggal   string `json:"tanggal"`
+	Jumlah    int    `json:"total_jumlah"`
+}
+type Pemasukanlainnya struct {
+	ID        int    `gorm:"primaryKey" json:"id"`
+	Nama      string `json:"nama_pemasukan"`
+	Tanggal   string `json:"tanggal"`
+	Jumlah    int    `json:"total_jumlah"`
 }
 
 type Pengeluaran struct {
 	ID      int    `gorm:"primaryKey" json:"id"`
-	Nama    string `gorm:"type:varchar(35)" json:"nama_pemasukan"`
+	Nama    string `gorm:"type:varchar(35)" json:"nama_pengeluaran"`
 	Tanggal string `json:"tanggal"`
 	Jumlah  int    `json:"total_jumlah"`
 }
 
 type PembayaranSPP struct {
-	ID         int         `gorm:"primaryKey" json:"id"`
-	SiswaID    int         `gorm:"foreignKey:FkId_siswa;references:ID" json:"id_siswa"`
-	Siswa      Siswa       `json:"siswa"`
-	Tanggal    string      `json:"tanggal"`
-	Jumlah     int         `json:"total_jumlah"`
-	PenerimaID int         `gorm:"foreignKey:FkId_stakeholder;references:ID" json:"id_penerima"`
-	Penerima   Stakeholder `json:"penerima"`
+    ID         int         `gorm:"primaryKey" json:"id"`
+    SiswaID    int         `gorm:"foreignKey:FkId_siswa;references:ID" json:"id_siswa"`
+    Siswa      Siswa       `json:"siswa"`
+	TransaksiID    int         `gorm:"foreignKey:FkId_transaksi;references:ID" json:"id_transaksi"`
+	Transaksi  Transaksi   `json:"transaksi"`
+	Bulan      string      `gorm:"type:varchar(35)" json:"bulan"`
+	Semester    string      `gorm:"type:varchar(35)" json:"semester"`
+	TahunAjar   string   `json:"tahun_ajar"`
+    Tanggal    string      `json:"tanggal"`
+    Jumlah     int         `json:"total_jumlah"`
+    PenerimaID int         `gorm:"foreignKey:FkId_stakeholder;references:ID" json:"id_penerima"`
+    Penerima   Stakeholder `json:"penerima"`
+	Status     string      `json:"status"`
 }
 
 type PembayaranSemester struct {
 	ID             int         `gorm:"primaryKey" json:"id"`
 	SiswaID        int         `gorm:"foreignKey:FkId_siswa;references:ID" json:"id_siswa"`
 	Siswa          Siswa       `json:"siswa"`
-	Nama_transaksi string      `gorm:"type:varchar(35)" json:"nama_transaksi"`
+	TransaksiID    int         `gorm:"foreignKey:FkId_transaksi;references:ID" json:"id_transaksi"`
+	Transaksi  Transaksi   `json:"transaksi"`
+	Semester       string      `gorm:"type:varchar(35)" json:"semester"`
+	TahunAjar      string      `json:"tahun_ajar"`
 	Tanggal        string      `json:"tanggal"`
 	Jumlah         int         `json:"total_jumlah"`
 	PenerimaID     int         `gorm:"foreignKey:FkId_stakeholder;references:ID" json:"id_penerima"`
 	Penerima       Stakeholder `json:"penerima"`
+	Status         string      `json:"status"`
+}
+
+
+type Transaksi struct {
+	ID        int    `gorm:"primaryKey" json:"id"`
+	Nama      string `gorm:"type:varchar(35)" json:"nama"`
+	JumlahBayar int    `json:"jumlah_bayar"`
 }
 type Stakeholder struct {
 	ID           int    `gorm:"primaryKey" json:"id"`
@@ -87,7 +96,8 @@ type Stakeholder struct {
 	NIP          int    `json:"nip"`
 	AgamaID      int    `gorm:"foreignKey:FkId_agama;references:IDAgama" json:"id_agama"`
 	Agama        Agama  `json:"agama"`
-	Jabatan      string `gorm:"type:varchar(25)" json:"jabatan"`
+	JabatanID    int    `gorm:"foreignKey:FkId_jabatan;references:IDJabatan" json:"id_jabatan"`
+	Jabatan      Jabatan  `json:"jabatan"`
 	TempatLahir  string `gorm:"type:varchar(15)" json:"tempat_lahir"`
 	TanggalLahir string `json:"tanggal_lahir"`
 	GenderID     int    `gorm:"foreignKey:FkId_gender;references:IDGender" json:"id_gender"`
@@ -136,4 +146,14 @@ type User struct {
 	Password  string    `json:"-" gorm:"type:varchar(255);not null"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
+}
+
+type Jurusan struct{
+	IDJurusan int    `gorm:"primaryKey" json:"id"`
+	Nama    string `gorm:"type:varchar(15)" json:"nama"`
+}
+
+type Jabatan struct{
+	IDJabatan int    `gorm:"primaryKey" json:"id"`
+	Nama    string `gorm:"type:varchar(15)" json:"nama"`
 }

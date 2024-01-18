@@ -9,8 +9,8 @@ type StakeholderServices interface {
 	Store(Stakeholder *models.Stakeholder) error
 	Update(id int, Stakeholder models.Stakeholder) error
 	Delete(id int)error
-	GetByID(id int) (*models.Stakeholder, error)
-	GetList() ([]models.Stakeholder, error)
+	GetByID(id int) (*models.StakeholderResponse, error)
+	GetList() ([]models.StakeholderResponse, error)
 }
 
 type stakeholderServices struct{
@@ -44,7 +44,7 @@ func (c *stakeholderServices) Delete(id int) error{
 	return nil
 }
 
-func (c *stakeholderServices) GetByID(id int) (*models.Stakeholder, error){
+func (c *stakeholderServices) GetByID(id int) (*models.StakeholderResponse, error){
 	stake, err := c.stakeRepo.GetByID(id)
 	if err != nil {
 		return nil, err
@@ -52,7 +52,7 @@ func (c *stakeholderServices) GetByID(id int) (*models.Stakeholder, error){
 	return stake, nil
 }
 
-func (c *stakeholderServices) GetList()([]models.Stakeholder, error){
+func (c *stakeholderServices) GetList()([]models.StakeholderResponse, error){
 	stake, err := c.stakeRepo.GetList()
 	if err != nil {
 		return nil, err

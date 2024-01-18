@@ -21,7 +21,11 @@ type APIHandler struct {
 	StakeAPIHandler controllers.StakeAPI
 	SppAPIHandler controllers.SppAPI
 	SemesterAPIHandler controllers.SemesterAPI
-	
+	PemasukanAPIHandler controllers.PemasukanAPI
+	PengeluaranAPIHandler controllers.PengeluaranAPI
+	KelasAPIHandler controllers.KelasAPI
+	JurusanAPIHandler controllers.JurusanAPI
+	TransaksiAPIHandler controllers.TransaksiAPI
 }
 func main() {
 	gin.SetMode(gin.ReleaseMode) //release
@@ -58,7 +62,7 @@ func main() {
 			panic(err)
 		}
 
-		conn.AutoMigrate(&models.User{}, &models.Session{}, &models.Siswa{}, &models.Stakeholder{}, &models.HistoryPembayaran{}, &models.ReportPembayaran{}, &models.Login{}, &models.Pemasukan{}, &models.PembayaranSPP{}, &models.PembayaranSemester{}, &models.Pengeluaran{}, &models.Gender{}, &models.Agama{}, models.Kelas{} )
+		conn.AutoMigrate(&models.User{}, &models.Session{}, &models.Siswa{}, &models.Stakeholder{}, &models.Login{}, &models.Pemasukan{}, &models.Pemasukanlainnya{}, &models.PembayaranSPP{}, &models.HistoryPembayaran{}, &models.PembayaranSemester{}, &models.Pengeluaran{}, &models.Gender{}, &models.Agama{}, models.Kelas{}, &models.Transaksi{} )
 
 		router = RunServer(conn, router)
 	
@@ -82,20 +86,33 @@ func RunServer(db *gorm.DB,  gin *gin.Engine) *gin.Engine{
 	stakeRepo := repository.NewStakeholderRepo(db)
 	sppRepo := repository.NewSPPRepo(db)
 	semesterRepo := repository.NewSemesterRepo(db)
-	
+	pemasukanRepo := repository.NewPemasukanRepo(db)
+	pengeluaranRepo := repository.NewPengeluaranRepo(db)
+	kelasRepo := repository.NewKelasRepo(db)
+	jurusanRepo := repository.NewJurusanRepo(db)
+	transaksiRepo := repository.NewTransaksiRepo(db)
 
 	userService := services.NewUserService(userRepo, sessionRepo)
 	siswaService := services.NewSiswaService(siswaRepo)
 	stakeService := services.NewStakeService(stakeRepo)
 	sppService := services.NewSPPService(sppRepo)
 	semesterService := services.NewSemesterService(semesterRepo)
+	pemasukanService := services.NewPemasukanService(pemasukanRepo)
+	pengeluaranService := services.NewPengeluaranService(pengeluaranRepo)
+	kelasService := services.NewKelasService(kelasRepo)
+	jurusanService := services.NewJurusanService(jurusanRepo)
+	transaksiService := services.NewTransaksiService(transaksiRepo)
 
 	userAPIHandler := controllers.NewUserAPI(userService)
 	siswaAPI := controllers.NewSiswaAPI(siswaService)
 	stakeAPI := controllers.NewStakeAPI(stakeService)
 	sppAPI := controllers.NewSPPAPI(sppService)
 	semesterAPI := controllers.NewSemesterAPI(semesterService)
-	
+	pemasukanAPI := controllers.NewPemasukanAPI(pemasukanService)
+	pengeluaranAPI := controllers.NewPengeluaranAPI(pengeluaranService)
+	kelasAPI := controllers.NewKelasAPI(kelasService)
+	jurusanAPI := controllers.NewJurusanAPI(jurusanService)
+	transaksiAPI := controllers.NewTransaksiAPI(transaksiService)
 
 	apiHandler := APIHandler{
 	UserAPIHandler: userAPIHandler,
@@ -103,7 +120,11 @@ func RunServer(db *gorm.DB,  gin *gin.Engine) *gin.Engine{
 	StakeAPIHandler: stakeAPI,
 	SppAPIHandler: sppAPI,
 	SemesterAPIHandler: semesterAPI,
-	
+	PemasukanAPIHandler: pemasukanAPI,
+	PengeluaranAPIHandler: pengeluaranAPI,
+	KelasAPIHandler: kelasAPI,
+	JurusanAPIHandler: jurusanAPI,
+	TransaksiAPIHandler: transaksiAPI,
 }
 	
 version := gin.Group("/api")
@@ -120,6 +141,7 @@ version := gin.Group("/api")
 		siswa.PUT("/:id", apiHandler.SiswaAPIHandler.Update)
 		siswa.DELETE("/:id", apiHandler.SiswaAPIHandler.Delete)
 		siswa.GET("/:id", apiHandler.SiswaAPIHandler.GetByID)
+		siswa.GET("/histori/:id", apiHandler.SiswaAPIHandler.History)
 		siswa.GET("/", apiHandler.SiswaAPIHandler.GetList)
 	}
 	stake := version.Group("/stake")
@@ -151,8 +173,54 @@ version := gin.Group("/api")
 		Semester.GET("/:id", apiHandler.SemesterAPIHandler.GetByID)
 		Semester.GET("/", apiHandler.SemesterAPIHandler.GetList)
 	}
-	
+	pemasukan := version.Group("/pemasukan")
+	{
+		pemasukan.Use(middleware.Auth())
+		pemasukan.GET("/", apiHandler.PemasukanAPIHandler.FindAll)
+		pemasukan.GET("/total", apiHandler.PemasukanAPIHandler.TotalKeuangan)
+		pemasukan.GET("/:id", apiHandler.PemasukanAPIHandler.GetByID)
+		pemasukan.POST("/", apiHandler.PemasukanAPIHandler.Add)
+		pemasukan.PUT("/:id", apiHandler.PemasukanAPIHandler.Update)
+		pemasukan.DELETE("/:id", apiHandler.PemasukanAPIHandler.Delete)
+		pemasukan.GET("/get", apiHandler.PemasukanAPIHandler.GetList)
 
+	}
+	pengeluaran := version.Group("/pengeluaran")
+	{
+		pengeluaran.Use(middleware.Auth())
+		pengeluaran.GET("/:id", apiHandler.PengeluaranAPIHandler.GetByID)
+		pengeluaran.POST("/", apiHandler.PengeluaranAPIHandler.Add)
+		pengeluaran.PUT("/:id", apiHandler.PengeluaranAPIHandler.Update)
+		pengeluaran.DELETE("/:id", apiHandler.PengeluaranAPIHandler.Delete)
+		pengeluaran.GET("/", apiHandler.PengeluaranAPIHandler.GetList)
+	}
+
+	kelas := version.Group("/kelas")
+	{
+		kelas.Use(middleware.Auth())
+		kelas.POST("/", apiHandler.KelasAPIHandler.AddKelas)
+		kelas.PUT("/:id", apiHandler.KelasAPIHandler.Update)
+		kelas.DELETE("/:id", apiHandler.KelasAPIHandler.Delete)
+		kelas.GET("/", apiHandler.KelasAPIHandler.GetList)
+	}
+
+	Jurusan := version.Group("/jurusan")
+	{
+		Jurusan.Use(middleware.Auth())
+		Jurusan.POST("/", apiHandler.JurusanAPIHandler.AddJurusan)
+		Jurusan.PUT("/:id", apiHandler.JurusanAPIHandler.Update)
+		Jurusan.DELETE("/:id", apiHandler.JurusanAPIHandler.Delete)
+		Jurusan.GET("/", apiHandler.JurusanAPIHandler.GetList)
+	}
+
+	Transaksi := version.Group("/transaksi")
+	{
+		Transaksi.Use(middleware.Auth())
+		Transaksi.POST("/", apiHandler.TransaksiAPIHandler.AddTransaksi)
+		Transaksi.PUT("/:id", apiHandler.TransaksiAPIHandler.Update)
+		Transaksi.DELETE("/:id", apiHandler.TransaksiAPIHandler.Delete)
+		Transaksi.GET("/", apiHandler.TransaksiAPIHandler.GetList)
+	}
 }
 return gin
 

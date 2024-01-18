@@ -14,6 +14,7 @@ type SiswaAPI interface {
 	Delete(c *gin.Context)
 	GetByID(c *gin.Context)
 	GetList(c *gin.Context)
+	History(c *gin.Context)
 }
 
 type siswaAPI struct {
@@ -152,5 +153,27 @@ func (s *siswaAPI) GetList(c *gin.Context) {
 		})
 		return
 	}
+	c.JSON(200, result)
+}
+
+func (s *siswaAPI) History(c *gin.Context) {
+
+	siswaID, err := strconv.Atoi(c.Param("id"))
+	
+	if err != nil {
+		c.JSON(400, gin.H{
+			"message" : "invalid request body",
+		})
+		return
+	}
+
+	result, err := s.siswaService.HistoryPembayaranSiswa(siswaID)
+	if err != nil {
+		c.JSON(500, gin.H{
+			"message" : "internal server error",
+		})
+		return
+	}
+
 	c.JSON(200, result)
 }

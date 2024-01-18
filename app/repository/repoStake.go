@@ -9,8 +9,8 @@ type StakeholderRepository interface {
 	Store(Stakeholder *models.Stakeholder) error
 	Update(id int, Stakeholder models.Stakeholder) error
 	Delete(id int) error
-	GetByID(id int) (*models.Stakeholder, error)
-	GetList() ([]models.Stakeholder, error)
+	GetByID(id int) (*models.StakeholderResponse, error)
+	GetList() ([]models.StakeholderResponse, error)
 }
 
 type stakeholderRepository struct{
@@ -52,24 +52,52 @@ func(c *stakeholderRepository) Delete(id int) (error){
 	return nil
 }
 
-func (c *stakeholderRepository) GetList() ([]models.Stakeholder, error){
+func (c *stakeholderRepository) GetList() ([]models.StakeholderResponse, error){
 	var stake []models.Stakeholder
 
-	err := c.db.Find(&stake).Error
-
-	if err != nil{
+	err := c.db.Preload("Jabatan").Preload("Agama").Preload("Gender").Find(&stake).Error
+	if err != nil {
 		return nil, err
 	}
-	return stake, nil
+	var stakeResponse []models.StakeholderResponse
+	for _, s := range stake{
+		stakeResponse = append(stakeResponse, models.StakeholderResponse{
+			ID: s.ID,
+			Nama: s.Nama,
+			NIP: s.NIP,
+			Agama: s.Agama.Nama,
+			Gender: s.Gender.Nama,
+			Jabatan: s.Jabatan.Nama,
+			TempatLahir: s.TanggalLahir,
+			TanggalLahir: s.TanggalLahir,
+			NomorTelepon: s.NomorTelepon,
+			Email: s.Email,
+			Alamat: s.Alamat,
+		})
+	}
+	return stakeResponse, nil
 }
 
-func (c *stakeholderRepository) GetByID(id int) (*models.Stakeholder, error){
+func (c *stakeholderRepository) GetByID(id int) (*models.StakeholderResponse, error){
 	var stake models.Stakeholder
 
-	err := c.db.Where("id = ?", id).Find(&stake).Error
-
-	if err != nil{
-		return nil,  err
+	err := c.db.Preload("Jabatan").Preload("Agama").Preload("Gender").Where("id = ?", id).First(&stake).Error
+	if err != nil {
+		return nil, err
 	}
-	return &stake, nil
+
+	stakeResponse := models.StakeholderResponse{
+		ID: stake.ID,
+		Nama: stake.Nama,
+		NIP: stake.NIP,
+		Agama: stake.Agama.Nama,
+		Gender: stake.Gender.Nama,
+		Jabatan: stake.Jabatan.Nama,
+		TempatLahir: stake.TanggalLahir,
+		TanggalLahir: stake.TanggalLahir,
+		NomorTelepon: stake.NomorTelepon,
+		Email: stake.Email,
+		Alamat: stake.Alamat,
+	}
+	return &stakeResponse, nil
 }

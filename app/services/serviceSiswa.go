@@ -9,8 +9,9 @@ type SiswaServices interface {
 	Store(Siswa *models.Siswa) error
 	Update(id int, Siswa models.Siswa) error
 	Delete(id int) error
-	GetByID(id int) (*models.Siswa, error)
-	GetList() ([]models.Siswa, error)
+	GetByID(id int) (*models.SiswaResponse, error)
+	GetList() ([]models.SiswaResponse, error)
+	HistoryPembayaranSiswa(siswaID int) ([]models.HistoryPembayaran, error)
 }
 
 type siswaServices struct {
@@ -46,7 +47,7 @@ func (c *siswaServices) Delete(id int) error {
 	return nil
 }
 
-func (c *siswaServices) GetByID(id int) (*models.Siswa, error) {
+func (c *siswaServices) GetByID(id int) (*models.SiswaResponse, error) {
 	siswa, err := c.siswaRepo.GetByID(id)
 	if err != nil {
 		return nil, err
@@ -54,7 +55,7 @@ func (c *siswaServices) GetByID(id int) (*models.Siswa, error) {
 	return siswa, nil
 }
 
-func (c *siswaServices) GetList() ([]models.Siswa, error) {
+func (c *siswaServices) GetList() ([]models.SiswaResponse, error) {
 	siswas, err := c.siswaRepo.GetList()
 	if err != nil {
 		return nil, err
@@ -62,3 +63,10 @@ func (c *siswaServices) GetList() ([]models.Siswa, error) {
 	return siswas, nil
 }
 
+func (c *siswaServices) HistoryPembayaranSiswa(siswaID int) ([]models.HistoryPembayaran, error) {
+	history, err := c.siswaRepo.HistoryPembayaranSiswa(siswaID)
+	if err != nil {
+		return nil, err
+	}
+	return history, nil
+}
