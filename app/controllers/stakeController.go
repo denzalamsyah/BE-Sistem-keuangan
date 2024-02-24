@@ -1,8 +1,10 @@
 package controllers
 
 import (
+	"net/http"
 	"strconv"
 
+	"github.com/denzalamsyah/simak/app/middleware"
 	"github.com/denzalamsyah/simak/app/models"
 	"github.com/denzalamsyah/simak/app/services"
 	"github.com/gin-gonic/gin"
@@ -27,17 +29,36 @@ func NewStakeAPI(stakeRepo services.StakeholderServices) *stakeAPI{
 func (s *stakeAPI) AddStake(c *gin.Context){
 	var stake models.Stakeholder
 
-	if err := c.ShouldBindJSON(&stake); err != nil{
+	if err := c.ShouldBind(&stake); err != nil{
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
+			"error":   err.Error(),
 		})
 		return
 	}
 
-	err := s.stakeService.Store(&stake)
+	file, err := c.FormFile("file")
+    if err != nil {
+        // Jika tidak ada file yang diunggah, gunakan gambar default
+        stake.Gambar = "https://res.cloudinary.com/dgvkpzi4p/image/upload/v1706338009/149071_fxemnm.png"
+    } else {
+        // Jika ada file yang diunggah, upload ke Cloudinary dan dapatkan URL-nya
+        imageURL, err := middleware.UploadToCloudinary(file)
+        if err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{
+                "message": "failed to upload image to Cloudinary",
+                "error":   err.Error(),
+            })
+            return
+        }
+        stake.Gambar = imageURL
+    }
+
+	err = s.stakeService.Store(&stake)
 	if err != nil {
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -56,6 +77,7 @@ func (s *stakeAPI) Update(c *gin.Context){
 	if stakeID == "" {
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
+
 		})
 		return
 	}
@@ -64,26 +86,49 @@ func (s *stakeAPI) Update(c *gin.Context){
 	if err != nil {
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
+			"error":   err.Error(),
 		})
 		return
 	}
 
 	var newStake models.Stakeholder
 
-	if err := c.ShouldBindJSON(&newStake); err != nil{
+	if err := c.ShouldBind(&newStake); err != nil{
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
+			"error":   err.Error(),
 		})
 		return
 	}
 
-	newStake.ID = id
+	// newStake.ID = id
+	file, err := c.FormFile("file")
+    if err != nil && err != http.ErrMissingFile {
+        c.JSON(http.StatusBadRequest, gin.H{
+            "message": "failed to get image from form-data",
+            "error":   err.Error(),
+        })
+        return
+    }
+
+	if file != nil {
+		imageURL, err := middleware.UploadToCloudinary(file)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"message": "failed to upload image to Cloudinary",
+				"error":   err.Error(),
+			})
+			return
+		}
+		newStake.Gambar = imageURL
+	}
 
 	err = s.stakeService.Update(id, newStake)
 
 	if err != nil {
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -108,6 +153,7 @@ func (s *stakeAPI) Delete(c *gin.Context){
 	if err != nil {
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -116,6 +162,7 @@ func (s *stakeAPI) Delete(c *gin.Context){
 	if err != nil {
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -130,12 +177,14 @@ func (s *stakeAPI) GetByID(c *gin.Context){
 	if stakeID == 0 {
 		c.JSON(400, gin.H{
 			"message" : "data notfound",
+			"error":   err.Error(),
 		})
 		return
 	}
 	if err != nil {
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -144,6 +193,7 @@ func (s *stakeAPI) GetByID(c *gin.Context){
 	if err != nil {
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -157,6 +207,7 @@ func (s *stakeAPI) GetList(c *gin.Context){
 	if err != nil {
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
+			"error":   err.Error(),
 		})
 		return
 	}

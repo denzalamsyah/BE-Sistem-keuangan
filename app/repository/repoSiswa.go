@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"fmt"
+
 	"github.com/denzalamsyah/simak/app/models"
 	"gorm.io/gorm"
 )
@@ -21,16 +23,17 @@ type siswaRepository struct{
 func NewSiswaRepo(db *gorm.DB) *siswaRepository {
 	return &siswaRepository{db}
 }
-func (c *siswaRepository) Store(Siswa *models.Siswa) error {
-	err := c.db.Create(Siswa).Error
-	if err != nil {
-		return err
+
+func (c *siswaRepository) Store(siswa *models.Siswa) error {
+	if err := c.db.Create(siswa).Error; err != nil {
+		return fmt.Errorf("failed to store new siswa: %v", err)
 	}
+
 	return nil
 }
 
 func (c *siswaRepository) Update(id int, Siswa models.Siswa) error {
-	err := c.db.Model(&Siswa).Where("id = ?", id).Updates(&Siswa).Error
+	err := c.db.Model(&models.Siswa{}).Where("id = ?", id).Updates(&Siswa).Error
 	if err != nil {
 		return err
 	}
@@ -65,9 +68,11 @@ func (c *siswaRepository) GetByID(id int) (*models.SiswaResponse, error) {
 		Gender:       siswa.Gender.Nama,
 		NamaAyah:     siswa.NamaAyah,
 		NamaIbu:      siswa.NamaIbu,
+		Angkatan:     siswa.Angkatan,
 		NomorTelepon: siswa.NomorTelepon,
 		Email:        siswa.Email,
 		Alamat:       siswa.Alamat,
+		Gambar:       siswa.Gambar,
 	}
 
 	return &siswaResponse, nil
@@ -94,9 +99,11 @@ func (c *siswaRepository) GetList() ([]models.SiswaResponse, error) {
 			Gender:       s.Gender.Nama,
 			NamaAyah:     s.NamaAyah,
 			NamaIbu:      s.NamaIbu,
+			Angkatan:     s.Angkatan,
 			NomorTelepon: s.NomorTelepon,
 			Email:        s.Email,
 			Alamat:       s.Alamat,
+			Gambar:       s.Gambar,
 		})
 	}
 	return SiswaResponse, nil

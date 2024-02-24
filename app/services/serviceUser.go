@@ -10,6 +10,7 @@ import (
 )
 
 type UserService interface {
+	Register(user *models.User) (models.User, error)
 	Login(user *models.User) (token *string, err error)
 }
 
@@ -22,6 +23,25 @@ func NewUserService(userRepository repository.UserRepository, sessionsRepo repos
 	return &userService{userRepository, sessionsRepo}
 }
 
+func (s *userService) Register(user *models.User) (models.User, error) {
+	dbUser, err := s.userRepo.GetUserByEmail(user.Email)
+	if err != nil {
+		return *user, err
+	}
+
+	if dbUser.Email != "" || dbUser.ID != 0 {
+		return *user, errors.New("email already exists")
+	}
+
+	user.CreatedAt = time.Now()
+
+	newUser, err := s.userRepo.CreateUser(*user)
+	if err != nil {
+		return *user, err
+	}
+
+	return newUser, nil
+}
 func (s *userService) Login(user *models.User) (token *string, err error) {
 	dbUser, err := s.userRepo.GetUserByEmail(user.Email)
 	if err != nil {

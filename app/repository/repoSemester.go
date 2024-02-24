@@ -50,52 +50,66 @@ func (c *semesterRepository) Store(PembayaranSemester *models.PembayaranSemester
 }
 
 func (c *semesterRepository) Update(id int, PembayaranSemester models.PembayaranSemester) error {
-	tx := c.db.Begin()
-	var pembayaranSemester models.PembayaranSemester
+    tx := c.db.Begin()
+    var pembayaranSemester models.PembayaranSemester
 
-	if err := tx.Where("id = ?", id).First(&pembayaranSemester).Error; err != nil {
-		tx.Rollback()
-		return err
-	}
+    // Mengambil data PembayaranSemester yang akan diupdate
+    if err := tx.Where("id = ?", id).First(&pembayaranSemester).Error; err != nil {
+        tx.Rollback()
+        return err
+    }
 
-	if err := tx.Model(&pembayaranSemester).Updates(&PembayaranSemester).Error; err != nil {
-		tx.Rollback()
-		return err
-	}
+    // Memperbarui data PembayaranSemester dengan nilai baru
+    if err := tx.Model(&pembayaranSemester).Updates(&PembayaranSemester).Error; err != nil {
+        tx.Rollback()
+        return err
+    }
 
-	if err := tx.Model(&models.Pemasukan{}).
-	Where("id_bayar = ?", pembayaranSemester.ID).
-	Updates(map[string]interface{}{
-		"nama":    pembayaranSemester.Transaksi,
-		"tanggal": pembayaranSemester.Tanggal,
-		"jumlah":  pembayaranSemester.Jumlah,
-	}).Error; err != nil {
-		tx.Rollback()
-		return err
-	}
-	return tx.Commit().Error
+    // Mengambil data Transaksi untuk mendapatkan nilai nama transaksi
+    var transaksi models.Transaksi
+    if err := tx.First(&transaksi, pembayaranSemester.TransaksiID).Error; err != nil {
+        tx.Rollback()
+        return err
+    }
+
+    // Memperbarui data Pemasukan yang terkait dengan PembayaranSemester
+    if err := tx.Model(&models.Pemasukan{}).
+        Where("id_bayar = ?", pembayaranSemester.ID).
+        Updates(map[string]interface{}{
+            "nama":    transaksi.Nama,
+            "tanggal": pembayaranSemester.Tanggal,
+            "jumlah":  pembayaranSemester.Jumlah,
+        }).Error; err != nil {
+        tx.Rollback()
+        return err
+    }
+
+    return tx.Commit().Error
 }
 
+
 func (c *semesterRepository) Delete(id int) error {
-	tx := c.db.Begin()
+    tx := c.db.Begin()
 
-	var pembayaranSemester models.PembayaranSemester
+    var pembayaranSemester models.PembayaranSemester
 
-	if err := tx.Where("id = ?", id).First(&pembayaranSemester).Error; err != nil {
-		tx.Rollback()
-		return err
-	}
+    if err := tx.Where("id = ?", id).First(&pembayaranSemester).Error; err != nil {
+        tx.Rollback()
+        return err
+    }
 
-	if err := tx.Delete(&pembayaranSemester).Error; err != nil {
-		tx.Rollback()
-		return err
-	}
+    if err := tx.Delete(&pembayaranSemester).Error; err != nil {
+        tx.Rollback()
+        return err
+    }
 
-	if err := tx.Where("nama = ? AND tanggal = ? AND jumlah = ? AND id_bayar = ?", pembayaranSemester.Transaksi, pembayaranSemester.Tanggal, pembayaranSemester.Jumlah, pembayaranSemester.ID).Delete(&models.Pemasukan{}).Error; err != nil {
-		tx.Rollback()
-		return err
-	}
-	return tx.Commit().Error
+    // Hapus data pembayaran yang terkait dengan pembayaran semester
+    if err := tx.Where("id_bayar = ?", pembayaranSemester.ID).Delete(&models.Pemasukan{}).Error; err != nil {
+        tx.Rollback()
+        return err
+    }
+
+    return tx.Commit().Error
 }
 
 

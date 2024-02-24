@@ -1,6 +1,8 @@
 package models
 
-import "time"
+import (
+	"time"
+)
 
 type Credential struct {
 	Host         string
@@ -12,23 +14,25 @@ type Credential struct {
 }
 type Siswa struct {
 	ID           int    `gorm:"primaryKey" json:"id"`
-	Nama         string `gorm:"type:varchar(35)" json:"nama"`
-	NISN         int    `json:"nisn"`
-	KelasID      int    `gorm:"foreignKey:FkId_kelas;references:IDKelas" json:"id_kelas"`
+	Nama         string `gorm:"type:varchar(35)" json:"nama" form:"nama"`
+	NISN         int    `json:"nisn" form:"nisn"`
+	KelasID      int    `gorm:"foreignKey:FkId_kelas;references:IDKelas" json:"id_kelas" form:"id_kelas"`
 	Kelas        Kelas  `json:"kelas"`
-	JurusanID    int    `gorm:"foreignKey:FkId_jurusan;references:IDJurusan" json:"id_jurusan"`
+	JurusanID    int    `gorm:"foreignKey:FkId_jurusan;references:IDJurusan" json:"id_jurusan" form:"id_jurusan"`
 	Jurusan      Jurusan  `json:"jurusan"`
-	AgamaID      int    `gorm:"foreignKey:FkId_agama;references:IDAgama" json:"id_agama"`
+	AgamaID      int    `gorm:"foreignKey:FkId_agama;references:IDAgama" json:"id_agama" form:"id_agama"`
 	Agama        Agama  `json:"agama"`
-	TempatLahir  string `gorm:"type:varchar(15)" json:"tempat_lahir"`
-	TanggalLahir string `json:"tanggal_lahir"`
-	GenderID     int    `gorm:"foreignKey:FkId_gender;references:IDGender" json:"id_gender"`
+	TempatLahir  string `gorm:"type:varchar(15)" json:"tempat_lahir" form:"tempat_lahir"`
+	TanggalLahir string `json:"tanggal_lahir" form:"tanggal_lahir"`
+	GenderID     int    `gorm:"foreignKey:FkId_gender;references:IDGender" json:"id_gender" form:"id_gender"`	
 	Gender       Gender `json:"gender"`
-	NamaAyah     string `gorm:"type:varchar(35)" json:"nama_ayah"`
-	NamaIbu      string `gorm:"type:varchar(35)" json:"nama_ibu"`
-	NomorTelepon int    `json:"nomor_telepon"`
-	Email        string `gorm:"type:varchar(35)" json:"email"`
-	Alamat       string `gorm:"type:varchar(100)" json:"alamat"`
+	NamaAyah     string `gorm:"type:varchar(35)" json:"nama_ayah" form:"nama_ayah"`
+	NamaIbu      string `gorm:"type:varchar(35)" json:"nama_ibu" form:"nama_ibu"`
+	NomorTelepon int    `json:"nomor_telepon" form:"nomor_telepon"`
+	Angkatan     string `json:"angkatan" form:"angkatan"`
+	Email        string `gorm:"type:varchar(35)" json:"email" form:"email"`
+	Alamat       string `gorm:"type:varchar(100)" json:"alamat" form:"alamat"`
+	Gambar string `gorm:"type:varchar(255)" json:"gambar" form:"gambar"`
 }
 
 
@@ -57,11 +61,11 @@ type PembayaranSPP struct {
     ID         int         `gorm:"primaryKey" json:"id"`
     SiswaID    int         `gorm:"foreignKey:FkId_siswa;references:ID" json:"id_siswa"`
     Siswa      Siswa       `json:"siswa"`
-	TransaksiID    int         `gorm:"foreignKey:FkId_transaksi;references:ID" json:"id_transaksi"`
+	TransaksiID    int      `gorm:"foreignKey:FkId_transaksi;references:ID" json:"id_transaksi"`
 	Transaksi  Transaksi   `json:"transaksi"`
 	Bulan      string      `gorm:"type:varchar(35)" json:"bulan"`
 	Semester    string      `gorm:"type:varchar(35)" json:"semester"`
-	TahunAjar   string   `json:"tahun_ajar"`
+	TahunAjar   string   	`json:"tahun_ajar"`
     Tanggal    string      `json:"tanggal"`
     Jumlah     int         `json:"total_jumlah"`
     PenerimaID int         `gorm:"foreignKey:FkId_stakeholder;references:ID" json:"id_penerima"`
@@ -92,19 +96,20 @@ type Transaksi struct {
 }
 type Stakeholder struct {
 	ID           int    `gorm:"primaryKey" json:"id"`
-	Nama         string `gorm:"type:varchar(35)" json:"nama"`
-	NIP          int    `json:"nip"`
-	AgamaID      int    `gorm:"foreignKey:FkId_agama;references:IDAgama" json:"id_agama"`
+	Nama         string `gorm:"type:varchar(35)" json:"nama" form:"nama"`
+	NIP          int    `json:"nip" form:"nip"`
+	AgamaID      int    `gorm:"foreignKey:FkId_agama;references:IDAgama" json:"id_agama" form:"id_agama"`
 	Agama        Agama  `json:"agama"`
-	JabatanID    int    `gorm:"foreignKey:FkId_jabatan;references:IDJabatan" json:"id_jabatan"`
+	JabatanID    int    `gorm:"foreignKey:FkId_jabatan;references:IDJabatan" json:"id_jabatan " form:"id_jabatan"`
 	Jabatan      Jabatan  `json:"jabatan"`
-	TempatLahir  string `gorm:"type:varchar(15)" json:"tempat_lahir"`
-	TanggalLahir string `json:"tanggal_lahir"`
-	GenderID     int    `gorm:"foreignKey:FkId_gender;references:IDGender" json:"id_gender"`
+	TempatLahir  string `gorm:"type:varchar(15)" json:"tempat_lahir" form:"tempat_lahir"`
+	TanggalLahir string `json:"tanggal_lahir" form:"tanggal_lahir"`
+	GenderID     int    `gorm:"foreignKey:FkId_gender;references:IDGender" json:"id_gender" form:"id_gender"`
 	Gender       Gender `json:"gender"`
-	NomorTelepon int    `json:"nomor_telepon"`
-	Email        string `gorm:"type:varchar(35)" json:"email"`
-	Alamat       string `gorm:"type:varchar(100)" json:"alamat"`
+	NomorTelepon int    `json:"nomor_telepon" form:"nomor_telepon"`
+	Email        string `gorm:"type:varchar(35)" json:"email" form:"email"`
+	Alamat       string `gorm:"type:varchar(100)" json:"alamat" form:"alamat"`
+	Gambar string `gorm:"type:varchar(255)" json:"gambar" form:"gambar"`
 }
 
 type Login struct {
@@ -140,6 +145,10 @@ type UserLogin struct {
 	Password string `json:"password" binding:"required"`
 }
 
+type UserRegister struct {
+	Email    string `json:"email" binding:"required"`
+	Password string `json:"password" binding:"required"`
+}
 type User struct {
 	ID        int       `gorm:"primaryKey" json:"id"`
 	Email     string    `json:"email" gorm:"type:varchar(255);not null"`

@@ -30,6 +30,7 @@ func (a *kelasAPI) AddKelas(c *gin.Context) {
 	if err := c.ShouldBindJSON(&newKelas); err != nil {
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -38,6 +39,7 @@ func (a *kelasAPI) AddKelas(c *gin.Context) {
 	if err != nil {
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -63,6 +65,7 @@ func (a *kelasAPI) Update(c *gin.Context) {
 	if err != nil {
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -72,6 +75,7 @@ func (a *kelasAPI) Update(c *gin.Context) {
 	if err := c.ShouldBindJSON(&newKelas); err != nil {
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -82,6 +86,7 @@ func (a *kelasAPI) Update(c *gin.Context) {
 	if err != nil {
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -107,6 +112,7 @@ func (a *kelasAPI) Delete(c *gin.Context) {
 	if err != nil {
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -116,12 +122,14 @@ func (a *kelasAPI) Delete(c *gin.Context) {
 		
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
+			"error":   err.Error(),
 		})
 		return
 	}
 
 	c.JSON(200, gin.H{
 		"message" : "success delete kelas",
+	
 	})
 }
 
@@ -131,6 +139,7 @@ func (a *kelasAPI) GetList(c *gin.Context) {
 	if err != nil {
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
+			"error":   err.Error(),
 		})
 		return
 	}

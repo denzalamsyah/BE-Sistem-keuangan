@@ -7,10 +7,10 @@ import (
 
 	"github.com/denzalamsyah/simak/app/controllers"
 	"github.com/denzalamsyah/simak/app/initializers"
-	"github.com/denzalamsyah/simak/app/middleware"
 	"github.com/denzalamsyah/simak/app/models"
 	"github.com/denzalamsyah/simak/app/repository"
 	"github.com/denzalamsyah/simak/app/services"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -126,17 +126,27 @@ func RunServer(db *gorm.DB,  gin *gin.Engine) *gin.Engine{
 	JurusanAPIHandler: jurusanAPI,
 	TransaksiAPIHandler: transaksiAPI,
 }
+
+gin.Use(cors.New(cors.Config{
+	AllowOrigins:     []string{"*"},
+	AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+	AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type", "Authorization"},
+	AllowCredentials: true,
+	MaxAge:           12 * time.Hour,
+}))
 	
 version := gin.Group("/api")
 {
 	user := version.Group("/user")
 		{
 			user.POST("/login", apiHandler.UserAPIHandler.Login)
-			user.Use(middleware.Auth())
+			user.POST("/register", apiHandler.UserAPIHandler.Register)
+			// user.Use(middleware.Auth())
+			
 		}
 	siswa := version.Group("/siswa")
 	{
-		siswa.Use(middleware.Auth())
+		// siswa.Use(middleware.Auth())
 		siswa.POST("/", apiHandler.SiswaAPIHandler.AddSiswa)
 		siswa.PUT("/:id", apiHandler.SiswaAPIHandler.Update)
 		siswa.DELETE("/:id", apiHandler.SiswaAPIHandler.Delete)
@@ -146,7 +156,7 @@ version := gin.Group("/api")
 	}
 	stake := version.Group("/stake")
 	{
-		stake.Use(middleware.Auth())
+		// stake.Use(middleware.Auth())
 		stake.POST("/", apiHandler.StakeAPIHandler.AddStake)
 		stake.PUT("/:id", apiHandler.StakeAPIHandler.Update)
 		stake.DELETE("/:id", apiHandler.StakeAPIHandler.Delete)
@@ -156,7 +166,7 @@ version := gin.Group("/api")
 
 	Spp := version.Group("/spp")
 	{
-		Spp.Use(middleware.Auth())
+		// Spp.Use(middleware.Auth())
 		Spp.POST("/", apiHandler.SppAPIHandler.AddSPP)
 		Spp.PUT("/:id", apiHandler.SppAPIHandler.Update)
 		Spp.DELETE("/:id", apiHandler.SppAPIHandler.Delete)
@@ -166,7 +176,7 @@ version := gin.Group("/api")
 	
 	Semester := version.Group("/semester")
 	{
-		Semester.Use(middleware.Auth())
+		// Semester.Use(middleware.Auth())
 		Semester.POST("/", apiHandler.SemesterAPIHandler.AddSemester)
 		Semester.PUT("/:id", apiHandler.SemesterAPIHandler.Update)
 		Semester.DELETE("/:id", apiHandler.SemesterAPIHandler.Delete)
@@ -175,7 +185,7 @@ version := gin.Group("/api")
 	}
 	pemasukan := version.Group("/pemasukan")
 	{
-		pemasukan.Use(middleware.Auth())
+		// pemasukan.Use(middleware.Auth())
 		pemasukan.GET("/", apiHandler.PemasukanAPIHandler.FindAll)
 		pemasukan.GET("/total", apiHandler.PemasukanAPIHandler.TotalKeuangan)
 		pemasukan.GET("/:id", apiHandler.PemasukanAPIHandler.GetByID)
@@ -187,7 +197,7 @@ version := gin.Group("/api")
 	}
 	pengeluaran := version.Group("/pengeluaran")
 	{
-		pengeluaran.Use(middleware.Auth())
+		// pengeluaran.Use(middleware.Auth())
 		pengeluaran.GET("/:id", apiHandler.PengeluaranAPIHandler.GetByID)
 		pengeluaran.POST("/", apiHandler.PengeluaranAPIHandler.Add)
 		pengeluaran.PUT("/:id", apiHandler.PengeluaranAPIHandler.Update)
@@ -197,7 +207,7 @@ version := gin.Group("/api")
 
 	kelas := version.Group("/kelas")
 	{
-		kelas.Use(middleware.Auth())
+		// kelas.Use(middleware.Auth())
 		kelas.POST("/", apiHandler.KelasAPIHandler.AddKelas)
 		kelas.PUT("/:id", apiHandler.KelasAPIHandler.Update)
 		kelas.DELETE("/:id", apiHandler.KelasAPIHandler.Delete)
@@ -206,7 +216,7 @@ version := gin.Group("/api")
 
 	Jurusan := version.Group("/jurusan")
 	{
-		Jurusan.Use(middleware.Auth())
+		// Jurusan.Use(middleware.Auth())
 		Jurusan.POST("/", apiHandler.JurusanAPIHandler.AddJurusan)
 		Jurusan.PUT("/:id", apiHandler.JurusanAPIHandler.Update)
 		Jurusan.DELETE("/:id", apiHandler.JurusanAPIHandler.Delete)
@@ -215,7 +225,7 @@ version := gin.Group("/api")
 
 	Transaksi := version.Group("/transaksi")
 	{
-		Transaksi.Use(middleware.Auth())
+		// Transaksi.Use(middleware.Auth())
 		Transaksi.POST("/", apiHandler.TransaksiAPIHandler.AddTransaksi)
 		Transaksi.PUT("/:id", apiHandler.TransaksiAPIHandler.Update)
 		Transaksi.DELETE("/:id", apiHandler.TransaksiAPIHandler.Delete)

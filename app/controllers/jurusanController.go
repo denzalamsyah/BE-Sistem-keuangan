@@ -32,6 +32,7 @@ func (a *jurusanAPI) AddJurusan(c *gin.Context) {
 	if err := c.ShouldBindJSON(&newJurusan); err != nil {
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -40,6 +41,7 @@ func (a *jurusanAPI) AddJurusan(c *gin.Context) {
 	if err != nil {
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -65,6 +67,7 @@ func (a *jurusanAPI) Update(c *gin.Context) {
 	if err != nil {
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -74,6 +77,7 @@ func (a *jurusanAPI) Update(c *gin.Context) {
 	if err := c.ShouldBindJSON(&newJurusan); err != nil {
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -84,6 +88,7 @@ func (a *jurusanAPI) Update(c *gin.Context) {
 	if err != nil {
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -109,6 +114,7 @@ func (a *jurusanAPI) Delete(c *gin.Context) {
 	if err != nil {
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -117,6 +123,7 @@ func (a *jurusanAPI) Delete(c *gin.Context) {
 	if err != nil {
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -132,6 +139,7 @@ func (a *jurusanAPI) GetList(c *gin.Context) {
 	if err != nil {
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
+			"error":   err.Error(),
 		})
 		return
 	}

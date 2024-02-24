@@ -30,6 +30,7 @@ func (a *transaksiAPI) AddTransaksi(c *gin.Context) {
 	if err := c.ShouldBindJSON(&newTransaksi); err != nil {
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -38,6 +39,7 @@ func (a *transaksiAPI) AddTransaksi(c *gin.Context) {
 	if err != nil {
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -63,6 +65,7 @@ func (a *transaksiAPI) Update(c *gin.Context) {
 	if err != nil {
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -72,6 +75,7 @@ func (a *transaksiAPI) Update(c *gin.Context) {
 	if err := c.ShouldBindJSON(&newTransaksi); err != nil {
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -82,6 +86,7 @@ func (a *transaksiAPI) Update(c *gin.Context) {
 	if err != nil {
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -108,6 +113,7 @@ func (a *transaksiAPI) Delete(c *gin.Context) {
 	if err != nil {
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -117,6 +123,7 @@ func (a *transaksiAPI) Delete(c *gin.Context) {
 	if err != nil {
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -132,6 +139,7 @@ func (a *transaksiAPI) GetList(c *gin.Context) {
 	if err != nil {
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
+			"error":   err.Error(),
 		})
 		return
 	}

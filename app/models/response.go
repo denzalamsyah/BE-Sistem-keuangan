@@ -13,8 +13,10 @@ type SiswaResponse struct {
 	NamaAyah     string `gorm:"type:varchar(35)" json:"nama_ayah"`
 	NamaIbu      string `gorm:"type:varchar(35)" json:"nama_ibu"`
 	NomorTelepon int    `json:"nomor_telepon"`
+	Angkatan     string `json:"angkatan" form:"angkatan"`
 	Email        string `gorm:"type:varchar(35)" json:"email"`
 	Alamat       string `gorm:"type:varchar(100)" json:"alamat"`
+	Gambar       string `gorm:"type:varchar(100)" json:"gambar"`
 }
 
 type StakeholderResponse struct {
@@ -29,6 +31,7 @@ type StakeholderResponse struct {
 	NomorTelepon int    `json:"nomor_telepon"`
 	Email        string `gorm:"type:varchar(35)" json:"email"`
 	Alamat       string `gorm:"type:varchar(100)" json:"alamat"`
+	Gambar       string `gorm:"type:varchar(100)" json:"gambar"`
 }
 type HistoryPembayaran struct {
 	Siswa          string `json:"siswa"`

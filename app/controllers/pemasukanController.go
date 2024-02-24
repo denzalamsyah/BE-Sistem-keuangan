@@ -44,6 +44,7 @@ func (s *pemasukanAPI) Add(c *gin.Context) {
 	if err := c.ShouldBindJSON(&newPemasukan); err != nil {
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -51,6 +52,7 @@ func (s *pemasukanAPI) Add(c *gin.Context) {
 	if err != nil {
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -75,6 +77,7 @@ func (s *pemasukanAPI) Update(c *gin.Context) {
 	if err != nil {
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -84,6 +87,7 @@ func (s *pemasukanAPI) Update(c *gin.Context) {
 	if err := c.ShouldBindJSON(&newPemasukan); err != nil {
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -94,6 +98,7 @@ func (s *pemasukanAPI) Update(c *gin.Context) {
 	if err != nil {
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -118,6 +123,7 @@ func (s *pemasukanAPI) Delete(c *gin.Context) {
 	if err != nil {
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -126,6 +132,7 @@ func (s *pemasukanAPI) Delete(c *gin.Context) {
 	if err != nil {
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -150,6 +157,7 @@ func (s *pemasukanAPI) GetByID(c *gin.Context) {
 	if err != nil {
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -159,6 +167,7 @@ func (s *pemasukanAPI) GetByID(c *gin.Context) {
 	if err != nil {
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -171,6 +180,7 @@ func (s *pemasukanAPI) GetList(c *gin.Context) {
 	if err != nil {
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -182,6 +192,7 @@ func (s *pemasukanAPI) TotalKeuangan(c *gin.Context) {
 	if err != nil {
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
+			"error":   err.Error(),
 		})
 		return
 	}

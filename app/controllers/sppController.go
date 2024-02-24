@@ -30,6 +30,7 @@ func (s *sppAPI) AddSPP(c *gin.Context) {
 	if err := c.ShouldBindJSON(&newPembayaranSPP); err != nil{
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -38,6 +39,7 @@ func (s *sppAPI) AddSPP(c *gin.Context) {
 	if err != nil {
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -63,6 +65,7 @@ func (s *sppAPI) Update(c *gin.Context) {
 	if err != nil {
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -71,6 +74,7 @@ func (s *sppAPI) Update(c *gin.Context) {
 	if err := c.ShouldBindJSON(&newPembayaranSPP); err != nil{
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -80,6 +84,7 @@ func (s *sppAPI) Update(c *gin.Context) {
 	if err != nil {
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -97,6 +102,7 @@ func (s *sppAPI) Delete(c *gin.Context) {
 	if PembayaranSPPID == "" {
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
+			
 		})
 		return
 	}
@@ -105,6 +111,7 @@ func (s *sppAPI) Delete(c *gin.Context) {
 	if err != nil {
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -113,6 +120,7 @@ func (s *sppAPI) Delete(c *gin.Context) {
 	if err != nil {
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -129,6 +137,7 @@ func (s *sppAPI) GetByID(c *gin.Context) {
 	if err != nil {
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -137,6 +146,7 @@ func (s *sppAPI) GetByID(c *gin.Context) {
 	if err != nil {
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -149,6 +159,7 @@ func (s *sppAPI) GetList(c *gin.Context) {
 	if err != nil {
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
+			"error":   err.Error(),
 		})
 		return
 	}

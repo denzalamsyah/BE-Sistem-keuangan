@@ -1,8 +1,11 @@
 package controllers
 
 import (
+	"log"
+	"net/http"
 	"strconv"
 
+	"github.com/denzalamsyah/simak/app/middleware"
 	"github.com/denzalamsyah/simak/app/models"
 	"github.com/denzalamsyah/simak/app/services"
 	"github.com/gin-gonic/gin"
@@ -26,71 +29,116 @@ func NewSiswaAPI(siswaRepo services.SiswaServices) *siswaAPI {
 }
 
 func (s *siswaAPI) AddSiswa(c *gin.Context) {
-	var newSiswa models.Siswa
+    var newSiswa models.Siswa
 
-	if err := c.ShouldBindJSON(&newSiswa); err != nil{
-		c.JSON(400, gin.H{
-			"message" : "invalid request body",
-		})
-		return
-	}
+    err := c.ShouldBind(&newSiswa)
+    if err != nil {
+		log.Printf("Error: %v", err)
+        c.JSON(http.StatusBadRequest, gin.H{
+            "message": "invalid request body",
+            "error":   err.Error(),
+        })
+        return
+    }
 
-	err := s.siswaService.Store(&newSiswa)
-	if err != nil {
-		c.JSON(500, gin.H{
-			"message" : "internal server error",
-		})
-		return
-	}
+    file, err := c.FormFile("file")
+    if err != nil {
+        // Jika tidak ada file yang diunggah, gunakan gambar default
+        newSiswa.Gambar = "https://res.cloudinary.com/dgvkpzi4p/image/upload/v1706338009/149071_fxemnm.png"
+    } else {
+        // Jika ada file yang diunggah, upload ke Cloudinary dan dapatkan URL-nya
+        imageURL, err := middleware.UploadToCloudinary(file)
+        if err != nil {
+			log.Printf("Error: %v", err)
+            c.JSON(http.StatusInternalServerError, gin.H{
+                "message": "failed to upload image to Cloudinary",
+                "error":   err.Error(),
+            })
+            return
+        }
+        newSiswa.Gambar = imageURL
+    }
+    err = s.siswaService.Store(&newSiswa)
+    if err != nil {
+		log.Printf("Error: %v", err)
+        c.JSON(http.StatusInternalServerError, gin.H{
+            "message": "internal server error",
+            "error":   err.Error(),
+        })
+        return
+    }
 
-	c.JSON(200, gin.H{
-		"message" : "success create new siswa",
-		"data" : newSiswa,
-	})
+    c.JSON(http.StatusOK, gin.H{
+        "message": "success create new siswa",
+        "data":    newSiswa,
+    })
 }
 
 func (s *siswaAPI) Update(c *gin.Context) {
+    siswaID := c.Param("id")
 
-	siswaID := c.Param("id")
-	
-	if siswaID == "" {
-		c.JSON(400, gin.H{
-			"message" : "invalid request body",
-		})
-		return
-	}
+    if siswaID == "" {
+        c.JSON(http.StatusBadRequest, gin.H{
+            "message": "invalid request body",
+        })
+        return
+    }
 
-	id, err := strconv.Atoi(siswaID)
-	if err != nil {
-		c.JSON(400, gin.H{
-			"message" : "invalid request body",
-		})
-		return
-	}
-	var newSiswa models.Siswa
+    id, err := strconv.Atoi(siswaID)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{
+            "message": "invalid request body",
+        })
+        return
+    }
 
-	if err := c.ShouldBindJSON(&newSiswa); err != nil{
-		c.JSON(400, gin.H{
-			"message" : "invalid request body",
-		})
-		return
-	}
+    var existingSiswa models.Siswa
+    if err := c.ShouldBind(&existingSiswa); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{
+            "message": "invalid request body",
+            "error":   err.Error(),
+        })
+        return
+    }
 
-	newSiswa.ID = id
-	err = s.siswaService.Update(id, newSiswa)
-	if err != nil {
-		c.JSON(500, gin.H{
-			"message" : "internal server error",
-		})
-		return
-	}
+    // Jika ada file yang diunggah, perbarui gambar siswa
+    file, err := c.FormFile("file")
+    if err != nil && err != http.ErrMissingFile {
+        c.JSON(http.StatusBadRequest, gin.H{
+            "message": "failed to get image from form-data",
+            "error":   err.Error(),
+        })
+        return
+    }
 
-	c.JSON(200, gin.H{
-		"message" : "success update siswa",
-		"data" : newSiswa,
-	})
-	
+    if file != nil {
+        imageURL, err := middleware.UploadToCloudinary(file)
+        if err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{
+                "message": "failed to upload image to Cloudinary",
+                "error":   err.Error(),
+            })
+            return
+        }
+        existingSiswa.Gambar = imageURL
+    }
+
+    // Lakukan pembaruan data siswa di database
+    err = s.siswaService.Update(id, existingSiswa)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{
+            "message": "internal server error",
+            "error":   err.Error(),
+        })
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{
+        "message": "success update siswa",
+        "data":    existingSiswa,
+    })
 }
+
 func (s *siswaAPI) Delete(c *gin.Context) {
 
 	siswaID := c.Param("id")

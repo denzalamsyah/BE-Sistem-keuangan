@@ -30,6 +30,7 @@ func (s *pengeluaranAPI) Add(c *gin.Context) {
 	if err := c.ShouldBindJSON(&newPengeluaran); err != nil {
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -37,6 +38,7 @@ func (s *pengeluaranAPI) Add(c *gin.Context) {
 	if err != nil {
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -61,6 +63,7 @@ func (s *pengeluaranAPI) Update(c *gin.Context) {
 	if err != nil {
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -70,6 +73,7 @@ func (s *pengeluaranAPI) Update(c *gin.Context) {
 	if err := c.ShouldBindJSON(&newPengeluaran); err != nil {
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -80,6 +84,7 @@ func (s *pengeluaranAPI) Update(c *gin.Context) {
 	if err != nil {
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -104,6 +109,7 @@ func (s *pengeluaranAPI) Delete(c *gin.Context) {
 	if err != nil {
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -112,6 +118,7 @@ func (s *pengeluaranAPI) Delete(c *gin.Context) {
 	if err != nil {
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -127,6 +134,7 @@ func (s *pengeluaranAPI) GetByID(c *gin.Context) {
 	if PengeluaranID == "" {
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
+			
 		})
 		return
 	}
@@ -136,6 +144,7 @@ func (s *pengeluaranAPI) GetByID(c *gin.Context) {
 	if err != nil {
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -145,6 +154,7 @@ func (s *pengeluaranAPI) GetByID(c *gin.Context) {
 	if err != nil {
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -157,6 +167,7 @@ func (s *pengeluaranAPI) GetList(c *gin.Context) {
 	if err != nil {
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
+			"error":   err.Error(),
 		})
 		return
 	}

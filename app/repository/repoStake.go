@@ -25,7 +25,6 @@ func NewStakeholderRepo(db *gorm.DB) *stakeholderRepository{
 
 func(c *stakeholderRepository) Store(Stakeholder *models.Stakeholder) error{
 	err := c.db.Create(Stakeholder).Error
-
 	if err != nil{
 		return err
 	}
@@ -68,11 +67,12 @@ func (c *stakeholderRepository) GetList() ([]models.StakeholderResponse, error){
 			Agama: s.Agama.Nama,
 			Gender: s.Gender.Nama,
 			Jabatan: s.Jabatan.Nama,
-			TempatLahir: s.TanggalLahir,
+			TempatLahir: s.TempatLahir,
 			TanggalLahir: s.TanggalLahir,
 			NomorTelepon: s.NomorTelepon,
 			Email: s.Email,
 			Alamat: s.Alamat,
+			Gambar: s.Gambar,
 		})
 	}
 	return stakeResponse, nil
@@ -93,11 +93,12 @@ func (c *stakeholderRepository) GetByID(id int) (*models.StakeholderResponse, er
 		Agama: stake.Agama.Nama,
 		Gender: stake.Gender.Nama,
 		Jabatan: stake.Jabatan.Nama,
-		TempatLahir: stake.TanggalLahir,
+		TempatLahir: stake.TempatLahir,
 		TanggalLahir: stake.TanggalLahir,
 		NomorTelepon: stake.NomorTelepon,
 		Email: stake.Email,
 		Alamat: stake.Alamat,
+		Gambar: stake.Gambar,
 	}
 	return &stakeResponse, nil
 }

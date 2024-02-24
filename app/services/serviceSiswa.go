@@ -23,11 +23,11 @@ func NewSiswaService(siswaRepo repository.SiswaRepository) SiswaServices {
 
 
 func (c *siswaServices) Store(siswa *models.Siswa) error {
-	err := c.siswaRepo.Store(siswa)
-	if err != nil {
-		return err
-	}
-	return nil
+    err := c.siswaRepo.Store(siswa)
+    if err != nil {
+        return err
+    }
+    return nil
 }
 
 func (c *siswaServices) Update(id int, siswa models.Siswa) error {

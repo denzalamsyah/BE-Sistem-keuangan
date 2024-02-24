@@ -24,27 +24,32 @@ func Auth() gin.HandlerFunc {
 		return
 	}
 
-	// Verifikasi token JWT
+	// fmt.Println("Session Token:", sessionToken)
+	
 	claims := &models.Claims{}
 	token, err := jwt.ParseWithClaims(sessionToken, claims, func(token *jwt.Token) (interface{}, error) {
-		return []byte(models.JwtKey), nil // Ganti dengan secret key yang sesuai
+		return []byte(models.JwtKey), nil
 	})
+	// if err != nil || !token.Valid {
+	// 	log.Println("Error parsing or validating token:", err)
+	// 	if ctx.GetHeader("Content-Type") == "application/json" {
+	// 		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+	// 			"message": "Unauthorized: Invalid session token",
+	// 		})
+	// 		return
+	// 	} else {
+	// 		ctx.AbortWithStatus(http.StatusUnauthorized)
+	// 		return
+	// 	}
+	// }
+
 	if err != nil || !token.Valid {
-		if ctx.GetHeader("Content-Type") == "application/json" {
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-				"message": "Unauthorized: Invalid session token",
-			})
-			return
-		} else {
-			ctx.AbortWithStatus(http.StatusUnauthorized)
-			return
-		}
+		ctx.AbortWithStatus(400)
+		return
 	}
 
-	// Menyimpan user ID di dalam konteks
 	ctx.Set("email", claims.Email)
 
-	// Lanjut ke middleware atau handler berikutnya
 	ctx.Next()
 	})
 }
