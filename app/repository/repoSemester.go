@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"math"
+
 	"github.com/denzalamsyah/simak/app/models"
 	"gorm.io/gorm"
 )
@@ -10,7 +12,7 @@ type SemesterRepository interface {
 	Update(id int, PembayaranSemester models.PembayaranSemester) error
 	Delete(id int) error
 	GetByID(id int) (*models.PembayaranSemesterResponse, error)
-	GetList() ([]models.PembayaranSemesterResponse, error)
+	GetList(page, pageSize int) ([]models.PembayaranSemesterResponse, int, error)
 }
 
 type semesterRepository struct{
@@ -136,12 +138,18 @@ func (c *semesterRepository) GetByID(id int) (*models.PembayaranSemesterResponse
 	return &PembayaranSemesterResponse, nil
 }
 
-func (c *semesterRepository) GetList() ([]models.PembayaranSemesterResponse, error) {
+func (c *semesterRepository) GetList(page, pageSize int) ([]models.PembayaranSemesterResponse, int, error) {
 	var PembayaranSemester []models.PembayaranSemester
-	err := c.db.Preload("Siswa").Preload("Penerima").Preload("Transaksi").Find(&PembayaranSemester).Error
+	err := c.db.Preload("Siswa").Preload("Penerima").Preload("Transaksi").
+    Offset((page - 1) * pageSize).Limit(pageSize).Find(&PembayaranSemester).Error
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
+
+    var totalData int64
+    if err := c.db.Model(&models.PembayaranSemester{}).Count(&totalData).Error; err != nil {
+        return nil, 0, err
+    }
 
 	var PembayaranSemesterResponse []models.PembayaranSemesterResponse
 	for _, s := range PembayaranSemester{
@@ -157,5 +165,7 @@ func (c *semesterRepository) GetList() ([]models.PembayaranSemesterResponse, err
 			Penerima:       s.Penerima.Nama,
 		})
 	}
-	return PembayaranSemesterResponse, nil
+	totalPage := int(math.Ceil(float64(totalData) / float64(pageSize)))
+
+	return PembayaranSemesterResponse, totalPage, nil
 }

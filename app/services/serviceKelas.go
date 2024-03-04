@@ -9,7 +9,7 @@ type KelasService interface {
 	Store(Kelas *models.Kelas) error
 	Update(id int, Kelas models.Kelas) error
 	Delete(id int) error
-	GetList() ([]models.Kelas, error)
+	GetList(page, pageSize int) ([]models.Kelas, int, error)
 }
 
 type kelasServices struct {
@@ -44,10 +44,10 @@ func (s *kelasServices) Delete(id int) error {
 	return nil
 }
 
-func (s *kelasServices) GetList() ([]models.Kelas, error) {
-	Kelas, err := s.kelasRepo.GetList()
+func (s *kelasServices) GetList(page, pageSize int) ([]models.Kelas, int, error) {
+	Kelas, totalPage, err := s.kelasRepo.GetList(page, pageSize)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
-	return Kelas, nil
+	return Kelas, totalPage, nil
 }

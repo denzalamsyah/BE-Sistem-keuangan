@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"math"
+
 	"github.com/denzalamsyah/simak/app/models"
 	"gorm.io/gorm"
 )
@@ -10,7 +12,7 @@ type StakeholderRepository interface {
 	Update(id int, Stakeholder models.Stakeholder) error
 	Delete(id int) error
 	GetByID(id int) (*models.StakeholderResponse, error)
-	GetList() ([]models.StakeholderResponse, error)
+	GetList(page, pageSize int) ([]models.StakeholderResponse, int, error)
 }
 
 type stakeholderRepository struct{
@@ -51,13 +53,20 @@ func(c *stakeholderRepository) Delete(id int) (error){
 	return nil
 }
 
-func (c *stakeholderRepository) GetList() ([]models.StakeholderResponse, error){
+func (c *stakeholderRepository) GetList(page, pageSize int) ([]models.StakeholderResponse, int, error){
 	var stake []models.Stakeholder
 
-	err := c.db.Preload("Jabatan").Preload("Agama").Preload("Gender").Find(&stake).Error
+	err := c.db.Preload("Jabatan").Preload("Agama").Preload("Gender").
+		Offset((page - 1) * pageSize).Limit(pageSize).Find(&stake).Error
 	if err != nil {
-		return nil, err
+		return nil,0, err
 	}
+
+	var totalData int64
+	if err := c.db.Model(&models.Stakeholder{}).Count(&totalData).Error; err != nil {
+		return nil, 0, err
+	}
+
 	var stakeResponse []models.StakeholderResponse
 	for _, s := range stake{
 		stakeResponse = append(stakeResponse, models.StakeholderResponse{
@@ -75,7 +84,8 @@ func (c *stakeholderRepository) GetList() ([]models.StakeholderResponse, error){
 			Gambar: s.Gambar,
 		})
 	}
-	return stakeResponse, nil
+	totalPage := int(math.Ceil(float64(totalData) / float64(pageSize)))
+	return stakeResponse, totalPage, nil
 }
 
 func (c *stakeholderRepository) GetByID(id int) (*models.StakeholderResponse, error){

@@ -1,18 +1,20 @@
 package repository
 
 import (
+	"math"
+
 	"github.com/denzalamsyah/simak/app/models"
 	"gorm.io/gorm"
 )
 
 type PemasukanRepository interface {
-	FindAll() ([]models.PemasukanResponse, error)
+	FindAll(page, pageSize int) ([]models.PemasukanResponse, int, error)
     TotalKeuangan() (int, int, int, error)
 	Store(pemasukan *models.Pemasukanlainnya) error
     Update(id int, pemasukan models.Pemasukanlainnya) error
 	Delete(id int) error
 	GetByID(id int) (*models.Pemasukanlainnya, error)
-    GetList() ([]models.Pemasukanlainnya, error)
+    GetList(page, pageSize int) ([]models.Pemasukanlainnya, int, error)
 }
 
 type pemasukanRepository struct {
@@ -111,22 +113,40 @@ func (c *pemasukanRepository) GetByID(id int) (*models.Pemasukanlainnya, error){
     return &pemasukan, nil
 }
 
-func (c *pemasukanRepository) GetList() ([]models.Pemasukanlainnya, error){
+func (c *pemasukanRepository) GetList(page, pageSize int) ([]models.Pemasukanlainnya, int, error){
     var pemasukan []models.Pemasukanlainnya
 
-    err := c.db.Find(&pemasukan).Error
+	offset := (page - 1) * pageSize
+
+
+    err := c.db.Limit(pageSize).Offset(offset).Find(&pemasukan).Error
     if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
-    return pemasukan, nil
+
+    var totalData int64
+	if err := c.db.Model(&models.Pemasukanlainnya{}).Count(&totalData).Error; err != nil {
+		return nil, 0, err
+	}
+	totalPage := int(math.Ceil(float64(totalData) / float64(pageSize)))
+
+    return pemasukan, totalPage, nil
 }
 
-func (c *pemasukanRepository) FindAll() ([]models.PemasukanResponse, error) {
+func (c *pemasukanRepository) FindAll(page, pageSize int) ([]models.PemasukanResponse, int, error) {
 	var pemasukan []models.Pemasukan
-	err := c.db.Find(&pemasukan).Error
+
+	offset := (page - 1) * pageSize
+
+    err := c.db.Limit(pageSize).Offset(offset).Find(&pemasukan).Error
 	if err != nil {
-		return nil, err
+		return nil,0, err
 	}
+
+    var totalData int64
+    if err := c.db.Model(&models.Pemasukan{}).Count(&totalData).Error; err != nil {
+        return nil, 0, err
+    }
     var pemasukanResponse []models.PemasukanResponse
     for _,s := range pemasukan{
         pemasukanResponse = append(pemasukanResponse, models.PemasukanResponse{
@@ -136,8 +156,9 @@ func (c *pemasukanRepository) FindAll() ([]models.PemasukanResponse, error) {
             Jumlah: s.Jumlah,
         })
     }
+	totalPage := int(math.Ceil(float64(totalData) / float64(pageSize)))
 
-	return pemasukanResponse, nil
+	return pemasukanResponse, totalPage, nil
 }
 func (c *pemasukanRepository) TotalKeuangan() (int, int, int, error) {
     var totalPemasukan int

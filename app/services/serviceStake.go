@@ -10,7 +10,7 @@ type StakeholderServices interface {
 	Update(id int, Stakeholder models.Stakeholder) error
 	Delete(id int)error
 	GetByID(id int) (*models.StakeholderResponse, error)
-	GetList() ([]models.StakeholderResponse, error)
+	GetList(page, pageSize int) ([]models.StakeholderResponse, int,error)
 }
 
 type stakeholderServices struct{
@@ -52,10 +52,10 @@ func (c *stakeholderServices) GetByID(id int) (*models.StakeholderResponse, erro
 	return stake, nil
 }
 
-func (c *stakeholderServices) GetList()([]models.StakeholderResponse, error){
-	stake, err := c.stakeRepo.GetList()
+func (c *stakeholderServices) GetList(page, pageSize int)([]models.StakeholderResponse, int, error){
+	stake, totalPage, err := c.stakeRepo.GetList(page, pageSize)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
-	return stake, nil
+	return stake, totalPage, nil
 }

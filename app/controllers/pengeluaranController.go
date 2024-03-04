@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"log"
 	"strconv"
 
 	"github.com/denzalamsyah/simak/app/models"
@@ -28,6 +29,8 @@ func (s *pengeluaranAPI) Add(c *gin.Context) {
 	var newPengeluaran models.Pengeluaran
 
 	if err := c.ShouldBindJSON(&newPengeluaran); err != nil {
+		log.Printf("Pesan error: %v", err)
+
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
 			"error":   err.Error(),
@@ -36,6 +39,8 @@ func (s *pengeluaranAPI) Add(c *gin.Context) {
 	}
 	err := s.pengeluaranService.Store(&newPengeluaran)
 	if err != nil {
+		log.Printf("Pesan error: %v", err)
+
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
 			"error":   err.Error(),
@@ -61,6 +66,8 @@ func (s *pengeluaranAPI) Update(c *gin.Context) {
 
 	id, err := strconv.Atoi(PengeluaranID)
 	if err != nil {
+		log.Printf("Pesan error: %v", err)
+
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
 			"error":   err.Error(),
@@ -71,6 +78,8 @@ func (s *pengeluaranAPI) Update(c *gin.Context) {
 	var newPengeluaran models.Pengeluaran
 
 	if err := c.ShouldBindJSON(&newPengeluaran); err != nil {
+		log.Printf("Pesan error: %v", err)
+
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
 			"error":   err.Error(),
@@ -82,6 +91,8 @@ func (s *pengeluaranAPI) Update(c *gin.Context) {
 
 	err = s.pengeluaranService.Update(id, newPengeluaran)
 	if err != nil {
+		log.Printf("Pesan error: %v", err)
+
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
 			"error":   err.Error(),
@@ -107,6 +118,8 @@ func (s *pengeluaranAPI) Delete(c *gin.Context) {
 
 	id, err := strconv.Atoi(PengeluaranID)
 	if err != nil {
+		log.Printf("Pesan error: %v", err)
+
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
 			"error":   err.Error(),
@@ -116,6 +129,8 @@ func (s *pengeluaranAPI) Delete(c *gin.Context) {
 
 	err = s.pengeluaranService.Delete(id)
 	if err != nil {
+		log.Printf("Pesan error: %v", err)
+
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
 			"error":   err.Error(),
@@ -142,6 +157,8 @@ func (s *pengeluaranAPI) GetByID(c *gin.Context) {
 	id, err := strconv.Atoi(PengeluaranID)
 
 	if err != nil {
+		log.Printf("Pesan error: %v", err)
+
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
 			"error":   err.Error(),
@@ -152,6 +169,8 @@ func (s *pengeluaranAPI) GetByID(c *gin.Context) {
 	result, err := s.pengeluaranService.GetByID(id)
 
 	if err != nil {
+		log.Printf("Pesan error: %v", err)
+
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
 			"error":   err.Error(),
@@ -163,13 +182,34 @@ func (s *pengeluaranAPI) GetByID(c *gin.Context) {
 }
 
 func (s *pengeluaranAPI) GetList(c *gin.Context) {
-	result, err := s.pengeluaranService.GetList()
+	page, err := strconv.Atoi(c.Query("page"))
+	if err != nil || page <= 0 {
+        page = 1
+    }
+
+	pageSize, err := strconv.Atoi(c.Query("pageSize"))
+    if err != nil || pageSize <= 0 {
+        pageSize = 3
+    }
+	result, totalPage, err := s.pengeluaranService.GetList(page, pageSize)
 	if err != nil {
+		log.Printf("Pesan error: %v", err)
+
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
 			"error":   err.Error(),
 		})
 		return
 	}
-	c.JSON(200, result)
+	meta := gin.H{
+        "current_page": page,
+        "total_pages":  totalPage,
+    }
+
+    response := gin.H{
+        "data": result,
+        "meta": meta,
+    }
+
+    c.JSON(200, response)
 }

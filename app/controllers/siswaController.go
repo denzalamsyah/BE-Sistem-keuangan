@@ -86,6 +86,8 @@ func (s *siswaAPI) Update(c *gin.Context) {
 
     id, err := strconv.Atoi(siswaID)
     if err != nil {
+		log.Printf("Pesan error: %v", err)
+
         c.JSON(http.StatusBadRequest, gin.H{
             "message": "invalid request body",
         })
@@ -94,6 +96,8 @@ func (s *siswaAPI) Update(c *gin.Context) {
 
     var existingSiswa models.Siswa
     if err := c.ShouldBind(&existingSiswa); err != nil {
+		log.Printf("Pesan error: %v", err)
+
         c.JSON(http.StatusBadRequest, gin.H{
             "message": "invalid request body",
             "error":   err.Error(),
@@ -104,6 +108,7 @@ func (s *siswaAPI) Update(c *gin.Context) {
     // Jika ada file yang diunggah, perbarui gambar siswa
     file, err := c.FormFile("file")
     if err != nil && err != http.ErrMissingFile {
+        
         c.JSON(http.StatusBadRequest, gin.H{
             "message": "failed to get image from form-data",
             "error":   err.Error(),
@@ -114,6 +119,7 @@ func (s *siswaAPI) Update(c *gin.Context) {
     if file != nil {
         imageURL, err := middleware.UploadToCloudinary(file)
         if err != nil {
+		log.Printf("Pesan error: %v", err)
             c.JSON(http.StatusInternalServerError, gin.H{
                 "message": "failed to upload image to Cloudinary",
                 "error":   err.Error(),
@@ -126,6 +132,8 @@ func (s *siswaAPI) Update(c *gin.Context) {
     // Lakukan pembaruan data siswa di database
     err = s.siswaService.Update(id, existingSiswa)
     if err != nil {
+		log.Printf("Pesan error: %v", err)
+
         c.JSON(http.StatusInternalServerError, gin.H{
             "message": "internal server error",
             "error":   err.Error(),
@@ -152,6 +160,8 @@ func (s *siswaAPI) Delete(c *gin.Context) {
 
 	id, err := strconv.Atoi(siswaID)
 	if err != nil {
+		log.Printf("Pesan error: %v", err)
+
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
 		})
@@ -160,6 +170,8 @@ func (s *siswaAPI) Delete(c *gin.Context) {
 
 	err = s.siswaService.Delete(id)
 	if err != nil {
+		log.Printf("Pesan error: %v", err)
+
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
 		})
@@ -176,6 +188,8 @@ func (s *siswaAPI) GetByID(c *gin.Context) {
 	siswaID, err := strconv.Atoi(c.Param("id"))
 	
 	if err != nil {
+		log.Printf("Pesan error: %v", err)
+
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
 		})
@@ -184,6 +198,8 @@ func (s *siswaAPI) GetByID(c *gin.Context) {
 
 	result, err := s.siswaService.GetByID(siswaID)	
 	if err != nil {
+		log.Printf("Pesan error: %v", err)
+
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
 		})
@@ -194,21 +210,48 @@ func (s *siswaAPI) GetByID(c *gin.Context) {
 	
 }
 func (s *siswaAPI) GetList(c *gin.Context) {
-	result, err := s.siswaService.GetList()
-	if err != nil {
-		c.JSON(500, gin.H{
-			"message" : "internal server error",
-		})
-		return
-	}
-	c.JSON(200, result)
+    page, err := strconv.Atoi(c.Query("page"))
+    if err != nil || page <= 0 {
+        page = 1
+    }
+
+    pageSize, err := strconv.Atoi(c.Query("pageSize"))
+    if err != nil || pageSize <= 0 {
+        pageSize = 5000
+    }
+
+    result, totalPage, err := s.siswaService.GetList(page, pageSize)
+    if err != nil {
+		log.Printf("Pesan error: %v", err)
+
+        c.JSON(500, gin.H{
+            "message": "internal server error",
+			"error":   err.Error(),
+        })
+        return
+    }
+
+    meta := gin.H{
+        "current_page": page,
+        "total_pages":  totalPage,
+    }
+
+    response := gin.H{
+        "data": result,
+        "meta": meta,
+    }
+
+    c.JSON(200, response)
 }
+
 
 func (s *siswaAPI) History(c *gin.Context) {
 
 	siswaID, err := strconv.Atoi(c.Param("id"))
 	
 	if err != nil {
+		log.Printf("Pesan error: %v", err)
+
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
 		})
@@ -217,6 +260,8 @@ func (s *siswaAPI) History(c *gin.Context) {
 
 	result, err := s.siswaService.HistoryPembayaranSiswa(siswaID)
 	if err != nil {
+		log.Printf("Pesan error: %v", err)
+
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
 		})

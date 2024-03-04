@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"math"
+
 	"github.com/denzalamsyah/simak/app/models"
 	"gorm.io/gorm"
 )
@@ -10,7 +12,7 @@ type PengeluaranRepository interface {
 	Update(id int, pengeluaran models.Pengeluaran) error
 	Delete(id int) error
 	GetByID(id int) (*models.Pengeluaran, error)
-	GetList() ([]models.Pengeluaran, error)
+	GetList(page, pageSize int) ([]models.Pengeluaran, int, error)
 }
 
 type pengeluaranRepository struct {
@@ -58,12 +60,21 @@ func (c *pengeluaranRepository) GetByID(id int) (*models.Pengeluaran, error){
     return &pengeluaran, nil
 }
 
-func (c *pengeluaranRepository) GetList() ([]models.Pengeluaran, error){
+func (c *pengeluaranRepository) GetList(page, pageSize int) ([]models.Pengeluaran,int, error){
     var pengeluaran []models.Pengeluaran
+	offset := (page - 1) * pageSize
 
-    err := c.db.Find(&pengeluaran).Error
+	err := c.db.Limit(pageSize).Offset(offset).Find(&pengeluaran).Error
     if err != nil {
-		return nil, err
+		return nil, 0,err
 	}
-    return pengeluaran, nil
+
+	var totalData int64
+	if err := c.db.Model(&models.Pengeluaran{}).Count(&totalData).Error; err != nil {
+		return nil, 0, err
+	}
+
+
+	totalPage := int(math.Ceil(float64(totalData) / float64(pageSize)))
+    return pengeluaran, totalPage, nil
 }

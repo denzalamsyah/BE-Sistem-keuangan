@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"math"
+
 	"github.com/denzalamsyah/simak/app/models"
 	"gorm.io/gorm"
 )
@@ -9,7 +11,7 @@ type KelasRepository interface {
 	Store(Kelas *models.Kelas) error
 	Update(id int, Kelas models.Kelas) error
 	Delete(id int) error
-	GetList() ([]models.Kelas, error)
+	GetList(page, pageSize int) ([]models.Kelas, int, error)
 }
 
 type kelasRepository struct{
@@ -45,11 +47,20 @@ func (c *kelasRepository) Delete(id int) error {
 	return nil
 }
 
-func (c *kelasRepository) GetList() ([]models.Kelas, error) {
+func (c *kelasRepository) GetList(page, pageSize int) ([]models.Kelas, int, error) {
 	var Kelas []models.Kelas
-	err := c.db.Find(&Kelas).Error
+	offset := (page - 1) * pageSize
+
+	err := c.db.Limit(pageSize).Offset(offset).Find(&Kelas).Error
 	if err != nil {
-		return nil, err
+		return nil, 0,err
 	}
-	return Kelas, nil
+
+	var totalData int64
+	if err := c.db.Model(&models.Kelas{}).Count(&totalData).Error; err != nil {
+		return nil, 0, err
+	}
+
+	totalPage := int(math.Ceil(float64(totalData) / float64(pageSize)))
+	return Kelas, totalPage, nil
 }

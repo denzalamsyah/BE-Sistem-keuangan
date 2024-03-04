@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"log"
 	"strconv"
 
 	"github.com/denzalamsyah/simak/app/models"
@@ -28,6 +29,7 @@ func (a *kelasAPI) AddKelas(c *gin.Context) {
 	var newKelas models.Kelas
 
 	if err := c.ShouldBindJSON(&newKelas); err != nil {
+		log.Printf("Pesan error: %v", err)
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
 			"error":   err.Error(),
@@ -37,6 +39,7 @@ func (a *kelasAPI) AddKelas(c *gin.Context) {
 
 	err := a.kelasService.Store(&newKelas)
 	if err != nil {
+		log.Printf("Pesan error: %v", err)
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
 			"error":   err.Error(),
@@ -63,6 +66,7 @@ func (a *kelasAPI) Update(c *gin.Context) {
 
 	id, err := strconv.Atoi(kelasID)
 	if err != nil {
+		log.Printf("Pesan error: %v", err)
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
 			"error":   err.Error(),
@@ -73,6 +77,8 @@ func (a *kelasAPI) Update(c *gin.Context) {
 	var newKelas models.Kelas
 
 	if err := c.ShouldBindJSON(&newKelas); err != nil {
+		log.Printf("Pesan error: %v", err)
+
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
 			"error":   err.Error(),
@@ -84,6 +90,7 @@ func (a *kelasAPI) Update(c *gin.Context) {
 
 	err = a.kelasService.Update(id, newKelas)
 	if err != nil {
+		log.Printf("Pesan error: %v", err)
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
 			"error":   err.Error(),
@@ -110,6 +117,7 @@ func (a *kelasAPI) Delete(c *gin.Context) {
 
 	id, err := strconv.Atoi(kelasID)
 	if err != nil {
+		log.Printf("Pesan error: %v", err)
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
 			"error":   err.Error(),
@@ -119,7 +127,7 @@ func (a *kelasAPI) Delete(c *gin.Context) {
 
 	err = a.kelasService.Delete(id)
 	if err != nil {
-		
+		log.Printf("Pesan error: %v", err)
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
 			"error":   err.Error(),
@@ -135,8 +143,19 @@ func (a *kelasAPI) Delete(c *gin.Context) {
 
 func (a *kelasAPI) GetList(c *gin.Context) {
 
-	kelas, err := a.kelasService.GetList()
+	page, err := strconv.Atoi(c.Query("page"))
+	if err != nil || page <= 0 {
+        page = 1
+    }
+
+	pageSize, err := strconv.Atoi(c.Query("pageSize"))
+    if err != nil || pageSize <= 0 {
+        pageSize = 30
+    }
+
+	kelas, totalPage, err := a.kelasService.GetList(page, pageSize)
 	if err != nil {
+		log.Printf("Pesan error: %v", err)
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
 			"error":   err.Error(),
@@ -144,5 +163,15 @@ func (a *kelasAPI) GetList(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, kelas)
+	meta := gin.H{
+        "current_page": page,
+        "total_pages":  totalPage,
+    }
+
+    response := gin.H{
+        "data": kelas,
+        "meta": meta,
+    }
+
+	c.JSON(200, response)
 }

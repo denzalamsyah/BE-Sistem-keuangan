@@ -10,7 +10,7 @@ type SiswaServices interface {
 	Update(id int, Siswa models.Siswa) error
 	Delete(id int) error
 	GetByID(id int) (*models.SiswaResponse, error)
-	GetList() ([]models.SiswaResponse, error)
+	GetList(page, pageSize int) ([]models.SiswaResponse, int, error)
 	HistoryPembayaranSiswa(siswaID int) ([]models.HistoryPembayaran, error)
 }
 
@@ -55,13 +55,14 @@ func (c *siswaServices) GetByID(id int) (*models.SiswaResponse, error) {
 	return siswa, nil
 }
 
-func (c *siswaServices) GetList() ([]models.SiswaResponse, error) {
-	siswas, err := c.siswaRepo.GetList()
-	if err != nil {
-		return nil, err
-	}
-	return siswas, nil
+func (c *siswaServices) GetList(page, pageSize int) ([]models.SiswaResponse, int, error) {
+    siswas, totalPage, err := c.siswaRepo.GetList(page, pageSize)
+    if err != nil {
+        return nil, 0, err
+    }
+    return siswas, totalPage, nil
 }
+
 
 func (c *siswaServices) HistoryPembayaranSiswa(siswaID int) ([]models.HistoryPembayaran, error) {
 	history, err := c.siswaRepo.HistoryPembayaranSiswa(siswaID)

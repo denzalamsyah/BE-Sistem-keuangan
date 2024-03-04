@@ -9,7 +9,7 @@ type JurusanService interface {
 	Store(Jurusan *models.Jurusan) error
 	Update(id int, Jurusan models.Jurusan) error
 	Delete(id int) error
-	GetList() ([]models.Jurusan, error)
+	GetList(page, pageSize int) ([]models.Jurusan, int, error)
 }
 
 type jurusanService struct {
@@ -44,10 +44,10 @@ func (s *jurusanService) Delete(id int) error {
 	return nil
 }
 
-func (s *jurusanService) GetList() ([]models.Jurusan, error) {
-	jurusans, err := s.jurusanRepo.GetList()
+func (s *jurusanService) GetList(page, pageSize int) ([]models.Jurusan,int, error) {
+	jurusans, totalPage, err := s.jurusanRepo.GetList(page, pageSize)
 	if err != nil {
-		return nil, err
+		return nil,0, err
 	}
-	return jurusans, nil
+	return jurusans, totalPage, nil
 }

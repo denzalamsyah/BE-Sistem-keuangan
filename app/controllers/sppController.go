@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"log"
 	"strconv"
 
 	"github.com/denzalamsyah/simak/app/models"
@@ -28,6 +29,8 @@ func (s *sppAPI) AddSPP(c *gin.Context) {
 	var newPembayaranSPP models.PembayaranSPP
 
 	if err := c.ShouldBindJSON(&newPembayaranSPP); err != nil{
+		log.Printf("Pesan error: %v", err)
+
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
 			"error":   err.Error(),
@@ -37,6 +40,8 @@ func (s *sppAPI) AddSPP(c *gin.Context) {
 
 	err := s.sppService.Store(&newPembayaranSPP)
 	if err != nil {
+		log.Printf("Pesan error: %v", err)
+
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
 			"error":   err.Error(),
@@ -63,6 +68,8 @@ func (s *sppAPI) Update(c *gin.Context) {
 
 	id, err := strconv.Atoi(PembayaranSPPID)
 	if err != nil {
+		log.Printf("Pesan error: %v", err)
+
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
 			"error":   err.Error(),
@@ -72,6 +79,8 @@ func (s *sppAPI) Update(c *gin.Context) {
 	var newPembayaranSPP models.PembayaranSPP
 
 	if err := c.ShouldBindJSON(&newPembayaranSPP); err != nil{
+		log.Printf("Pesan error: %v", err)
+
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
 			"error":   err.Error(),
@@ -82,6 +91,8 @@ func (s *sppAPI) Update(c *gin.Context) {
 	newPembayaranSPP.ID = id
 	err = s.sppService.Update(id, newPembayaranSPP)
 	if err != nil {
+		log.Printf("Pesan error: %v", err)
+
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
 			"error":   err.Error(),
@@ -109,6 +120,8 @@ func (s *sppAPI) Delete(c *gin.Context) {
 
 	id, err := strconv.Atoi(PembayaranSPPID)
 	if err != nil {
+		log.Printf("Pesan error: %v", err)
+
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
 			"error":   err.Error(),
@@ -118,6 +131,8 @@ func (s *sppAPI) Delete(c *gin.Context) {
 
 	err = s.sppService.Delete(id)
 	if err != nil {
+		log.Printf("Pesan error: %v", err)
+
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
 			"error":   err.Error(),
@@ -135,6 +150,8 @@ func (s *sppAPI) GetByID(c *gin.Context) {
 	PembayaranSPPID, err := strconv.Atoi(c.Param("id"))
 	
 	if err != nil {
+		log.Printf("Pesan error: %v", err)
+
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
 			"error":   err.Error(),
@@ -144,6 +161,8 @@ func (s *sppAPI) GetByID(c *gin.Context) {
 
 	result, err := s.sppService.GetByID(PembayaranSPPID)	
 	if err != nil {
+		log.Printf("Pesan error: %v", err)
+
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
 			"error":   err.Error(),
@@ -157,6 +176,8 @@ func (s *sppAPI) GetByID(c *gin.Context) {
 func (s *sppAPI) GetList(c *gin.Context) {
 	result, err := s.sppService.GetList()
 	if err != nil {
+		log.Printf("Pesan error: %v", err)
+
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
 			"error":   err.Error(),

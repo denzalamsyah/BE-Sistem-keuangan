@@ -9,7 +9,7 @@ type TransaksiService interface {
 	Store(Transaksi *models.Transaksi) error
 	Update(id int, Transaksi models.Transaksi) error
 	Delete(id int) error
-	GetList() ([]models.Transaksi, error)
+	GetList(page, pageSize int) ([]models.Transaksi, int, error)
 }
 type transaksiService struct {
 	transaksiRepo repository.TransaksiRepository
@@ -43,11 +43,11 @@ func (c *transaksiService) Delete(id int) error {
 	return nil
 }
 
-func (c *transaksiService) GetList() ([]models.Transaksi, error) {
+func (c *transaksiService) GetList(page, pageSize int) ([]models.Transaksi, int, error) {
 
-	Transaksi, err := c.transaksiRepo.GetList()
+	Transaksi, totalPage, err := c.transaksiRepo.GetList(page, pageSize)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
-	return Transaksi, nil
+	return Transaksi,totalPage, nil
 }

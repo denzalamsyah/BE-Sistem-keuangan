@@ -10,7 +10,7 @@ type SemesterServices interface {
 	Update(id int, PembayaranSemester models.PembayaranSemester) error
 	Delete(id int) error
 	GetByID(id int) (*models.PembayaranSemesterResponse, error)
-	GetList() ([]models.PembayaranSemesterResponse, error)
+	GetList(page, pageSize int) ([]models.PembayaranSemesterResponse, int, error)
 }
 
 type semesterServices struct{
@@ -54,10 +54,10 @@ func (c *semesterServices) GetByID(id int) (*models.PembayaranSemesterResponse, 
 	return PembayaranSemester, nil
 }
 
-func (c *semesterServices) GetList() ([]models.PembayaranSemesterResponse, error) {
-	PembayaranSemesters, err := c.semesterRepo.GetList()
+func (c *semesterServices) GetList(page, pageSize int) ([]models.PembayaranSemesterResponse, int,error) {
+	PembayaranSemesters, totalPage, err := c.semesterRepo.GetList(page, pageSize)
 	if err != nil {
-		return nil, err
+		return nil,0, err
 	}
-	return PembayaranSemesters, nil
+	return PembayaranSemesters, totalPage, nil
 }

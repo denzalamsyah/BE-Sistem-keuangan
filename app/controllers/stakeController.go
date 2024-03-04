@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 
@@ -30,6 +31,8 @@ func (s *stakeAPI) AddStake(c *gin.Context){
 	var stake models.Stakeholder
 
 	if err := c.ShouldBind(&stake); err != nil{
+		log.Printf("Pesan error: %v", err)
+
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
 			"error":   err.Error(),
@@ -45,6 +48,8 @@ func (s *stakeAPI) AddStake(c *gin.Context){
         // Jika ada file yang diunggah, upload ke Cloudinary dan dapatkan URL-nya
         imageURL, err := middleware.UploadToCloudinary(file)
         if err != nil {
+		log.Printf("Pesan error: %v", err)
+
             c.JSON(http.StatusInternalServerError, gin.H{
                 "message": "failed to upload image to Cloudinary",
                 "error":   err.Error(),
@@ -56,6 +61,8 @@ func (s *stakeAPI) AddStake(c *gin.Context){
 
 	err = s.stakeService.Store(&stake)
 	if err != nil {
+		log.Printf("Pesan error: %v", err)
+
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
 			"error":   err.Error(),
@@ -84,6 +91,8 @@ func (s *stakeAPI) Update(c *gin.Context){
 	
 	id, err := strconv.Atoi(stakeID)
 	if err != nil {
+		log.Printf("Pesan error: %v", err)
+
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
 			"error":   err.Error(),
@@ -94,6 +103,8 @@ func (s *stakeAPI) Update(c *gin.Context){
 	var newStake models.Stakeholder
 
 	if err := c.ShouldBind(&newStake); err != nil{
+		log.Printf("Pesan error: %v", err)
+
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
 			"error":   err.Error(),
@@ -104,6 +115,8 @@ func (s *stakeAPI) Update(c *gin.Context){
 	// newStake.ID = id
 	file, err := c.FormFile("file")
     if err != nil && err != http.ErrMissingFile {
+		log.Printf("Pesan error: %v", err)
+
         c.JSON(http.StatusBadRequest, gin.H{
             "message": "failed to get image from form-data",
             "error":   err.Error(),
@@ -114,6 +127,8 @@ func (s *stakeAPI) Update(c *gin.Context){
 	if file != nil {
 		imageURL, err := middleware.UploadToCloudinary(file)
 		if err != nil {
+		log.Printf("Pesan error: %v", err)
+
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"message": "failed to upload image to Cloudinary",
 				"error":   err.Error(),
@@ -126,6 +141,8 @@ func (s *stakeAPI) Update(c *gin.Context){
 	err = s.stakeService.Update(id, newStake)
 
 	if err != nil {
+		log.Printf("Pesan error: %v", err)
+
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
 			"error":   err.Error(),
@@ -151,6 +168,8 @@ func (s *stakeAPI) Delete(c *gin.Context){
 
 	id, err := strconv.Atoi(stakeID)
 	if err != nil {
+		log.Printf("Pesan error: %v", err)
+
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
 			"error":   err.Error(),
@@ -160,6 +179,8 @@ func (s *stakeAPI) Delete(c *gin.Context){
 
 	err = s.stakeService.Delete(id)
 	if err != nil {
+		log.Printf("Pesan error: %v", err)
+
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
 			"error":   err.Error(),
@@ -182,6 +203,8 @@ func (s *stakeAPI) GetByID(c *gin.Context){
 		return
 	}
 	if err != nil {
+		log.Printf("Pesan error: %v", err)
+
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
 			"error":   err.Error(),
@@ -191,6 +214,8 @@ func (s *stakeAPI) GetByID(c *gin.Context){
 
 	result, err := s.stakeService.GetByID(stakeID)	
 	if err != nil {
+		log.Printf("Pesan error: %v", err)
+
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
 			"error":   err.Error(),
@@ -202,14 +227,35 @@ func (s *stakeAPI) GetByID(c *gin.Context){
 }
 
 func (s *stakeAPI) GetList(c *gin.Context){
+	page, err := strconv.Atoi(c.Query("page"))
+    if err != nil || page <= 0 {
+        page = 1
+    }
 
-	result, err := s.stakeService.GetList()
+    pageSize, err := strconv.Atoi(c.Query("pageSize"))
+    if err != nil || pageSize <= 0 {
+        pageSize = 100
+    }
+
+	result, totalPage, err := s.stakeService.GetList(page, pageSize)
 	if err != nil {
+		log.Printf("Pesan error: %v", err)
+
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
 			"error":   err.Error(),
 		})
 		return
 	}
-	c.JSON(200, result)
+	meta := gin.H{
+        "current_page": page,
+        "total_pages":  totalPage,
+    }
+
+    response := gin.H{
+        "data": result,
+        "meta": meta,
+    }
+
+    c.JSON(200, response)
 }

@@ -164,7 +164,16 @@ func (s *semesterAPI) GetByID(c *gin.Context) {
 	
 }
 func (s *semesterAPI) GetList(c *gin.Context) {
-	result, err := s.semesterService.GetList()
+	page, err := strconv.Atoi(c.Query("page"))
+	if err != nil || page <= 0 {
+        page = 1
+    }
+
+	pageSize, err := strconv.Atoi(c.Query("pageSize"))
+    if err != nil || pageSize <= 0 {
+        pageSize = 3
+    }
+	result, totalPage, err := s.semesterService.GetList(page, pageSize)
 	if err != nil {
 		log.Printf("Error: %v", err)
 		c.JSON(500, gin.H{
@@ -173,5 +182,15 @@ func (s *semesterAPI) GetList(c *gin.Context) {
 		})
 		return
 	}
-	c.JSON(200, result)
+	meta := gin.H{
+        "current_page": page,
+        "total_pages":  totalPage,
+    }
+
+    response := gin.H{
+        "data": result,
+        "meta": meta,
+    }
+
+    c.JSON(200, response)
 }

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/denzalamsyah/simak/app/models"
 	"gorm.io/gorm"
@@ -12,7 +13,7 @@ type SiswaRepository interface {
 	Update(id int, Siswa models.Siswa) error
 	Delete(id int) error
 	GetByID(id int) (*models.SiswaResponse, error)
-	GetList() ([]models.SiswaResponse, error)
+	GetList(page, pageSize int) ([]models.SiswaResponse, int, error)
 	HistoryPembayaranSiswa(siswaID int) ([]models.HistoryPembayaran, error)
 }
 
@@ -60,7 +61,10 @@ func (c *siswaRepository) GetByID(id int) (*models.SiswaResponse, error) {
 		ID:           siswa.ID,
 		Nama:         siswa.Nama,
 		NISN:         siswa.NISN,
-		Kelas:        siswa.Kelas.Kelas,
+		Kelas:        models.KelasResponse{
+			ID:    siswa.Kelas.IDKelas,
+			Kelas: siswa.Kelas.Kelas,
+		},
 		Jurusan:      siswa.Jurusan.Nama,
 		Agama:        siswa.Agama.Nama,
 		TempatLahir:  siswa.TempatLahir,
@@ -78,12 +82,18 @@ func (c *siswaRepository) GetByID(id int) (*models.SiswaResponse, error) {
 	return &siswaResponse, nil
 }
 
-func (c *siswaRepository) GetList() ([]models.SiswaResponse, error) {
+func (c *siswaRepository) GetList(page, pageSize int) ([]models.SiswaResponse, int, error) {
 	var Siswa []models.Siswa
-	err := c.db.Preload("Kelas").Preload("Jurusan").Preload("Agama").Preload("Gender").Find(&Siswa).Error
-	if err != nil {
-		return nil, err
-	}
+    err := c.db.Preload("Kelas").Preload("Jurusan").Preload("Agama").Preload("Gender").
+        Offset((page - 1) * pageSize).Limit(pageSize).Find(&Siswa).Error
+    if err != nil {
+        return nil, 0, err
+    }
+
+    var totalData int64
+    if err := c.db.Model(&models.Siswa{}).Count(&totalData).Error; err != nil {
+        return nil, 0, err
+    }
 
 	var SiswaResponse []models.SiswaResponse
 	for _, s := range Siswa{
@@ -91,7 +101,10 @@ func (c *siswaRepository) GetList() ([]models.SiswaResponse, error) {
 			ID:           s.ID,
 			Nama:         s.Nama,
 			NISN:         s.NISN,
-			Kelas:        s.Kelas.Kelas,
+			Kelas:        models.KelasResponse{
+				ID:    s.Kelas.IDKelas,
+				Kelas: s.Kelas.Kelas,
+			},
 			Jurusan:      s.Jurusan.Nama,
 			Agama:        s.Agama.Nama,
 			TempatLahir:  s.TempatLahir,
@@ -106,7 +119,8 @@ func (c *siswaRepository) GetList() ([]models.SiswaResponse, error) {
 			Gambar:       s.Gambar,
 		})
 	}
-	return SiswaResponse, nil
+	totalPage := int(math.Ceil(float64(totalData) / float64(pageSize)))
+    return SiswaResponse, totalPage, nil
 }
 
 func (c *siswaRepository) HistoryPembayaranSiswa(siswaID int) ([]models.HistoryPembayaran, error) {

@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"math"
+
 	"github.com/denzalamsyah/simak/app/models"
 	"gorm.io/gorm"
 )
@@ -9,7 +11,7 @@ type TransaksiRepository interface {
 	Store(Transaksi *models.Transaksi) error
 	Update(id int, Transaksi models.Transaksi) error
 	Delete(id int) error
-	GetList() ([]models.Transaksi, error)
+	GetList(page, paedSize int) ([]models.Transaksi, int, error)
 }
 
 type transaksiRepository struct {
@@ -45,11 +47,20 @@ func (c *transaksiRepository) Delete(id int) error {
 	return nil
 }
 
-func (c *transaksiRepository) GetList() ([]models.Transaksi, error) {
+func (c *transaksiRepository) GetList(page, pageSize int) ([]models.Transaksi, int, error) {
 	var Transaksi []models.Transaksi
-	err := c.db.Find(&Transaksi).Error
+	offset := (page - 1) * pageSize
+
+	err := c.db.Limit(pageSize).Offset(offset).Find(&Transaksi).Error
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
-	return Transaksi, nil
+
+	var totalData int64
+	if err := c.db.Model(&models.Transaksi{}).Count(&totalData).Error; err != nil {
+		return nil, 0, err
+	}
+	totalPage := int(math.Ceil(float64(totalData) / float64(pageSize)))
+
+	return Transaksi, totalPage, nil
 }

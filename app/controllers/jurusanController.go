@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"log"
 	"strconv"
 
 	"github.com/denzalamsyah/simak/app/models"
@@ -30,6 +31,7 @@ func (a *jurusanAPI) AddJurusan(c *gin.Context) {
 	var newJurusan models.Jurusan
 
 	if err := c.ShouldBindJSON(&newJurusan); err != nil {
+		log.Printf("Error: %v", err)
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
 			"error":   err.Error(),
@@ -39,6 +41,7 @@ func (a *jurusanAPI) AddJurusan(c *gin.Context) {
 
 	err := a.jurusanService.Store(&newJurusan)
 	if err != nil {
+		log.Printf("Error: %v", err)
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
 			"error":   err.Error(),
@@ -57,6 +60,7 @@ func (a *jurusanAPI) Update(c *gin.Context) {
 	jurusanID := c.Param("id")
 
 	if jurusanID == "" {
+		
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
 		})
@@ -65,6 +69,7 @@ func (a *jurusanAPI) Update(c *gin.Context) {
 
 	id, err := strconv.Atoi(jurusanID)
 	if err != nil {
+		log.Printf("Error: %v", err)
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
 			"error":   err.Error(),
@@ -75,6 +80,7 @@ func (a *jurusanAPI) Update(c *gin.Context) {
 	var newJurusan models.Jurusan
 
 	if err := c.ShouldBindJSON(&newJurusan); err != nil {
+		log.Printf("Error: %v", err)
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
 			"error":   err.Error(),
@@ -86,6 +92,7 @@ func (a *jurusanAPI) Update(c *gin.Context) {
 
 	err = a.jurusanService.Update(id, newJurusan)
 	if err != nil {
+		log.Printf("Error: %v", err)
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
 			"error":   err.Error(),
@@ -112,6 +119,7 @@ func (a *jurusanAPI) Delete(c *gin.Context) {
 
 	id, err := strconv.Atoi(jurusanID)
 	if err != nil {
+		log.Printf("Error: %v", err)
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
 			"error":   err.Error(),
@@ -121,6 +129,7 @@ func (a *jurusanAPI) Delete(c *gin.Context) {
 
 	err = a.jurusanService.Delete(id)
 	if err != nil {
+		log.Printf("Error: %v", err)
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
 			"error":   err.Error(),
@@ -134,9 +143,18 @@ func (a *jurusanAPI) Delete(c *gin.Context) {
 }
 
 func (a *jurusanAPI) GetList(c *gin.Context) {
+    page, err := strconv.Atoi(c.Query("page"))
+	if err != nil || page <= 0 {
+        page = 1
+    }
 
-	jurusanList, err := a.jurusanService.GetList()
+	pageSize, err := strconv.Atoi(c.Query("pageSize"))
+    if err != nil || pageSize <= 0 {
+        pageSize = 10
+    }
+	jurusanList, totalPage, err := a.jurusanService.GetList(page, pageSize)
 	if err != nil {
+		log.Printf("Error: %v", err)
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
 			"error":   err.Error(),
@@ -144,5 +162,15 @@ func (a *jurusanAPI) GetList(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, jurusanList)
+	meta := gin.H{
+        "current_page": page,
+        "total_pages":  totalPage,
+    }
+
+    response := gin.H{
+        "data": jurusanList,
+        "meta": meta,
+    }
+
+    c.JSON(200, response)
 }

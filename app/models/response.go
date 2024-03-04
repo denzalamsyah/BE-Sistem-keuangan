@@ -1,22 +1,22 @@
 package models
 
 type SiswaResponse struct {
-	ID           int    `gorm:"primaryKey" json:"id"`
-	Nama         string `gorm:"type:varchar(35)" json:"nama"`
-	NISN         int    `json:"nisn"`
-	Kelas        string `json:"kelas"`
-	Jurusan      string `json:"jurusan"`
-	Agama        string `json:"agama"`
-	TempatLahir  string `gorm:"type:varchar(15)" json:"tempat_lahir"`
-	TanggalLahir string `json:"tanggal_lahir"`
-	Gender       string `json:"gender"`
-	NamaAyah     string `gorm:"type:varchar(35)" json:"nama_ayah"`
-	NamaIbu      string `gorm:"type:varchar(35)" json:"nama_ibu"`
-	NomorTelepon int    `json:"nomor_telepon"`
-	Angkatan     string `json:"angkatan" form:"angkatan"`
-	Email        string `gorm:"type:varchar(35)" json:"email"`
-	Alamat       string `gorm:"type:varchar(100)" json:"alamat"`
-	Gambar       string `gorm:"type:varchar(100)" json:"gambar"`
+	ID           int           `gorm:"primaryKey" json:"id"`
+	Nama         string        `gorm:"type:varchar(35)" json:"nama"`
+	NISN         int           `json:"nisn"`
+	Kelas        KelasResponse `json:"kelas"`
+	Jurusan      string        `json:"jurusan"`
+	Agama        string        `json:"agama"`
+	TempatLahir  string        `gorm:"type:varchar(15)" json:"tempat_lahir"`
+	TanggalLahir string        `json:"tanggal_lahir"`
+	Gender       string        `json:"gender"`
+	NamaAyah     string        `gorm:"type:varchar(35)" json:"nama_ayah"`
+	NamaIbu      string        `gorm:"type:varchar(35)" json:"nama_ibu"`
+	NomorTelepon int           `json:"nomor_telepon"`
+	Angkatan     string        `json:"angkatan" form:"angkatan"`
+	Email        string        `gorm:"type:varchar(35)" json:"email"`
+	Alamat       string        `gorm:"type:varchar(100)" json:"alamat"`
+	Gambar       string        `gorm:"type:varchar(100)" json:"gambar"`
 }
 
 type StakeholderResponse struct {
@@ -76,4 +76,9 @@ type Total struct {
 	Pemasukan   int `json:"total_pemasukan"`
 	Pengeluaran int `json:"total_pengeluaran"`
 	Saldo       int `json:"total_saldo"`
+}
+
+type KelasResponse struct {
+	ID    int    `gorm:"primaryKey" json:"id"`
+	Kelas string `gorm:"type:varchar(15)" json:"kelas"`
 }

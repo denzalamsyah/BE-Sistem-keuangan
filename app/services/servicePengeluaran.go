@@ -10,7 +10,7 @@ type PengeluaranService interface {
 	Update(id int, Pengeluaran models.Pengeluaran) error
 	Delete(id int) error
 	GetByID(id int) (*models.Pengeluaran, error)
-	GetList() ([]models.Pengeluaran, error)
+	GetList(page, pageSize int) ([]models.Pengeluaran,int, error)
 }
 
 type pengeluaranService struct {
@@ -54,10 +54,10 @@ func (c *pengeluaranService) GetByID(id int) (*models.Pengeluaran, error) {
 	return Pengeluaran, nil
 }
 
-func (c *pengeluaranService) GetList() ([]models.Pengeluaran, error) {
-	Pengeluarans, err := c.pengeluaranRepository.GetList()
+func (c *pengeluaranService) GetList(page, pageSize int) ([]models.Pengeluaran,int, error) {
+	Pengeluarans, totalPage, err := c.pengeluaranRepository.GetList(page, pageSize)
 	if err != nil {
-		return nil, err
+		return nil, 0,err
 	}
-	return Pengeluarans, nil
+	return Pengeluarans, totalPage, nil
 }

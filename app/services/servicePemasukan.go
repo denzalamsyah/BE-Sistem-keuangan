@@ -6,13 +6,13 @@ import (
 )
 
 type PemasukanService interface {
-	FindAll() ([]models.PemasukanResponse, error)
+	FindAll(page, pageSize int) ([]models.PemasukanResponse, int, error)
 	TotalKeuangan() (int, int, int, error)
 	Store(Pemasukanlainnya *models.Pemasukanlainnya) error
 	Update(id int, Pemasukanlainnya models.Pemasukanlainnya) error
 	Delete(id int) error
 	GetByID(id int) (*models.Pemasukanlainnya, error)
-	GetList() ([]models.Pemasukanlainnya, error)
+	GetList(page, pageSize int) ([]models.Pemasukanlainnya, int, error)
 
 	
 }
@@ -24,12 +24,12 @@ func NewPemasukanService(pemasukanRepository repository.PemasukanRepository) Pem
 	return &pemasukanService{pemasukanRepository}
 }
 
-func (c *pemasukanService) FindAll() ([]models.PemasukanResponse, error) {
-	pemasukan, err := c.pemasukanRepository.FindAll()
+func (c *pemasukanService) FindAll(page, pageSize int) ([]models.PemasukanResponse, int, error) {
+	pemasukan, totalPage, err := c.pemasukanRepository.FindAll(page, pageSize)
 	if err != nil {
-		return nil, err
+		return nil,0, err
 	}
-	return pemasukan, nil
+	return pemasukan, totalPage, nil
 }
 
 func (c *pemasukanService) Store(Pemasukanlainnya *models.Pemasukanlainnya) error {
@@ -65,12 +65,12 @@ func (c *pemasukanService) GetByID(id int) (*models.Pemasukanlainnya, error) {
 	return Pemasukanlainnya, nil
 }
 
-func (c *pemasukanService) GetList() ([]models.Pemasukanlainnya, error) {
-	Pemasukanlainnyas, err := c.pemasukanRepository.GetList()
+func (c *pemasukanService) GetList(page, pageSize int) ([]models.Pemasukanlainnya, int,error) {
+	Pemasukanlainnyas, totalPage, err := c.pemasukanRepository.GetList(page, pageSize)
 	if err != nil {
-		return nil, err
+		return nil, 0,err
 	}
-	return Pemasukanlainnyas, nil
+	return Pemasukanlainnyas, totalPage, nil
 }
 
 func (c *pemasukanService) TotalKeuangan() (int, int, int, error) {
