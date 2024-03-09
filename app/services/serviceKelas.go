@@ -10,6 +10,8 @@ type KelasService interface {
 	Update(id int, Kelas models.Kelas) error
 	Delete(id int) error
 	GetList(page, pageSize int) ([]models.Kelas, int, error)
+	GetTotalKelasCount() (int, error)
+
 }
 
 type kelasServices struct {
@@ -50,4 +52,12 @@ func (s *kelasServices) GetList(page, pageSize int) ([]models.Kelas, int, error)
 		return nil, 0, err
 	}
 	return Kelas, totalPage, nil
+}
+
+func (s *kelasServices) GetTotalKelasCount() (int, error) {
+	count, err := s.kelasRepo.GetTotalKelasCount()
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
 }

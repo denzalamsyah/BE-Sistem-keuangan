@@ -12,6 +12,8 @@ type JurusanRepository interface {
 	Update(id int, Jurusan models.Jurusan) error
 	Delete(id int) error
 	GetList(page, pageSize int) ([]models.Jurusan,int, error)
+	GetTotalJurusanCount() (int, error)
+
 }
 
 type jurusanRepository struct {
@@ -68,4 +70,12 @@ func (c *jurusanRepository) GetList(page, pageSize int) ([]models.Jurusan, int, 
 	totalPage := int(math.Ceil(float64(totalData) / float64(pageSize)))
 
 	return Jurusan, totalPage, nil
+}
+
+func (c *jurusanRepository) GetTotalJurusanCount() (int, error) {
+    var count int64
+    if err := c.db.Model(&models.Jurusan{}).Count(&count).Error; err != nil {
+        return 0, err
+    }
+    return int(count), nil
 }

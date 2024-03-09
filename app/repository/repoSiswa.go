@@ -15,6 +15,7 @@ type SiswaRepository interface {
 	GetByID(id int) (*models.SiswaResponse, error)
 	GetList(page, pageSize int) ([]models.SiswaResponse, int, error)
 	HistoryPembayaranSiswa(siswaID int) ([]models.HistoryPembayaran, error)
+	GetTotalGenderCount() (int, int, error)
 }
 
 type siswaRepository struct{
@@ -162,3 +163,17 @@ func (c *siswaRepository) HistoryPembayaranSiswa(siswaID int) ([]models.HistoryP
 
     return historyPembayaran, nil
 }
+
+func (c *siswaRepository) GetTotalGenderCount() (int, int, error) {
+    var countLakiLaki, countPerempuan int64
+    if err := c.db.Model(&models.Siswa{}).Where("gender_id = ?", 1).Count(&countLakiLaki).Error; err != nil {
+        return 0, 0, err
+    }
+
+    if err := c.db.Model(&models.Siswa{}).Where("gender_id = ?", 2).Count(&countPerempuan).Error; err != nil {
+        return 0, 0, err
+    }
+
+    return int(countLakiLaki), int(countPerempuan), nil
+}
+

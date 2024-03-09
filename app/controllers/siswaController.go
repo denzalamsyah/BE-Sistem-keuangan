@@ -18,6 +18,7 @@ type SiswaAPI interface {
 	GetByID(c *gin.Context)
 	GetList(c *gin.Context)
 	History(c *gin.Context)
+    GetTotalGenderCount(c *gin.Context)
 }
 
 type siswaAPI struct {
@@ -269,4 +270,18 @@ func (s *siswaAPI) History(c *gin.Context) {
 	}
 
 	c.JSON(200, result)
+}
+
+func (api *siswaAPI) GetTotalGenderCount(c *gin.Context) {
+    countLakiLaki, countPerempuan, err := api.siswaService.GetTotalGenderCount()
+    if err != nil {
+        log.Printf("Error: %v", err)
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{
+        "count_laki_laki": countLakiLaki,
+        "count_perempuan": countPerempuan,
+    })
 }

@@ -17,6 +17,7 @@ type StakeAPI interface {
 	Delete(c *gin.Context)
 	GetByID(c *gin.Context)
 	GetList(c *gin.Context)
+	GetTotalGenderCount(c *gin.Context)
 }
 
 type stakeAPI struct{
@@ -258,4 +259,18 @@ func (s *stakeAPI) GetList(c *gin.Context){
     }
 
     c.JSON(200, response)
+}
+
+func (api *stakeAPI) GetTotalGenderCount(c *gin.Context) {
+    countLakiLaki, countPerempuan, err := api.stakeService.GetTotalGenderCount()
+    if err != nil {
+        log.Printf("Error: %v", err)
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{
+        "count_laki_laki": countLakiLaki,
+        "count_perempuan": countPerempuan,
+    })
 }

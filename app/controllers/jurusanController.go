@@ -14,6 +14,7 @@ type JurusanAPI interface {
 	Update(c *gin.Context)
 	Delete(c *gin.Context)
 	GetList(c *gin.Context)
+	GetTotalJurusanCount(c *gin.Context)
 }
 
 type jurusanAPI struct {
@@ -174,3 +175,21 @@ func (a *jurusanAPI) GetList(c *gin.Context) {
 
     c.JSON(200, response)
 }
+
+
+func (s *jurusanAPI) GetTotalJurusanCount(c *gin.Context) {
+	totalJurusan, err := s.jurusanService.GetTotalJurusanCount()
+	if err != nil {
+		log.Printf("Error: %v", err)
+		c.JSON(500, gin.H{
+			"message" : "internal server error",
+			"error":   err.Error(),
+		})
+	}
+
+	c.JSON(200, gin.H{
+		"totalJurusan": totalJurusan,
+	})
+}
+
+	

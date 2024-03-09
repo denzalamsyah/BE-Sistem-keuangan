@@ -10,6 +10,8 @@ type JurusanService interface {
 	Update(id int, Jurusan models.Jurusan) error
 	Delete(id int) error
 	GetList(page, pageSize int) ([]models.Jurusan, int, error)
+	GetTotalJurusanCount() (int, error)
+	
 }
 
 type jurusanService struct {
@@ -50,4 +52,12 @@ func (s *jurusanService) GetList(page, pageSize int) ([]models.Jurusan,int, erro
 		return nil,0, err
 	}
 	return jurusans, totalPage, nil
+}
+
+func (s *jurusanService) GetTotalJurusanCount() (int, error) {
+	count, err := s.jurusanRepo.GetTotalJurusanCount()
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
 }

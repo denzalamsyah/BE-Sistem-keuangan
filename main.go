@@ -153,6 +153,7 @@ version := gin.Group("/api")
 		siswa.GET("/:id", apiHandler.SiswaAPIHandler.GetByID)
 		siswa.GET("/histori/:id", apiHandler.SiswaAPIHandler.History)
 		siswa.GET("/", apiHandler.SiswaAPIHandler.GetList)
+		siswa.GET("/gender", apiHandler.SiswaAPIHandler.GetTotalGenderCount)
 	}
 	stake := version.Group("/stake")
 	{
@@ -162,6 +163,7 @@ version := gin.Group("/api")
 		stake.DELETE("/:id", apiHandler.StakeAPIHandler.Delete)
 		stake.GET("/:id", apiHandler.StakeAPIHandler.GetByID)
 		stake.GET("/", apiHandler.StakeAPIHandler.GetList)
+		stake.GET("/gender", apiHandler.StakeAPIHandler.GetTotalGenderCount)
 	}
 
 	Spp := version.Group("/spp")
@@ -212,6 +214,7 @@ version := gin.Group("/api")
 		kelas.PUT("/:id", apiHandler.KelasAPIHandler.Update)
 		kelas.DELETE("/:id", apiHandler.KelasAPIHandler.Delete)
 		kelas.GET("/", apiHandler.KelasAPIHandler.GetList)
+		kelas.GET("/total", apiHandler.KelasAPIHandler.GetTotalKelasCount)
 	}
 
 	Jurusan := version.Group("/jurusan")
@@ -221,6 +224,7 @@ version := gin.Group("/api")
 		Jurusan.PUT("/:id", apiHandler.JurusanAPIHandler.Update)
 		Jurusan.DELETE("/:id", apiHandler.JurusanAPIHandler.Delete)
 		Jurusan.GET("/", apiHandler.JurusanAPIHandler.GetList)
+		Jurusan.GET("/total", apiHandler.JurusanAPIHandler.GetTotalJurusanCount)
 	}
 
 	Transaksi := version.Group("/transaksi")

@@ -12,6 +12,9 @@ type KelasRepository interface {
 	Update(id int, Kelas models.Kelas) error
 	Delete(id int) error
 	GetList(page, pageSize int) ([]models.Kelas, int, error)
+	GetTotalKelasCount() (int, error)
+
+	
 }
 
 type kelasRepository struct{
@@ -64,3 +67,13 @@ func (c *kelasRepository) GetList(page, pageSize int) ([]models.Kelas, int, erro
 	totalPage := int(math.Ceil(float64(totalData) / float64(pageSize)))
 	return Kelas, totalPage, nil
 }
+
+func (c *kelasRepository) GetTotalKelasCount() (int, error) {
+    var count int64
+    if err := c.db.Model(&models.Kelas{}).Count(&count).Error; err != nil {
+        return 0, err
+    }
+    return int(count), nil
+}
+
+

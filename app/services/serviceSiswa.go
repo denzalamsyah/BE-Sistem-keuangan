@@ -12,6 +12,7 @@ type SiswaServices interface {
 	GetByID(id int) (*models.SiswaResponse, error)
 	GetList(page, pageSize int) ([]models.SiswaResponse, int, error)
 	HistoryPembayaranSiswa(siswaID int) ([]models.HistoryPembayaran, error)
+	GetTotalGenderCount() (int, int, error)
 }
 
 type siswaServices struct {
@@ -71,3 +72,12 @@ func (c *siswaServices) HistoryPembayaranSiswa(siswaID int) ([]models.HistoryPem
 	}
 	return history, nil
 }
+
+func (s *siswaServices) GetTotalGenderCount() (int, int, error) {
+	countLakiLaki, countPerempuan, err := s.siswaRepo.GetTotalGenderCount()
+	if err != nil {
+		return 0, 0, err
+	}
+	return int(countLakiLaki), int(countPerempuan), nil
+}
+

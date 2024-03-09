@@ -14,6 +14,7 @@ type KelasAPI interface {
 	Update(c *gin.Context)
 	Delete(c *gin.Context)
 	GetList(c *gin.Context)
+	GetTotalKelasCount(c *gin.Context)
 }
 
 type kelasAPI struct {
@@ -174,4 +175,20 @@ func (a *kelasAPI) GetList(c *gin.Context) {
     }
 
 	c.JSON(200, response)
+}
+
+func (s *kelasAPI) GetTotalKelasCount(c *gin.Context){
+	totalKelas, err := s.kelasService.GetTotalKelasCount()
+	if err != nil {
+		log.Printf("Pesan error: %v", err)
+		c.JSON(500, gin.H{
+			"message" : "internal server error",
+			"error":   err.Error(),
+		})
+	}
+
+	c.JSON(200,gin.H{
+		"totalKelas": totalKelas,
+	})
+
 }

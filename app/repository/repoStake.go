@@ -13,6 +13,8 @@ type StakeholderRepository interface {
 	Delete(id int) error
 	GetByID(id int) (*models.StakeholderResponse, error)
 	GetList(page, pageSize int) ([]models.StakeholderResponse, int, error)
+	GetTotalGenderCount() (int, int, error)
+
 }
 
 type stakeholderRepository struct{
@@ -111,4 +113,17 @@ func (c *stakeholderRepository) GetByID(id int) (*models.StakeholderResponse, er
 		Gambar: stake.Gambar,
 	}
 	return &stakeResponse, nil
+}
+
+func (c *stakeholderRepository) GetTotalGenderCount() (int, int, error) {
+    var countLakiLaki, countPerempuan int64
+    if err := c.db.Model(&models.Stakeholder{}).Where("gender_id = ?", 1).Count(&countLakiLaki).Error; err != nil {
+        return 0, 0, err
+    }
+
+    if err := c.db.Model(&models.Stakeholder{}).Where("gender_id = ?", 2).Count(&countPerempuan).Error; err != nil {
+        return 0, 0, err
+    }
+
+    return int(countLakiLaki), int(countPerempuan), nil
 }
