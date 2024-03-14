@@ -2,6 +2,7 @@ package repository
 
 import (
 	"math"
+	"strings"
 
 	"github.com/denzalamsyah/simak/app/models"
 	"gorm.io/gorm"
@@ -12,6 +13,8 @@ type TransaksiRepository interface {
 	Update(id int, Transaksi models.Transaksi) error
 	Delete(id int) error
 	GetList(page, paedSize int) ([]models.Transaksi, int, error)
+	Search(nama string) ([]models.Transaksi, error)
+
 }
 
 type transaksiRepository struct {
@@ -63,4 +66,20 @@ func (c *transaksiRepository) GetList(page, pageSize int) ([]models.Transaksi, i
 	totalPage := int(math.Ceil(float64(totalData) / float64(pageSize)))
 
 	return Transaksi, totalPage, nil
+}
+
+func (c *transaksiRepository) Search(nama string) ([]models.Transaksi, error){
+	nama = strings.ToLower(nama)
+
+	var Transaksi []models.Transaksi
+
+	query := c.db.Table("transaksis").
+	Select("transaksis.id, transaksis.nama, transaksis.jumlah_bayar").
+	Where("LOWER(transaksis.nama) LIKE ?", "%" +nama+ "%")
+
+	if err := query.Find(&Transaksi).Error; err != nil {
+        return nil, err
+    }
+
+	return Transaksi, nil
 }

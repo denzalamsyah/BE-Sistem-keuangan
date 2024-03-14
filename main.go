@@ -7,6 +7,7 @@ import (
 
 	"github.com/denzalamsyah/simak/app/controllers"
 	"github.com/denzalamsyah/simak/app/initializers"
+	"github.com/denzalamsyah/simak/app/middleware"
 	"github.com/denzalamsyah/simak/app/models"
 	"github.com/denzalamsyah/simak/app/repository"
 	"github.com/denzalamsyah/simak/app/services"
@@ -92,7 +93,7 @@ func RunServer(db *gorm.DB,  gin *gin.Engine) *gin.Engine{
 	jurusanRepo := repository.NewJurusanRepo(db)
 	transaksiRepo := repository.NewTransaksiRepo(db)
 
-	userService := services.NewUserService(userRepo, sessionRepo)
+	userService := services.NewUserService(userRepo, sessionRepo,)
 	siswaService := services.NewSiswaService(siswaRepo)
 	stakeService := services.NewStakeService(stakeRepo)
 	sppService := services.NewSPPService(sppRepo)
@@ -141,12 +142,13 @@ version := gin.Group("/api")
 		{
 			user.POST("/login", apiHandler.UserAPIHandler.Login)
 			user.POST("/register", apiHandler.UserAPIHandler.Register)
-			// user.Use(middleware.Auth())
+			user.PUT("/reset", apiHandler.UserAPIHandler.ResetPassword)
+			user.Use(middleware.Auth())
 			
 		}
 	siswa := version.Group("/siswa")
 	{
-		// siswa.Use(middleware.Auth())
+		siswa.Use(middleware.Auth())
 		siswa.POST("/", apiHandler.SiswaAPIHandler.AddSiswa)
 		siswa.PUT("/:id", apiHandler.SiswaAPIHandler.Update)
 		siswa.DELETE("/:id", apiHandler.SiswaAPIHandler.Delete)
@@ -154,21 +156,23 @@ version := gin.Group("/api")
 		siswa.GET("/histori/:id", apiHandler.SiswaAPIHandler.History)
 		siswa.GET("/", apiHandler.SiswaAPIHandler.GetList)
 		siswa.GET("/gender", apiHandler.SiswaAPIHandler.GetTotalGenderCount)
+		siswa.GET("/search", apiHandler.SiswaAPIHandler.Search)
 	}
 	stake := version.Group("/stake")
 	{
-		// stake.Use(middleware.Auth())
+		stake.Use(middleware.Auth())
 		stake.POST("/", apiHandler.StakeAPIHandler.AddStake)
 		stake.PUT("/:id", apiHandler.StakeAPIHandler.Update)
 		stake.DELETE("/:id", apiHandler.StakeAPIHandler.Delete)
 		stake.GET("/:id", apiHandler.StakeAPIHandler.GetByID)
 		stake.GET("/", apiHandler.StakeAPIHandler.GetList)
 		stake.GET("/gender", apiHandler.StakeAPIHandler.GetTotalGenderCount)
+		stake.GET("/search", apiHandler.StakeAPIHandler.Search)
 	}
 
 	Spp := version.Group("/spp")
 	{
-		// Spp.Use(middleware.Auth())
+		Spp.Use(middleware.Auth())
 		Spp.POST("/", apiHandler.SppAPIHandler.AddSPP)
 		Spp.PUT("/:id", apiHandler.SppAPIHandler.Update)
 		Spp.DELETE("/:id", apiHandler.SppAPIHandler.Delete)
@@ -178,16 +182,17 @@ version := gin.Group("/api")
 	
 	Semester := version.Group("/semester")
 	{
-		// Semester.Use(middleware.Auth())
+		Semester.Use(middleware.Auth())
 		Semester.POST("/", apiHandler.SemesterAPIHandler.AddSemester)
 		Semester.PUT("/:id", apiHandler.SemesterAPIHandler.Update)
 		Semester.DELETE("/:id", apiHandler.SemesterAPIHandler.Delete)
 		Semester.GET("/:id", apiHandler.SemesterAPIHandler.GetByID)
 		Semester.GET("/", apiHandler.SemesterAPIHandler.GetList)
+		Semester.GET("/search", apiHandler.SemesterAPIHandler.Search)
 	}
 	pemasukan := version.Group("/pemasukan")
 	{
-		// pemasukan.Use(middleware.Auth())
+		pemasukan.Use(middleware.Auth())
 		pemasukan.GET("/", apiHandler.PemasukanAPIHandler.FindAll)
 		pemasukan.GET("/total", apiHandler.PemasukanAPIHandler.TotalKeuangan)
 		pemasukan.GET("/:id", apiHandler.PemasukanAPIHandler.GetByID)
@@ -195,45 +200,51 @@ version := gin.Group("/api")
 		pemasukan.PUT("/:id", apiHandler.PemasukanAPIHandler.Update)
 		pemasukan.DELETE("/:id", apiHandler.PemasukanAPIHandler.Delete)
 		pemasukan.GET("/get", apiHandler.PemasukanAPIHandler.GetList)
+		pemasukan.GET("/searchAll", apiHandler.PemasukanAPIHandler.SearchAll)
+		pemasukan.GET("/search", apiHandler.PemasukanAPIHandler.Search)
 
 	}
 	pengeluaran := version.Group("/pengeluaran")
 	{
-		// pengeluaran.Use(middleware.Auth())
+		pengeluaran.Use(middleware.Auth())
 		pengeluaran.GET("/:id", apiHandler.PengeluaranAPIHandler.GetByID)
 		pengeluaran.POST("/", apiHandler.PengeluaranAPIHandler.Add)
 		pengeluaran.PUT("/:id", apiHandler.PengeluaranAPIHandler.Update)
 		pengeluaran.DELETE("/:id", apiHandler.PengeluaranAPIHandler.Delete)
 		pengeluaran.GET("/", apiHandler.PengeluaranAPIHandler.GetList)
+		pengeluaran.GET("/search", apiHandler.PengeluaranAPIHandler.Search)
 	}
 
 	kelas := version.Group("/kelas")
 	{
-		// kelas.Use(middleware.Auth())
+		kelas.Use(middleware.Auth())
 		kelas.POST("/", apiHandler.KelasAPIHandler.AddKelas)
 		kelas.PUT("/:id", apiHandler.KelasAPIHandler.Update)
 		kelas.DELETE("/:id", apiHandler.KelasAPIHandler.Delete)
 		kelas.GET("/", apiHandler.KelasAPIHandler.GetList)
 		kelas.GET("/total", apiHandler.KelasAPIHandler.GetTotalKelasCount)
+		kelas.GET("/search", apiHandler.KelasAPIHandler.Search)
 	}
 
 	Jurusan := version.Group("/jurusan")
 	{
-		// Jurusan.Use(middleware.Auth())
+		Jurusan.Use(middleware.Auth())
 		Jurusan.POST("/", apiHandler.JurusanAPIHandler.AddJurusan)
 		Jurusan.PUT("/:id", apiHandler.JurusanAPIHandler.Update)
 		Jurusan.DELETE("/:id", apiHandler.JurusanAPIHandler.Delete)
 		Jurusan.GET("/", apiHandler.JurusanAPIHandler.GetList)
 		Jurusan.GET("/total", apiHandler.JurusanAPIHandler.GetTotalJurusanCount)
+		Jurusan.GET("/search", apiHandler.JurusanAPIHandler.Search)
 	}
 
 	Transaksi := version.Group("/transaksi")
 	{
-		// Transaksi.Use(middleware.Auth())
+		Transaksi.Use(middleware.Auth())
 		Transaksi.POST("/", apiHandler.TransaksiAPIHandler.AddTransaksi)
 		Transaksi.PUT("/:id", apiHandler.TransaksiAPIHandler.Update)
 		Transaksi.DELETE("/:id", apiHandler.TransaksiAPIHandler.Delete)
 		Transaksi.GET("/", apiHandler.TransaksiAPIHandler.GetList)
+		Transaksi.GET("/search", apiHandler.TransaksiAPIHandler.Search)
 	}
 }
 return gin

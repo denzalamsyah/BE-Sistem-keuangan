@@ -2,6 +2,7 @@ package repository
 
 import (
 	"math"
+	"strings"
 
 	"github.com/denzalamsyah/simak/app/models"
 	"gorm.io/gorm"
@@ -15,6 +16,8 @@ type PemasukanRepository interface {
 	Delete(id int) error
 	GetByID(id int) (*models.Pemasukanlainnya, error)
     GetList(page, pageSize int) ([]models.Pemasukanlainnya, int, error)
+    SearchAll(nama, tanggal string) ([]models.PemasukanResponse, error)
+    Search(nama, tanggal string) ([]models.Pemasukanlainnya, error)
 }
 
 type pemasukanRepository struct {
@@ -178,3 +181,36 @@ func (c *pemasukanRepository) TotalKeuangan() (int, int, int, error) {
     return saldo, totalPengeluaran, totalPemasukan, nil
 }
 
+func (c *pemasukanRepository) SearchAll(nama, tanggal string) ([]models.PemasukanResponse, error){
+    nama = strings.ToLower(nama)
+    tanggal = strings.ToLower(tanggal)
+
+    var pemasukan []models.PemasukanResponse
+
+    query := c.db.Table("pemasukans").
+    Select("pemasukans.id, pemasukans.nama, pemasukans.tanggal, pemasukans.jumlah").
+    Where("LOWER(pemasukans.nama) LIKE ? AND LOWER(pemasukans.tanggal) LIKE ?", "%"+nama+"%", "%"+tanggal+"%")
+
+    if err := query.Find(&pemasukan).Error; err != nil {
+        return nil, err
+    }
+
+    return pemasukan, nil
+}
+
+func (c *pemasukanRepository) Search(nama, tanggal string) ([]models.Pemasukanlainnya, error){
+    nama = strings.ToLower(nama)
+    tanggal = strings.ToLower(tanggal)
+
+    var pemasukan []models.Pemasukanlainnya
+
+    query := c.db.Table("pemasukanlainnyas").
+    Select("pemasukanlainnyas.id, pemasukanlainnyas.nama, pemasukanlainnyas.tanggal, pemasukanlainnyas.jumlah").
+    Where("LOWER(pemasukanlainnyas.nama) LIKE ? AND LOWER(pemasukanlainnyas.tanggal) LIKE ?", "%"+nama+"%", "%"+tanggal+"%")
+
+    if err := query.Find(&pemasukan).Error; err != nil {
+        return nil, err
+    }
+
+    return pemasukan, nil
+}

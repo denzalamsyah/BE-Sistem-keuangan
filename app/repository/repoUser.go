@@ -8,6 +8,8 @@ import (
 type UserRepository interface {
 	GetUserByEmail(email string) (models.User, error)
 	CreateUser(user models.User) (models.User, error)
+	UpdateUser(user *models.User) error
+	
 }
 
 type userRepository struct {
@@ -37,4 +39,11 @@ func (r *userRepository) CreateUser(user models.User) (models.User, error) {
 		return user, err
 	}
 	return user, nil
+}
+
+func (r *userRepository) UpdateUser(user *models.User) error {
+    if err := r.db.Save(&user).Error; err != nil {
+        return err
+    }
+    return nil
 }

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"math"
+	"strings"
 
 	"github.com/denzalamsyah/simak/app/models"
 	"gorm.io/gorm"
@@ -13,6 +14,7 @@ type JurusanRepository interface {
 	Delete(id int) error
 	GetList(page, pageSize int) ([]models.Jurusan,int, error)
 	GetTotalJurusanCount() (int, error)
+	Search(nama string) ([]models.Jurusan, error)
 
 }
 
@@ -78,4 +80,20 @@ func (c *jurusanRepository) GetTotalJurusanCount() (int, error) {
         return 0, err
     }
     return int(count), nil
+}
+
+func (c *jurusanRepository) Search(nama string) ([]models.Jurusan, error){
+	nama = strings.ToLower(nama)
+
+	var jurusan []models.Jurusan
+
+	query := c.db.Table("jurusans").
+	Select("jurusans.id_jurusan, jurusans.nama").
+	Where("LOWER(jurusans.nama) LIKE ?", "%" +nama+ "%")
+
+	if err := query.Find(&jurusan).Error; err != nil {
+        return nil, err
+    }
+
+	return jurusan, nil
 }

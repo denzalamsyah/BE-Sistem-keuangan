@@ -11,6 +11,7 @@ type KelasService interface {
 	Delete(id int) error
 	GetList(page, pageSize int) ([]models.Kelas, int, error)
 	GetTotalKelasCount() (int, error)
+	Search(nama string) ([]models.Kelas, error)
 
 }
 
@@ -60,4 +61,13 @@ func (s *kelasServices) GetTotalKelasCount() (int, error) {
 		return 0, err
 	}
 	return count, nil
+}
+
+func(s *kelasServices) Search(nama string) ([]models.Kelas, error){
+	kelas, err := s.kelasRepo.Search(nama)
+
+	if err != nil {
+        return nil, err
+    }
+	return kelas, nil
 }

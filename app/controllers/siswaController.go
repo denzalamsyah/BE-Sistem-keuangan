@@ -19,6 +19,7 @@ type SiswaAPI interface {
 	GetList(c *gin.Context)
 	History(c *gin.Context)
     GetTotalGenderCount(c *gin.Context)
+    Search(c *gin.Context)
 }
 
 type siswaAPI struct {
@@ -272,8 +273,8 @@ func (s *siswaAPI) History(c *gin.Context) {
 	c.JSON(200, result)
 }
 
-func (api *siswaAPI) GetTotalGenderCount(c *gin.Context) {
-    countLakiLaki, countPerempuan, err := api.siswaService.GetTotalGenderCount()
+func (s *siswaAPI) GetTotalGenderCount(c *gin.Context) {
+    countLakiLaki, countPerempuan, err := s.siswaService.GetTotalGenderCount()
     if err != nil {
         log.Printf("Error: %v", err)
         c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -285,3 +286,20 @@ func (api *siswaAPI) GetTotalGenderCount(c *gin.Context) {
         "count_perempuan": countPerempuan,
     })
 }
+
+func (s *siswaAPI) Search(c *gin.Context) {
+	name := c.Query("nama")
+	kelas := c.Query("kelas")
+	nisn := c.Query("nisn")
+    jurusan := c.Query("jurusan")
+
+	siswaList, err := s.siswaService.Search(name,  nisn, kelas, jurusan)
+	if err != nil {
+        log.Printf("Error: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": siswaList})
+}
+

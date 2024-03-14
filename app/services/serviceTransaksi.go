@@ -10,6 +10,7 @@ type TransaksiService interface {
 	Update(id int, Transaksi models.Transaksi) error
 	Delete(id int) error
 	GetList(page, pageSize int) ([]models.Transaksi, int, error)
+	Search(nama string) ([]models.Transaksi, error)
 }
 type transaksiService struct {
 	transaksiRepo repository.TransaksiRepository
@@ -50,4 +51,13 @@ func (c *transaksiService) GetList(page, pageSize int) ([]models.Transaksi, int,
 		return nil, 0, err
 	}
 	return Transaksi,totalPage, nil
+}
+
+func (c *transaksiService) Search(nama string) ([]models.Transaksi, error){
+	transaksi, err := c.transaksiRepo.Search(nama)
+
+	if err != nil {
+        return nil, err
+    }
+	return transaksi, nil
 }

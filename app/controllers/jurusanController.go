@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"log"
+	"net/http"
 	"strconv"
 
 	"github.com/denzalamsyah/simak/app/models"
@@ -15,6 +16,7 @@ type JurusanAPI interface {
 	Delete(c *gin.Context)
 	GetList(c *gin.Context)
 	GetTotalJurusanCount(c *gin.Context)
+	Search(c *gin.Context)
 }
 
 type jurusanAPI struct {
@@ -190,6 +192,19 @@ func (s *jurusanAPI) GetTotalJurusanCount(c *gin.Context) {
 	c.JSON(200, gin.H{
 		"totalJurusan": totalJurusan,
 	})
+}
+
+func (s *jurusanAPI) Search(c *gin.Context){
+	nama := c.Query("nama")
+
+	jurusan, err := s.jurusanService.Search(nama)
+	if err != nil {
+        log.Printf("Error: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": jurusan})
 }
 
 	

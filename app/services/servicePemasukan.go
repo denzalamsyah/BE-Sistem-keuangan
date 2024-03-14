@@ -13,7 +13,8 @@ type PemasukanService interface {
 	Delete(id int) error
 	GetByID(id int) (*models.Pemasukanlainnya, error)
 	GetList(page, pageSize int) ([]models.Pemasukanlainnya, int, error)
-
+	SearchAll(nama, tanggal string) ([]models.PemasukanResponse, error)
+    Search(nama, tanggal string) ([]models.Pemasukanlainnya, error)
 	
 }
 type pemasukanService struct {
@@ -81,4 +82,19 @@ func (c *pemasukanService) TotalKeuangan() (int, int, int, error) {
     return saldo, totalPemasukan, totalPengeluaran, nil
 }
 
+func (c *pemasukanService) SearchAll(nama, tanggal string) ([]models.PemasukanResponse, error){
+	pemasukan, err := c.pemasukanRepository.SearchAll(nama, tanggal)
+	if err != nil {
+        return nil, err
+    }
+	return pemasukan, nil
+}
+
+func(c *pemasukanService) Search(nama, tanggal string) ([]models.Pemasukanlainnya, error){
+	pemasukan, err := c.pemasukanRepository.Search(nama, tanggal)
+	if err != nil {
+        return nil, err
+    }
+	return pemasukan, nil
+}
 

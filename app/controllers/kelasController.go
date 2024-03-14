@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"log"
+	"net/http"
 	"strconv"
 
 	"github.com/denzalamsyah/simak/app/models"
@@ -15,6 +16,7 @@ type KelasAPI interface {
 	Delete(c *gin.Context)
 	GetList(c *gin.Context)
 	GetTotalKelasCount(c *gin.Context)
+	Search(c *gin.Context)
 }
 
 type kelasAPI struct {
@@ -191,4 +193,17 @@ func (s *kelasAPI) GetTotalKelasCount(c *gin.Context){
 		"totalKelas": totalKelas,
 	})
 
+}
+
+func (s *kelasAPI) Search(c *gin.Context){
+	nama := c.Query("nama")
+
+	kelas, err := s.kelasService.Search(nama)
+	if err != nil {
+        log.Printf("Error: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": kelas})
 }

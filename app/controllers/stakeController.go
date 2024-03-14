@@ -18,6 +18,7 @@ type StakeAPI interface {
 	GetByID(c *gin.Context)
 	GetList(c *gin.Context)
 	GetTotalGenderCount(c *gin.Context)
+	Search(c *gin.Context)
 }
 
 type stakeAPI struct{
@@ -261,8 +262,8 @@ func (s *stakeAPI) GetList(c *gin.Context){
     c.JSON(200, response)
 }
 
-func (api *stakeAPI) GetTotalGenderCount(c *gin.Context) {
-    countLakiLaki, countPerempuan, err := api.stakeService.GetTotalGenderCount()
+func (s *stakeAPI) GetTotalGenderCount(c *gin.Context) {
+    countLakiLaki, countPerempuan, err := s.stakeService.GetTotalGenderCount()
     if err != nil {
         log.Printf("Error: %v", err)
         c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -273,4 +274,19 @@ func (api *stakeAPI) GetTotalGenderCount(c *gin.Context) {
         "count_laki_laki": countLakiLaki,
         "count_perempuan": countPerempuan,
     })
+}
+
+func (s *stakeAPI) Search(c *gin.Context){
+	nama := c.Query("nama")
+	nip := c.Query("nip")
+	jabatan := c.Query("jabatan")
+
+	stakeList, err := s.stakeService.Search(nama,  nip, jabatan)
+	if err != nil {
+        log.Printf("Error: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": stakeList})
 }

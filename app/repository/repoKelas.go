@@ -2,6 +2,7 @@ package repository
 
 import (
 	"math"
+	"strings"
 
 	"github.com/denzalamsyah/simak/app/models"
 	"gorm.io/gorm"
@@ -13,8 +14,8 @@ type KelasRepository interface {
 	Delete(id int) error
 	GetList(page, pageSize int) ([]models.Kelas, int, error)
 	GetTotalKelasCount() (int, error)
+	Search(nama string) ([]models.Kelas, error)
 
-	
 }
 
 type kelasRepository struct{
@@ -76,4 +77,19 @@ func (c *kelasRepository) GetTotalKelasCount() (int, error) {
     return int(count), nil
 }
 
+func (c *kelasRepository) Search(nama string) ([]models.Kelas, error){
+	nama = strings.ToLower(nama)
+
+	var Kelas []models.Kelas
+
+	query := c.db.Table("kelas").
+	Select("kelas.id_kelas, kelas.kelas").
+	Where("LOWER(kelas.kelas) LIKE ?", "%" +nama+ "%")
+
+	if err := query.Find(&Kelas).Error; err != nil {
+        return nil, err
+    }
+
+	return Kelas, nil
+}
 

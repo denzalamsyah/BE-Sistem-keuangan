@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/denzalamsyah/simak/app/models"
@@ -11,6 +12,8 @@ import (
 type UserAPI interface {
 	Register(c *gin.Context)
 	Login(c *gin.Context)
+	ResetPassword(c *gin.Context)
+
 }
 
 type userAPI struct {
@@ -70,16 +73,23 @@ func (u *userAPI) Login(c *gin.Context) {
 		return
 	}
 	
+	
+	c.JSON(http.StatusOK, gin.H{"message": "login success", "token": *token})
+}
 
-	cookies := &http.Cookie{
-		Name: "session_token",
-		Value: *token,
-		Path: "/",
-		HttpOnly: true,
-		SameSite: http.SameSiteStrictMode,
+func (c *userAPI) ResetPassword(ctx *gin.Context) {
+
+	email := ctx.PostForm("email")
+	newPassword := ctx.PostForm("new_password")
+
+	if err := c.userService.ResetPassword(email, newPassword); err != nil {
+		log.Printf("Pesan error: %v", err)
+		ctx.JSON(500, gin.H{"error": err.Error()})
+		return
 	}
 
-	http.SetCookie(c.Writer, cookies)
-	
-	c.JSON(http.StatusOK, gin.H{"message": "login success", "token":*token})
+	ctx.JSON(200, gin.H{"message": "Password reset successful"})
 }
+
+
+

@@ -12,11 +12,15 @@ import (
 type UserService interface {
 	Register(user *models.User) (models.User, error)
 	Login(user *models.User) (token *string, err error)
+	ResetPassword(email, newPassword string) error
+
+	
 }
 
 type userService struct {
 	userRepo     repository.UserRepository
 	sessionsRepo repository.SessionRepository
+	
 }
 
 func NewUserService(userRepository repository.UserRepository, sessionsRepo repository.SessionRepository) UserService {
@@ -85,3 +89,37 @@ func (s *userService) Login(user *models.User) (token *string, err error) {
 
 	return &tokenString, nil
 }
+
+func (s *userService) ResetPassword(email string, newPassword string) error {
+	user, err := s.userRepo.GetUserByEmail(email)
+	if err != nil {
+		return err
+	}
+	user.Password = newPassword
+
+	if err := s.userRepo.UpdateUser(&user); err != nil {
+		return err
+	}
+	return nil
+}
+
+
+
+// func (s *userService) VerifikasiEmail(email string) error {
+//     _, err := s.userRepo.GetUserByEmail(email)
+//     if err != nil {
+//         return err
+//     }
+
+//     // Generate verification token (you can use UUID or any other method)
+//     verificationToken := "your_verification_token"
+
+//     // Create verification link
+//     verificationLink := "https://yourdomain.com/reset-password?token=" + verificationToken
+
+//     if err := s.emailService.SendVerificationEmail(email, verificationLink); err != nil {
+//         return err
+//     }
+
+//     return nil
+// }

@@ -12,6 +12,8 @@ type StakeholderServices interface {
 	GetByID(id int) (*models.StakeholderResponse, error)
 	GetList(page, pageSize int) ([]models.StakeholderResponse, int,error)
 	GetTotalGenderCount() (int, int, error)
+	Search(nama, nip, jabatan string) ([]models.StakeholderResponse, error)
+
 }
 
 type stakeholderServices struct{
@@ -61,10 +63,19 @@ func (c *stakeholderServices) GetList(page, pageSize int)([]models.StakeholderRe
 	return stake, totalPage, nil
 }
 
-func (s *stakeholderServices) GetTotalGenderCount() (int, int, error) {
-	countLakiLaki, countPerempuan, err := s.stakeRepo.GetTotalGenderCount()
+func (c *stakeholderServices) GetTotalGenderCount() (int, int, error) {
+	countLakiLaki, countPerempuan, err := c.stakeRepo.GetTotalGenderCount()
 	if err != nil {
 		return 0, 0, err
 	}
 	return int(countLakiLaki), int(countPerempuan), nil
+}
+
+func(c *stakeholderServices) Search(nama, nip, jabatan string) ([]models.StakeholderResponse, error){
+	stake, err := c.stakeRepo.Search(nama, nip, jabatan)
+
+	if err != nil {
+        return nil, err
+    }
+	return stake, nil
 }

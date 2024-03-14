@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"log"
+	"net/http"
 	"strconv"
 
 	"github.com/denzalamsyah/simak/app/models"
@@ -17,6 +18,8 @@ type PemasukanAPI interface {
 	Delete(c *gin.Context)
 	GetByID(c *gin.Context)
 	GetList(c *gin.Context)
+	SearchAll(c *gin.Context)
+	Search(c *gin.Context)
 }
 
 type pemasukanAPI struct {
@@ -36,7 +39,7 @@ func (s *pemasukanAPI) FindAll(c *gin.Context) {
 
 	pageSize, err := strconv.Atoi(c.Query("pageSize"))
     if err != nil || pageSize <= 0 {
-        pageSize = 3
+        pageSize = 1000
     }
 
 	result,totalPage, err := s.pemasukanService.FindAll(page, pageSize)
@@ -224,7 +227,7 @@ func (s *pemasukanAPI) GetList(c *gin.Context) {
 
 	pageSize, err := strconv.Atoi(c.Query("pageSize"))
     if err != nil || pageSize <= 0 {
-        pageSize = 3
+        pageSize = 1000
     }
 	result, totalPage, err := s.pemasukanService.GetList(page, pageSize)
 	if err != nil {
@@ -267,4 +270,34 @@ func (s *pemasukanAPI) TotalKeuangan(c *gin.Context) {
 		Pemasukan: pemasukan,
 	}
 	c.JSON(200, response)
+}
+
+func (s *pemasukanAPI) SearchAll(c *gin.Context){
+	nama := c.Query("nama")
+	tanggal := c.Query("tanggal")
+
+	pemasukan, err := s.pemasukanService.SearchAll(nama, tanggal)
+	if err != nil {
+        log.Printf("Error: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": pemasukan})
+
+}
+
+func (s *pemasukanAPI) Search(c *gin.Context){
+	nama := c.Query("nama")
+	tanggal := c.Query("tanggal")
+
+	pemasukan, err := s.pemasukanService.Search(nama, tanggal)
+	if err != nil {
+        log.Printf("Error: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": pemasukan})
+
 }

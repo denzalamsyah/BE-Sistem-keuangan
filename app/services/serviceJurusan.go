@@ -11,6 +11,7 @@ type JurusanService interface {
 	Delete(id int) error
 	GetList(page, pageSize int) ([]models.Jurusan, int, error)
 	GetTotalJurusanCount() (int, error)
+	Search(nama string) ([]models.Jurusan, error)
 	
 }
 
@@ -60,4 +61,13 @@ func (s *jurusanService) GetTotalJurusanCount() (int, error) {
 		return 0, err
 	}
 	return count, nil
+}
+
+func (s *jurusanService) Search(nama string) ([]models.Jurusan, error){
+	jurusan, err := s.jurusanRepo.Search(nama)
+
+	if err != nil {
+        return nil, err
+    }
+	return jurusan, nil
 }

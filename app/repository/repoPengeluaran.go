@@ -2,6 +2,7 @@ package repository
 
 import (
 	"math"
+	"strings"
 
 	"github.com/denzalamsyah/simak/app/models"
 	"gorm.io/gorm"
@@ -13,6 +14,7 @@ type PengeluaranRepository interface {
 	Delete(id int) error
 	GetByID(id int) (*models.Pengeluaran, error)
 	GetList(page, pageSize int) ([]models.Pengeluaran, int, error)
+	Search(nama, tanggal string) ([]models.Pengeluaran, error)
 }
 
 type pengeluaranRepository struct {
@@ -77,4 +79,21 @@ func (c *pengeluaranRepository) GetList(page, pageSize int) ([]models.Pengeluara
 
 	totalPage := int(math.Ceil(float64(totalData) / float64(pageSize)))
     return pengeluaran, totalPage, nil
+}
+
+func (c *pengeluaranRepository) Search(nama, tanggal string) ([]models.Pengeluaran, error){
+	nama = strings.ToLower(nama)
+    tanggal = strings.ToLower(tanggal)
+
+    var pengeluaran []models.Pengeluaran
+
+    query := c.db.Table("pengeluarans").
+    Select("pengeluarans.id, pengeluarans.nama, pengeluarans.tanggal, pengeluarans.jumlah").
+    Where("LOWER(pengeluarans.nama) LIKE ? AND LOWER(pengeluarans.tanggal) LIKE ?", "%"+nama+"%", "%"+tanggal+"%")
+
+    if err := query.Find(&pengeluaran).Error; err != nil {
+        return nil, err
+    }
+
+    return pengeluaran, nil
 }

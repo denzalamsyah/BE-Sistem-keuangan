@@ -3,6 +3,7 @@ package repository
 import (
 	"fmt"
 	"math"
+	"strings"
 
 	"github.com/denzalamsyah/simak/app/models"
 	"gorm.io/gorm"
@@ -16,6 +17,8 @@ type SiswaRepository interface {
 	GetList(page, pageSize int) ([]models.SiswaResponse, int, error)
 	HistoryPembayaranSiswa(siswaID int) ([]models.HistoryPembayaran, error)
 	GetTotalGenderCount() (int, int, error)
+	Search(name, nisn, kelas, jurusan string) ([]models.SiswaResponse, error)
+
 }
 
 type siswaRepository struct{
@@ -62,10 +65,7 @@ func (c *siswaRepository) GetByID(id int) (*models.SiswaResponse, error) {
 		ID:           siswa.ID,
 		Nama:         siswa.Nama,
 		NISN:         siswa.NISN,
-		Kelas:        models.KelasResponse{
-			ID:    siswa.Kelas.IDKelas,
-			Kelas: siswa.Kelas.Kelas,
-		},
+		Kelas:   siswa.Kelas.Kelas,
 		Jurusan:      siswa.Jurusan.Nama,
 		Agama:        siswa.Agama.Nama,
 		TempatLahir:  siswa.TempatLahir,
@@ -102,10 +102,7 @@ func (c *siswaRepository) GetList(page, pageSize int) ([]models.SiswaResponse, i
 			ID:           s.ID,
 			Nama:         s.Nama,
 			NISN:         s.NISN,
-			Kelas:        models.KelasResponse{
-				ID:    s.Kelas.IDKelas,
-				Kelas: s.Kelas.Kelas,
-			},
+			Kelas:       s.Kelas.Kelas,
 			Jurusan:      s.Jurusan.Nama,
 			Agama:        s.Agama.Nama,
 			TempatLahir:  s.TempatLahir,
@@ -176,4 +173,29 @@ func (c *siswaRepository) GetTotalGenderCount() (int, int, error) {
 
     return int(countLakiLaki), int(countPerempuan), nil
 }
+
+func (c *siswaRepository) Search(name, nisn, kelas, jurusan string) ([]models.SiswaResponse, error) {
+    name = strings.ToLower(name)
+    kelas = strings.ToLower(kelas)
+    jurusan = strings.ToLower(jurusan)
+
+    var siswaList []models.SiswaResponse
+
+    // Query dengan menggunakan Select untuk menentukan kolom yang akan diambil
+    query := c.db.Table("siswas").
+        Select("siswas.id, siswas.nama, siswas.nisn, kelas.kelas as kelas, jurusans.nama as jurusan, agamas.nama as agama, siswas.tempat_lahir, siswas.tanggal_lahir, genders.nama as gender, siswas.nama_ayah, siswas.nama_ibu, siswas.nomor_telepon, siswas.angkatan, siswas.email, siswas.alamat, siswas.gambar").
+        Joins("JOIN kelas ON siswas.kelas_id = kelas.id_kelas").
+        Joins("JOIN jurusans ON siswas.jurusan_id = jurusans.id_jurusan").
+		Joins("JOIN agamas ON siswas.agama_id = agamas.id_agama").
+		Joins("JOIN genders ON siswas.gender_id = genders.id_gender").
+        Where("LOWER(siswas.nama) LIKE ? AND siswas.nisn::TEXT LIKE ? AND LOWER(kelas.kelas) LIKE ? AND LOWER(jurusans.nama) LIKE ?", "%"+name+"%", "%"+nisn+"%", "%"+kelas+"%", "%"+jurusan+"%")
+
+    if err := query.Find(&siswaList).Error; err != nil {
+        return nil, err
+    }
+
+    return siswaList, nil
+}
+
+
 

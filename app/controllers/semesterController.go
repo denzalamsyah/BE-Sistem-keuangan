@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"log"
+	"net/http"
 	"strconv"
 
 	"github.com/denzalamsyah/simak/app/models"
@@ -15,6 +16,7 @@ type SemesterAPI interface {
 	Delete(c *gin.Context)
 	GetByID(c *gin.Context)
 	GetList(c *gin.Context)
+	Search(c *gin.Context)
 }
 
 type semesterAPI struct{
@@ -171,7 +173,7 @@ func (s *semesterAPI) GetList(c *gin.Context) {
 
 	pageSize, err := strconv.Atoi(c.Query("pageSize"))
     if err != nil || pageSize <= 0 {
-        pageSize = 3
+        pageSize = 1000
     }
 	result, totalPage, err := s.semesterService.GetList(page, pageSize)
 	if err != nil {
@@ -193,4 +195,23 @@ func (s *semesterAPI) GetList(c *gin.Context) {
     }
 
     c.JSON(200, response)
+}
+
+func (s *semesterAPI) Search(c *gin.Context){
+	siswa := c.Query("siswa")
+	tahunAjar := c.Query("tahunAjar")
+	transaksi := c.Query("transaksi")
+	semester := c.Query("semester")
+	tanggal := c.Query("tanggal")
+	penerima := c.Query("penerima")
+
+	pembayaran, err := s.semesterService.Search(siswa, tahunAjar, transaksi, semester, tanggal, penerima)
+	if err != nil {
+        log.Printf("Error: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": pembayaran})
+
 }

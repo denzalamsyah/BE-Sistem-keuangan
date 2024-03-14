@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"log"
+	"net/http"
 	"strconv"
 
 	"github.com/denzalamsyah/simak/app/models"
@@ -14,6 +15,7 @@ type TransaksiAPI interface {
 	Update(c *gin.Context)
 	Delete(c *gin.Context)
 	GetList(c *gin.Context)
+	Search(c *gin.Context)
 }
 
 type transaksiAPI struct {
@@ -182,4 +184,17 @@ func (a *transaksiAPI) GetList(c *gin.Context) {
     }
 
 	c.JSON(200, response)
+}
+
+func (a *transaksiAPI) Search(c *gin.Context){
+	nama := c.Query("nama")
+
+	transaksi, err := a.transaksiService.Search(nama)
+	if err != nil {
+        log.Printf("Error: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": transaksi})
 }

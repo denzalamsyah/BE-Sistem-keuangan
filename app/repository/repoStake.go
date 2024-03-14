@@ -2,6 +2,7 @@ package repository
 
 import (
 	"math"
+	"strings"
 
 	"github.com/denzalamsyah/simak/app/models"
 	"gorm.io/gorm"
@@ -14,6 +15,7 @@ type StakeholderRepository interface {
 	GetByID(id int) (*models.StakeholderResponse, error)
 	GetList(page, pageSize int) ([]models.StakeholderResponse, int, error)
 	GetTotalGenderCount() (int, int, error)
+	Search(nama, nip, jabatan string) ([]models.StakeholderResponse, error)
 
 }
 
@@ -126,4 +128,25 @@ func (c *stakeholderRepository) GetTotalGenderCount() (int, int, error) {
     }
 
     return int(countLakiLaki), int(countPerempuan), nil
+}
+
+func (c *stakeholderRepository) Search(nama, nip, jabatan string) ([]models.StakeholderResponse, error){
+	nama = strings.ToLower(nama)
+	jabatan = strings.ToLower(jabatan)
+
+	var StakeList []models.StakeholderResponse
+
+	query := c.db.Table("stakeholders").
+	Select("stakeholders.id, stakeholders.nama, stakeholders.n_ip, agamas.nama as agama, jabatans.nama as jabatan, stakeholders.tempat_lahir, stakeholders.tanggal_lahir, genders.nama as gender, stakeholders.nomor_telepon, stakeholders.email, stakeholders.alamat, stakeholders.gambar ").
+	Joins("JOIN agamas ON stakeholders.agama_id = agamas.id_agama").
+	Joins("JOIN jabatans on stakeholders.jabatan_id = jabatans.id_jabatan").
+	Joins("JOIN genders ON stakeholders.gender_id = genders.id_gender").
+	Where("LOWER(stakeholders.nama) LIKE ? AND stakeholders.n_ip::TEXT LIKE ? AND LOWER(jabatans.nama) LIKE ?", "%"+nama+"%", "%"+nip+"%", "%"+jabatan+"%")
+
+	if err := query.Find(&StakeList).Error; err != nil {
+        return nil, err
+    }
+
+	return StakeList, nil
+
 }
