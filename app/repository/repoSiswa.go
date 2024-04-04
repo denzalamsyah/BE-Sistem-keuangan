@@ -15,9 +15,10 @@ type SiswaRepository interface {
 	Delete(id int) error
 	GetByID(id int) (*models.SiswaResponse, error)
 	GetList(page, pageSize int) ([]models.SiswaResponse, int, error)
-	HistoryPembayaranSiswa(siswaID int) ([]models.HistoryPembayaran, error)
+	HistoryPembayaranSiswa(siswaID, page, pageSize int) ([]models.HistoryPembayaran, int, error)
 	GetTotalGenderCount() (int, int, error)
 	Search(name, nisn, kelas, jurusan string) ([]models.SiswaResponse, error)
+	
 
 }
 
@@ -121,30 +122,19 @@ func (c *siswaRepository) GetList(page, pageSize int) ([]models.SiswaResponse, i
     return SiswaResponse, totalPage, nil
 }
 
-func (c *siswaRepository) HistoryPembayaranSiswa(siswaID int) ([]models.HistoryPembayaran, error) {
+func (c *siswaRepository) HistoryPembayaranSiswa(siswaID, page, pageSize int) ([]models.HistoryPembayaran,int, error) {
     var historyPembayaran []models.HistoryPembayaran
-
-    // Mengambil data pembayaran dari PembayaranSPP
-    var pembayaranSPP []models.PembayaranSPP
-    if err := c.db.Preload("Siswa").Preload("Penerima").Where("siswa_id = ?", siswaID).Find(&pembayaranSPP).Error; err != nil {
-        return nil, err
-    }
-
-    // Mengonversi data PembayaranSPP ke HistoryPembayaran
-    for _, p := range pembayaranSPP {
-        historyPembayaran = append(historyPembayaran, models.HistoryPembayaran{
-            Siswa:          p.Siswa.Nama,
-            Nama_transaksi: "Pembayaran SPP",
-            Biaya:          p.Jumlah,
-            Tanggal:        p.Tanggal,
-            Penerima:       p.Penerima.Nama,
-        })
-    }
 
     // Mengambil data pembayaran dari PembayaranSemester
     var pembayaranSemester []models.PembayaranSemester
-    if err := c.db.Preload("Siswa").Preload("Penerima").Where("siswa_id = ?", siswaID).Find(&pembayaranSemester).Error; err != nil {
-        return nil, err
+    if err := c.db.Preload("Siswa").Preload("Penerima").Preload("Transaksi").Where("siswa_id = ?", siswaID).
+	Offset((page - 1) * pageSize).Limit(pageSize).Find(&pembayaranSemester).Error; err != nil {
+        return nil,0, err
+    }
+
+	var totalData int64
+    if err := c.db.Model(&models.PembayaranSemester{}).Count(&totalData).Error; err != nil {
+        return nil, 0, err
     }
 
     // Mengonversi data PembayaranSemester ke HistoryPembayaran
@@ -155,10 +145,12 @@ func (c *siswaRepository) HistoryPembayaranSiswa(siswaID int) ([]models.HistoryP
             Biaya:          p.Jumlah,
             Tanggal:        p.Tanggal,
             Penerima:       p.Penerima.Nama,
+			Status: p.Status,
         })
     }
+	totalPage := int(math.Ceil(float64(totalData) / float64(pageSize)))
 
-    return historyPembayaran, nil
+    return historyPembayaran, totalPage, nil
 }
 
 func (c *siswaRepository) GetTotalGenderCount() (int, int, error) {

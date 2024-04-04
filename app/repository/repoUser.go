@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"unicode"
+
 	"github.com/denzalamsyah/simak/app/models"
 	"gorm.io/gorm"
 )
@@ -9,7 +11,10 @@ type UserRepository interface {
 	GetUserByEmail(email string) (models.User, error)
 	CreateUser(user models.User) (models.User, error)
 	UpdateUser(user *models.User) error
-	
+	CreateResetToken(email, tokenHash string) error
+	GetResetTokenByEmail(email string) (*models.ResetToken, error)
+	DeleteResetToken(token *models.ResetToken) error
+	StrongPassword(password string) bool
 }
 
 type userRepository struct {
@@ -46,4 +51,46 @@ func (r *userRepository) UpdateUser(user *models.User) error {
         return err
     }
     return nil
+}
+
+// fmembuat token
+func (r *userRepository) CreateResetToken(email, tokenHash string) error {
+	resetToken := models.ResetToken{
+		Email:     email,
+		TokenHash: tokenHash,
+	}
+	return r.db.Create(&resetToken).Error
+}
+
+//mengambil token berdasarkan email
+func (r *userRepository) GetResetTokenByEmail(email string) (*models.ResetToken, error) {
+	var resetToken models.ResetToken
+	if err := r.db.Where("email = ?", email).First(&resetToken).Error; err != nil {
+		return nil, err
+	}
+	return &resetToken, nil
+}
+
+// menghapus token ketika berhasil reset password
+func (r *userRepository) DeleteResetToken(token *models.ResetToken) error {
+    return r.db.Where("email = ? AND token_hash = ?", token.Email, token.TokenHash).Delete(token).Error
+}
+
+// fungsi untuk validasi password
+func (r *userRepository) StrongPassword(password string) bool {
+	var hasUpper, hasLower, hasDigit, hasSpecial bool
+	for _, char := range password {
+		switch {
+		case unicode.IsUpper(char):
+			hasUpper = true
+		case unicode.IsLower(char):
+			hasLower = true
+		case unicode.IsDigit(char):
+			hasDigit = true
+		case unicode.IsPunct(char) || unicode.IsSymbol(char):
+			hasSpecial = true
+		}
+	}
+
+	return hasUpper && hasLower && hasDigit && hasSpecial
 }

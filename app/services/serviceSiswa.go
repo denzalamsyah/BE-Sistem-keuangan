@@ -11,7 +11,7 @@ type SiswaServices interface {
 	Delete(id int) error
 	GetByID(id int) (*models.SiswaResponse, error)
 	GetList(page, pageSize int) ([]models.SiswaResponse, int, error)
-	HistoryPembayaranSiswa(siswaID int) ([]models.HistoryPembayaran, error)
+	HistoryPembayaranSiswa(siswaID, page, pageSize int) ([]models.HistoryPembayaran, int, error)
 	GetTotalGenderCount() (int, int, error)
 	Search(name, kelas, nisn, jurusan string) ([]models.SiswaResponse, error)
 
@@ -67,12 +67,12 @@ func (c *siswaServices) GetList(page, pageSize int) ([]models.SiswaResponse, int
 }
 
 
-func (c *siswaServices) HistoryPembayaranSiswa(siswaID int) ([]models.HistoryPembayaran, error) {
-	history, err := c.siswaRepo.HistoryPembayaranSiswa(siswaID)
+func (c *siswaServices) HistoryPembayaranSiswa(siswaID, page, pageSize int) ([]models.HistoryPembayaran, int, error) {
+	history, totalPage, err := c.siswaRepo.HistoryPembayaranSiswa(siswaID, page, pageSize)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
-	return history, nil
+	return history, totalPage, nil
 }
 
 func (c *siswaServices) GetTotalGenderCount() (int, int, error) {

@@ -39,6 +39,7 @@ type HistoryPembayaran struct {
 	Biaya          int    `json:"biaya"`
 	Tanggal        string `json:"tanggal"`
 	Penerima       string `json:"penerima"`
+	Status         string `json:"status"`
 }
 type PembayaranSPPResponse struct {
 	ID        int    `gorm:"primaryKey" json:"id"`

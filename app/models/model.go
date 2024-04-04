@@ -148,11 +148,14 @@ type UserLogin struct {
 type UserRegister struct {
 	Email    string `json:"email" binding:"required"`
 	Password string `json:"password" binding:"required"`
+	ConfirmPassword string `json:"confirm_password"`
+
 }
 type User struct {
 	ID        int       `gorm:"primaryKey" json:"id"`
-	Email     string    `json:"email" gorm:"type:varchar(255);not null"`
-	Password  string    `json:"-" gorm:"type:varchar(255);not null"`
+	Email     string    `json:"email" gorm:"type:varchar(55);not null"`
+	Password  string    `json:"-" gorm:"type:varchar(105);not null"`
+	ConfirmPassword  string `json:"-" gorm:"type:varchar(105);not null"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
@@ -165,4 +168,12 @@ type Jurusan struct{
 type Jabatan struct{
 	IDJabatan int    `gorm:"primaryKey" json:"id"`
 	Nama    string `gorm:"type:varchar(15)" json:"nama"`
+}
+
+
+type ResetToken struct{
+	Email   string `json:"email" binding:"required"`
+	TokenHash   string `json:"token" binding:"required"`
+	CreatedAt time.Time
+	ExpirationTime time.Time
 }

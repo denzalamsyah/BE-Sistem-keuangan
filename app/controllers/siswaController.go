@@ -3,12 +3,14 @@ package controllers
 import (
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/denzalamsyah/simak/app/middleware"
 	"github.com/denzalamsyah/simak/app/models"
 	"github.com/denzalamsyah/simak/app/services"
 	"github.com/gin-gonic/gin"
+	"github.com/xuri/excelize/v2"
 )
 
 type SiswaAPI interface {
@@ -20,6 +22,7 @@ type SiswaAPI interface {
 	History(c *gin.Context)
     GetTotalGenderCount(c *gin.Context)
     Search(c *gin.Context)
+    ExportSiswa(c *gin.Context)
 }
 
 type siswaAPI struct {
@@ -248,6 +251,15 @@ func (s *siswaAPI) GetList(c *gin.Context) {
 
 
 func (s *siswaAPI) History(c *gin.Context) {
+    page, err := strconv.Atoi(c.Query("page"))
+    if err != nil || page <= 0 {
+        page = 1
+    }
+
+    pageSize, err := strconv.Atoi(c.Query("pageSize"))
+    if err != nil || pageSize <= 0 {
+        pageSize = 100
+    }
 
 	siswaID, err := strconv.Atoi(c.Param("id"))
 	
@@ -260,17 +272,28 @@ func (s *siswaAPI) History(c *gin.Context) {
 		return
 	}
 
-	result, err := s.siswaService.HistoryPembayaranSiswa(siswaID)
+	result, totalPage, err := s.siswaService.HistoryPembayaranSiswa(siswaID, page, pageSize)
 	if err != nil {
 		log.Printf("Pesan error: %v", err)
 
 		c.JSON(500, gin.H{
 			"message" : "internal server error",
+            "error" : err.Error(),
 		})
 		return
 	}
 
-	c.JSON(200, result)
+    meta := gin.H{
+        "current_page": page,
+        "total_pages":  totalPage,
+    }
+
+    response := gin.H{
+        "data": result,
+        "meta": meta,
+    }
+
+	c.JSON(200, response)
 }
 
 func (s *siswaAPI) GetTotalGenderCount(c *gin.Context) {
@@ -302,4 +325,84 @@ func (s *siswaAPI) Search(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"data": siswaList})
 }
+
+func (s *siswaAPI) ExportSiswa(c *gin.Context) {
+    page, err := strconv.Atoi(c.Query("page"))
+    if err != nil || page <= 0 {
+        page = 1
+    }
+
+    pageSize, err := strconv.Atoi(c.Query("pageSize"))
+    if err != nil || pageSize <= 0 {
+        pageSize = 5000
+    }
+
+    result, _, err := s.siswaService.GetList(page, pageSize)
+    if err != nil {
+        log.Printf("Pesan error: %v", err)
+
+        c.JSON(500, gin.H{
+            "message": "internal server error",
+            "error":   err.Error(),
+        })
+        return
+    }
+
+    file := excelize.NewFile()
+    index, err := file.NewSheet("Siswa")
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+    file.SetActiveSheet(index)
+
+    // Add header row
+    header := []string{"NO", "Nama", "NISN", "Kelas", "Jurusan", "Agama", "Tempat Lahir", "Tanggal Lahir", "Gender", "Nama Ayah", "Nama Ibu", "Nomor Telepon", "Angkatan", "Email", "Alamat"}
+    for col, val := range header {
+        colName, err := excelize.ColumnNumberToName(col + 1)
+        if err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+            return
+        }
+        cell := colName + "1"
+        file.SetCellValue("Siswa", cell, val)
+    }
+
+    // Add data rows
+    for i, data := range result {
+        row := i + 2
+        file.SetCellValue("Siswa", "A"+strconv.Itoa(row), i+1)
+        file.SetCellValue("Siswa", "B"+strconv.Itoa(row), data.Nama)
+        file.SetCellValue("Siswa", "C"+strconv.Itoa(row), data.NISN)
+        file.SetCellValue("Siswa", "D"+strconv.Itoa(row), data.Kelas)
+        file.SetCellValue("Siswa", "E"+strconv.Itoa(row), data.Jurusan)
+        file.SetCellValue("Siswa", "F"+strconv.Itoa(row), data.Agama)
+        file.SetCellValue("Siswa", "G"+strconv.Itoa(row), data.TempatLahir)
+        file.SetCellValue("Siswa", "H"+strconv.Itoa(row), data.TanggalLahir)
+        file.SetCellValue("Siswa", "I"+strconv.Itoa(row), data.Gender)
+        file.SetCellValue("Siswa", "J"+strconv.Itoa(row), data.NamaAyah)
+        file.SetCellValue("Siswa", "K"+strconv.Itoa(row), data.NamaIbu)
+        file.SetCellValue("Siswa", "L"+strconv.Itoa(row), data.NomorTelepon)
+        file.SetCellValue("Siswa", "M"+strconv.Itoa(row), data.Angkatan)
+        file.SetCellValue("Siswa", "N"+strconv.Itoa(row), data.Email)
+        file.SetCellValue("Siswa", "O"+strconv.Itoa(row), data.Alamat)
+    }
+
+    fileName := "siswa.xlsx"
+    err = file.SaveAs("./app/files/"+fileName)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+
+    defer os.Remove(fileName)
+
+    // Return the file as attachment
+    c.Header("Content-Description", "File Transfer")
+    c.Header("Content-Disposition", "attachment; filename="+fileName)
+    c.Header("Content-Type", "application/octet-stream")
+    c.Header("Content-Transfer-Encoding", "binary")
+    c.File(fileName)
+}
+
 

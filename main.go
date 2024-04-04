@@ -63,7 +63,7 @@ func main() {
 			panic(err)
 		}
 
-		conn.AutoMigrate(&models.User{}, &models.Session{}, &models.Siswa{}, &models.Stakeholder{}, &models.Login{}, &models.Pemasukan{}, &models.Pemasukanlainnya{}, &models.PembayaranSPP{}, &models.HistoryPembayaran{}, &models.PembayaranSemester{}, &models.Pengeluaran{}, &models.Gender{}, &models.Agama{}, models.Kelas{}, &models.Transaksi{} )
+		conn.AutoMigrate(&models.User{}, &models.Session{}, &models.Siswa{}, &models.Stakeholder{}, &models.Login{}, &models.Pemasukan{}, &models.Pemasukanlainnya{}, &models.PembayaranSPP{}, &models.HistoryPembayaran{}, &models.PembayaranSemester{}, &models.Pengeluaran{}, &models.Gender{}, &models.Agama{}, models.Kelas{}, &models.Transaksi{}, &models.ResetToken{} )
 
 		router = RunServer(conn, router)
 	
@@ -142,7 +142,8 @@ version := gin.Group("/api")
 		{
 			user.POST("/login", apiHandler.UserAPIHandler.Login)
 			user.POST("/register", apiHandler.UserAPIHandler.Register)
-			user.PUT("/reset", apiHandler.UserAPIHandler.ResetPassword)
+			user.POST("/reset-password/request", apiHandler.UserAPIHandler.RequestResetToken)
+			user.POST("/reset-password/reset", apiHandler.UserAPIHandler.ResetPassword)
 			user.Use(middleware.Auth())
 			
 		}
@@ -157,6 +158,7 @@ version := gin.Group("/api")
 		siswa.GET("/", apiHandler.SiswaAPIHandler.GetList)
 		siswa.GET("/gender", apiHandler.SiswaAPIHandler.GetTotalGenderCount)
 		siswa.GET("/search", apiHandler.SiswaAPIHandler.Search)
+		siswa.GET("/export", apiHandler.SiswaAPIHandler.ExportSiswa)
 	}
 	stake := version.Group("/stake")
 	{
