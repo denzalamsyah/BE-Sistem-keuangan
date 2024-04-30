@@ -93,3 +93,10 @@ type TransaksiResponse struct {
 	Nama        string `gorm:"type:varchar(35)" json:"nama"`
 	JumlahBayar int    `json:"jumlah_bayar"`
 }
+
+type KasGuruResponse struct {
+	ID           int    `gorm:"primaryKey" json:"id"`
+	NamaGuru     string `json:"nama_guru"`
+	Jumlah       int    `json:"jumlah_bayar"`
+	TanggalBayar string `gorm:"type:varchar(15)" json:"tanggal_bayar"`
+}

@@ -44,14 +44,14 @@ func (a *kelasAPI) AddKelas(c *gin.Context) {
 	if err != nil {
 		log.Printf("Pesan error: %v", err)
 		c.JSON(500, gin.H{
-			"message" : "internal server error",
-			"error":   err.Error(),
+			"message" : err.Error(),
+			"error": "Gagal menambah data"   ,
 		})
 		return
 	}
 
 	c.JSON(200, gin.H{
-		"message" : "success create new kelas",
+		"message" : "Berhasil menambah data",
 		"data" : newKelas,
 	})
 }
@@ -95,14 +95,14 @@ func (a *kelasAPI) Update(c *gin.Context) {
 	if err != nil {
 		log.Printf("Pesan error: %v", err)
 		c.JSON(500, gin.H{
-			"message" : "internal server error",
-			"error":   err.Error(),
+			"message" : err.Error(),
+			"error":  "Gagal mengubah data" ,
 		})
 		return
 	}
 
 	c.JSON(200, gin.H{
-		"message" : "success update kelas",
+		"message" : "Berhasil mengubah data",
 		"data" : newKelas,
 	})
 }
@@ -132,14 +132,14 @@ func (a *kelasAPI) Delete(c *gin.Context) {
 	if err != nil {
 		log.Printf("Pesan error: %v", err)
 		c.JSON(500, gin.H{
-			"message" : "internal server error",
-			"error":   err.Error(),
+			"message" :  err.Error(),
+			"error": "Gagal mengubah data" ,
 		})
 		return
 	}
 
 	c.JSON(200, gin.H{
-		"message" : "success delete kelas",
+		"message" : "Berhasil menghapus data",
 	
 	})
 }

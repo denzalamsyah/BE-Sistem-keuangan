@@ -43,7 +43,7 @@ func (s *userService) Register(user *models.User) (models.User, error) {
 	}
 
 	if dbUser.Email != "" || dbUser.ID != 0 {
-		return *user, errors.New("email already exists")
+		return *user, errors.New("email sudah ada")
 	}
 
 	user.CreatedAt = time.Now()
@@ -65,14 +65,14 @@ func (s *userService) Login(user *models.User) (token *string, err error) {
 	}
 
 	if dbUser.Email == "" || dbUser.ID == 0 {
-		return nil, errors.New("user not found")
+		return nil, errors.New("email atau password salah")
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(dbUser.Password), []byte(user.Password)); err != nil {
-		return nil, errors.New("wrong email or password")
+		return nil, errors.New("email atau password salah")
 	}
 
-	expirationTime := time.Now().Add(20 * time.Minute)
+	expirationTime := time.Now().Add(24 * time.Hour)
 	claims := &models.Claims{
 		Email: dbUser.Email,
 		StandardClaims: jwt.StandardClaims{
@@ -94,9 +94,9 @@ func (s *userService) Login(user *models.User) (token *string, err error) {
 
 	_, err = s.sessionsRepo.SessionAvailEmail(session.Email)
 	if err != nil {
-		err = s.sessionsRepo.AddSessions(session)
+		_ = s.sessionsRepo.AddSessions(session)
 	} else {
-		err = s.sessionsRepo.UpdateSessions(session)
+		_ = s.sessionsRepo.UpdateSessions(session)
 	}
 
 	return &tokenString, nil
@@ -104,29 +104,30 @@ func (s *userService) Login(user *models.User) (token *string, err error) {
 
 // membuat token verifikasi
 func (s *userService) GenerateResetToken(email string) (string, error) {
-	// mendapatkan user berdasarkan email di database
-
-	user, err := s.userRepo.GetUserByEmail(email)
-	if err != nil {
-		return "",err
+	
+	// jika email tidak kosong/tersedia di database maka jalankan fungsinya
+	if email == "" {
+		return "", errors.New("pengguna tidak ditemukan")
 	}
-
+	// Mengecek apakah token yang lama ada dan menghapusnya jika ya
+	oldResetToken, err := s.userRepo.GetResetTokenByEmail(email)
+	if err == nil{
+		if err := s.userRepo.DeleteResetToken(oldResetToken); err != nil {
+			return "", err
+		}
+	}
 	// membuat token secara acak
 	token, err := generateRandomToken()
 	if err != nil {
 		return "", err
 	}
-
-	// jika email tidak kosong/tersedia di database maka jalankan fungsinya
-	if user.Email != "" {
+	expirationTime := time.Now().Add(2 * time.Minute)
 		// fungsi menambahkan token verifikasi di database
-		if err := s.userRepo.CreateResetToken(user.Email, token); err != nil {
+		if err := s.userRepo.CreateResetToken(email, token, expirationTime); err != nil {
 			return "", err
 		}
-	}
-	
 	// fungsi mengirim verifikasi ke email
-	if err := s.SendVerificationEmail(user.Email, token); err != nil {
+	if err := s.SendVerificationEmail(email, token); err != nil {
 		return "", err
 	}
 
@@ -142,40 +143,32 @@ func (s *userService) VerifyResetToken(email, token, newPassword, confirmPasswor
 		return err
 	}
 
-	// cek apakaha token sudah kadaluarsa
-	if time.Now().After(resetToken.CreatedAt.Add(time.Hour * 24)) {
-		return errors.New("token has expired")
+	if time.Now().After(resetToken.ExpirationTime) {
+		return errors.New("token kadaluarsa")
 	}
 
 	// cek apakah token yang diparameter sudah sesuai dengan yang didatabase
 	if resetToken.TokenHash != token {
-		return errors.New("invalid token")
-	}
-	
-	// mendapatkan user berdasarkan email
-	user, err := s.userRepo.GetUserByEmail(email)
-	if err != nil {
-		return err
+		return errors.New("token tidak valid")
 	}
 
 	// ceek apakah password baru dan konfirmasi tidak kosong
 	if newPassword == "" || confirmPassword == ""{
-		return errors.New("password and password confirmation cannot be empty")
+		return errors.New("kata sandi dan konfirmasi kata sandi tidak boleh kosong")
 	}
 
 	// cek apakah terdiri dari 8 karakter
 	if len(newPassword) < 8 {
-        return errors.New("password must be at least 8 characters long")
-    }
-
+        return errors.New("kata sandi harus terdiri dari minimal 8 karakter")
+	}
 	// cek apakah password sudah sesuai spesifikasi
 	if !s.userRepo.StrongPassword(newPassword){
-		return errors.New("the password must consist of symbols, capital, small and numbers")
+		return errors.New("password harus terdiri dari simbol, huruf kapital, kecil dan angka")
 	}
 
 	// cek apakah password dan konfirmasi sama
 	if newPassword != confirmPassword{
-		return errors.New("password and password confirmation do not match")
+		return errors.New("kata sandi dan konfirmasi kata sandi tidak cocok")
 	}
 
 	// menghash password yang diambil dari parameter
@@ -183,7 +176,11 @@ func (s *userService) VerifyResetToken(email, token, newPassword, confirmPasswor
     if err != nil {
         return err
     }
-
+	// mendapatkan user berdasarkan email
+	user, err := s.userRepo.GetUserByEmail(email)
+	if err != nil {
+		return err
+	}
 	// mengubah password yang didatabase 
     user.Password = string(hashedPassword)
 	user.ConfirmPassword = string(hashedPassword)
@@ -198,13 +195,28 @@ func (s *userService) VerifyResetToken(email, token, newPassword, confirmPasswor
 
 // fungsi untuk mengirim verifikasi email
 func (s *userService) SendVerificationEmail(email, token string) error {
+	htmlBody := `
+	<html>
+		<head>
+			<style>
+			h1 { color: #333; }
+            p { font-size: 16px; color: #666; }
+            h6 { font-size: 16px; color: #000000; }
+            a { text-decoration: none; color: #007bff; }
+			</style>
+		</head>
+		<body>
+			<h1>Verifikasi Email <h3> Hallo `+ email +`</h3> </h1>
+			<h6>Ada yang mau mencoba merubah kata sandi akun Anda, apakah ini Anda?</h6>
+			<p>Jika itu Anda, klik <a href="http://localhost:3000/auth/resetpass?token=` + token + `&email=` + email + `">di sini</a> untuk mereset password Anda.</p>
+		</body>
+	</html>
+`
 	m := gomail.NewMessage()
-	m.SetHeader("From", "adendadok52@gmail.com")
+	m.SetHeader("From", "Admin SNI <adendadok52@gmail.com>")
 	m.SetHeader("To", email)
 	m.SetHeader("Subject", "Link Verifikasi")
-	m.SetBody("text/html", "Klik <b>LINK</b><i>di bawah ini</i>!")
-	m.SetBody("text/html", "http://localhost:3000/auth/resetpass?token=" + token + "&email="+email+"\r\n")
-	// m.Attach("/home/Alex/lolcat.jpg")
+	m.SetBody("text/html", htmlBody)
 
 	d := gomail.NewDialer("smtp.gmail.com", 587, "adendadok52@gmail.com", "gmwlpcgxbzctetic")
 

@@ -66,14 +66,14 @@ func (s *stakeAPI) AddStake(c *gin.Context){
 		log.Printf("Pesan error: %v", err)
 
 		c.JSON(500, gin.H{
-			"message" : "internal server error",
-			"error":   err.Error(),
+			"message" :  err.Error(),
+			"error":  "Gagal menambah data",
 		})
 		return
 	}
 
 	c.JSON(200, gin.H{
-		"message" : "success create new stakeholder",
+		"message" : "Berhasil menambah data",
 		"data" : stake,
 	})	
 
@@ -93,7 +93,7 @@ func (s *stakeAPI) Update(c *gin.Context){
 	
 	id, err := strconv.Atoi(stakeID)
 	if err != nil {
-		log.Printf("Pesan error: %v", err)
+		log.Printf("parse error: %v", err)
 
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
@@ -105,7 +105,7 @@ func (s *stakeAPI) Update(c *gin.Context){
 	var newStake models.Stakeholder
 
 	if err := c.ShouldBind(&newStake); err != nil{
-		log.Printf("Pesan error: %v", err)
+		log.Printf("Endcode error: %v", err)
 
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
@@ -117,7 +117,7 @@ func (s *stakeAPI) Update(c *gin.Context){
 	// newStake.ID = id
 	file, err := c.FormFile("file")
     if err != nil && err != http.ErrMissingFile {
-		log.Printf("Pesan error: %v", err)
+		log.Printf("file gambar error: %v", err)
 
         c.JSON(http.StatusBadRequest, gin.H{
             "message": "failed to get image from form-data",
@@ -129,7 +129,7 @@ func (s *stakeAPI) Update(c *gin.Context){
 	if file != nil {
 		imageURL, err := middleware.UploadToCloudinary(file)
 		if err != nil {
-		log.Printf("Pesan error: %v", err)
+		log.Printf("middleware upload gambar error: %v", err)
 
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"message": "failed to upload image to Cloudinary",
@@ -143,17 +143,17 @@ func (s *stakeAPI) Update(c *gin.Context){
 	err = s.stakeService.Update(id, newStake)
 
 	if err != nil {
-		log.Printf("Pesan error: %v", err)
+		log.Printf("Update error: %v", err)
 
 		c.JSON(500, gin.H{
-			"message" : "internal server error",
-			"error":   err.Error(),
+			"message" : err.Error(),
+			"error":   "Gagal mengubah data",
 		})
 		return
 	}
 
 	c.JSON(200, gin.H{
-		"message" : "success update stakeholder",
+		"message" : "Berhasil mengubah data",
 		"data" : newStake,
 	})
 }
@@ -184,14 +184,14 @@ func (s *stakeAPI) Delete(c *gin.Context){
 		log.Printf("Pesan error: %v", err)
 
 		c.JSON(500, gin.H{
-			"message" : "internal server error",
-			"error":   err.Error(),
+			"message" : err.Error(),
+			"error":   "Gagal menghapus data",
 		})
 		return
 	}
 
 	c.JSON(200, gin.H{
-		"message" : "success delete stake",
+		"message" : "Berhasil menghapus",
 	})
 }
 

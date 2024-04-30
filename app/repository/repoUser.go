@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"time"
 	"unicode"
 
 	"github.com/denzalamsyah/simak/app/models"
@@ -11,7 +12,7 @@ type UserRepository interface {
 	GetUserByEmail(email string) (models.User, error)
 	CreateUser(user models.User) (models.User, error)
 	UpdateUser(user *models.User) error
-	CreateResetToken(email, tokenHash string) error
+	CreateResetToken(email, tokenHash string, kadaluarsa time.Time) error
 	GetResetTokenByEmail(email string) (*models.ResetToken, error)
 	DeleteResetToken(token *models.ResetToken) error
 	StrongPassword(password string) bool
@@ -54,10 +55,12 @@ func (r *userRepository) UpdateUser(user *models.User) error {
 }
 
 // fmembuat token
-func (r *userRepository) CreateResetToken(email, tokenHash string) error {
+func (r *userRepository) CreateResetToken(email, tokenHash string, kadaluarsa time.Time) error {
 	resetToken := models.ResetToken{
 		Email:     email,
 		TokenHash: tokenHash,
+		CreatedAt: time.Now(),
+		ExpirationTime: kadaluarsa,
 	}
 	return r.db.Create(&resetToken).Error
 }

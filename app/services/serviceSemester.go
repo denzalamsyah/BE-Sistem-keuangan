@@ -11,7 +11,7 @@ type SemesterServices interface {
 	Delete(id int) error
 	GetByID(id int) (*models.PembayaranSemesterResponse, error)
 	GetList(page, pageSize int) ([]models.PembayaranSemesterResponse, int, error)
-	Search(siswa, tahunAjar, transaksi, semester, tanggal, penerima string) ([]models.PembayaranSemesterResponse, error)
+	Search(siswa, tahunAjar, transaksi, semester, tanggal string) ([]models.PembayaranSemesterResponse, error)
 }
 
 type semesterServices struct{
@@ -63,8 +63,8 @@ func (c *semesterServices) GetList(page, pageSize int) ([]models.PembayaranSemes
 	return PembayaranSemesters, totalPage, nil
 }
 
-func (c *semesterServices)  Search(siswa, tahunAjar, transaksi, semester, tanggal, penerima string) ([]models.PembayaranSemesterResponse, error){
-	pembeyaran, err := c.semesterRepo.Search(siswa, tahunAjar, transaksi, semester, tanggal,penerima)
+func (c *semesterServices)  Search(siswa, tahunAjar, transaksi, semester, tanggal string) ([]models.PembayaranSemesterResponse, error){
+	pembeyaran, err := c.semesterRepo.Search(siswa, tahunAjar, transaksi, semester, tanggal)
 
 	if err != nil {
         return nil, err

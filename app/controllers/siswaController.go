@@ -38,10 +38,11 @@ func (s *siswaAPI) AddSiswa(c *gin.Context) {
 
     err := c.ShouldBind(&newSiswa)
     if err != nil {
+       
 		log.Printf("Error: %v", err)
         c.JSON(http.StatusBadRequest, gin.H{
-            "message": "invalid request body",
-            "error":   err.Error(),
+            "message": "invalid request body" + err.Error(),
+            "error":   "Gagal mengubah data",
         })
         return
     }
@@ -65,16 +66,20 @@ func (s *siswaAPI) AddSiswa(c *gin.Context) {
     }
     err = s.siswaService.Store(&newSiswa)
     if err != nil {
+        if newSiswa.Alamat == "" || newSiswa.AgamaID == 0 || newSiswa.Angkatan == "" || newSiswa.Email == "" || newSiswa.GenderID == 0 || newSiswa.JurusanID == 0 || newSiswa.KelasID == 0 || newSiswa.NISN == 0 || newSiswa.Nama == "" || newSiswa.NamaAyah == "" || newSiswa.NamaIbu == "" || newSiswa.NomorTelepon == 0 || newSiswa.TanggalLahir== "" || newSiswa.TempatLahir == ""{ 
+            c.JSON(http.StatusBadRequest, gin.H{"error":   "semua item harus di isi kecuali gambar",})
+			return
+		}
 		log.Printf("Error: %v", err)
         c.JSON(http.StatusInternalServerError, gin.H{
-            "message": "internal server error",
-            "error":   err.Error(),
+            "message": err.Error(),
+            "error":   "Gagal menambah data",
         })
         return
     }
 
     c.JSON(http.StatusOK, gin.H{
-        "message": "success create new siswa",
+        "message": "Berhasil menambahkan data",
         "data":    newSiswa,
     })
 }
@@ -84,7 +89,7 @@ func (s *siswaAPI) Update(c *gin.Context) {
 
     if siswaID == "" {
         c.JSON(http.StatusBadRequest, gin.H{
-            "message": "invalid request body",
+            "message": "invalid request body" ,
         })
         return
     }
@@ -94,7 +99,7 @@ func (s *siswaAPI) Update(c *gin.Context) {
 		log.Printf("Pesan error: %v", err)
 
         c.JSON(http.StatusBadRequest, gin.H{
-            "message": "invalid request body",
+            "message": "invalid request body" + err.Error(),
         })
         return
     }
@@ -104,8 +109,8 @@ func (s *siswaAPI) Update(c *gin.Context) {
 		log.Printf("Pesan error: %v", err)
 
         c.JSON(http.StatusBadRequest, gin.H{
-            "message": "invalid request body",
-            "error":   err.Error(),
+            "message": "invalid request body" + err.Error(),
+            "error":  "Gagal mengubah data",
         })
         return
     }
@@ -126,8 +131,8 @@ func (s *siswaAPI) Update(c *gin.Context) {
         if err != nil {
 		log.Printf("Pesan error: %v", err)
             c.JSON(http.StatusInternalServerError, gin.H{
-                "message": "failed to upload image to Cloudinary",
-                "error":   err.Error(),
+                "message": "failed to upload image to Cloudinary" + err.Error(),
+                "error":   "Gagal mengubah data",
             })
             return
         }
@@ -140,14 +145,14 @@ func (s *siswaAPI) Update(c *gin.Context) {
 		log.Printf("Pesan error: %v", err)
 
         c.JSON(http.StatusInternalServerError, gin.H{
-            "message": "internal server error",
-            "error":   err.Error(),
+            "message": err.Error(),
+            "error":   "Gagal mengubah data",
         })
         return
     }
 
     c.JSON(http.StatusOK, gin.H{
-        "message": "success update siswa",
+        "message": "Berhasil mengubah siswa",
         "data":    existingSiswa,
     })
 }
@@ -168,7 +173,8 @@ func (s *siswaAPI) Delete(c *gin.Context) {
 		log.Printf("Pesan error: %v", err)
 
 		c.JSON(400, gin.H{
-			"message" : "invalid request body",
+			"message" : "invalid request body" + err.Error(),
+            
 		})
 		return
 	}
@@ -178,13 +184,14 @@ func (s *siswaAPI) Delete(c *gin.Context) {
 		log.Printf("Pesan error: %v", err)
 
 		c.JSON(500, gin.H{
-			"message" : "internal server error",
+			"message" : err.Error(),
+            "error" : "Gagal menghapus data",
 		})
 		return
 	}
 
 	c.JSON(200, gin.H{
-		"message" : "success delete siswa",
+		"message" : "Berhasil menghapus data",
 	})
 	
 }
@@ -196,7 +203,7 @@ func (s *siswaAPI) GetByID(c *gin.Context) {
 		log.Printf("Pesan error: %v", err)
 
 		c.JSON(400, gin.H{
-			"message" : "invalid request body",
+			"message" : "invalid request body" + err.Error(),
 		})
 		return
 	}
@@ -206,7 +213,7 @@ func (s *siswaAPI) GetByID(c *gin.Context) {
 		log.Printf("Pesan error: %v", err)
 
 		c.JSON(500, gin.H{
-			"message" : "internal server error",
+			"message" : "internal server error" + err.Error(),
 		})
 		return
 	}

@@ -43,14 +43,14 @@ func (s *semesterAPI) AddSemester(c *gin.Context) {
 	if err != nil {
 		log.Printf("Error: %v", err)
 		c.JSON(500, gin.H{
-			"message" : "internal server error",
-			"error":   err.Error(),
+			"message" : err.Error(),
+			"error":   "Periksa kembali inputan anda",
 		})
 		return
 	}
 
 	c.JSON(200, gin.H{
-		"message" : "success create new PembayaranSemester",
+		"message" : "Berhasil menambah data",
 		"data" : newPembayaranSemester,
 	})
 }
@@ -91,14 +91,14 @@ func (s *semesterAPI) Update(c *gin.Context) {
 	if err != nil {
 		log.Printf("Error: %v", err)
 		c.JSON(500, gin.H{
-			"message" : "internal server error",
-			"error":   err.Error(),
+			"message" : err.Error(),
+			"error":   "Gagal mengubah data",
 		})
 		return
 	}
 
 	c.JSON(200, gin.H{
-		"message" : "success update PembayaranSemester",
+		"message" : "Berhasil mengubah data",
 		"data" : newPembayaranSemester,
 	})
 	
@@ -128,14 +128,14 @@ func (s *semesterAPI) Delete(c *gin.Context) {
 	if err != nil {
 		log.Printf("Error: %v", err)
 		c.JSON(500, gin.H{
-			"message" : "internal server error",
-			"error":   err.Error(),
+			"message" : err.Error(),
+			"error":   "Gagal menghapus data",
 		})
 		return
 	}
 
 	c.JSON(200, gin.H{
-		"message" : "success delete PembayaranSemester",
+		"message" : "Berhasil menhapus data",
 	})
 	
 }
@@ -203,9 +203,9 @@ func (s *semesterAPI) Search(c *gin.Context){
 	transaksi := c.Query("transaksi")
 	semester := c.Query("semester")
 	tanggal := c.Query("tanggal")
-	penerima := c.Query("penerima")
+	// penerima := c.Query("penerima")
 
-	pembayaran, err := s.semesterService.Search(siswa, tahunAjar, transaksi, semester, tanggal, penerima)
+	pembayaran, err := s.semesterService.Search(siswa, tahunAjar, transaksi, semester, tanggal)
 	if err != nil {
         log.Printf("Error: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

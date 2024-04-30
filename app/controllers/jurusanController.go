@@ -53,7 +53,7 @@ func (a *jurusanAPI) AddJurusan(c *gin.Context) {
 	}
 
 	c.JSON(200, gin.H{
-		"message" : "success add jurusan",
+		"message" : "Berhasil menambah data",
 		"data" : newJurusan,
 	})
 }
@@ -104,7 +104,7 @@ func (a *jurusanAPI) Update(c *gin.Context) {
 	}
 
 	c.JSON(200, gin.H{
-		"message" : "success update jurusan",
+		"message" : "Berhasil mengubah jurusan",
 		"data" : newJurusan,
 	})
 }
@@ -141,7 +141,7 @@ func (a *jurusanAPI) Delete(c *gin.Context) {
 	}
 
 	c.JSON(200, gin.H{
-		"message" : "success delete jurusan",
+		"message" : "Berhasil menghapus jurusan",
 	})
 }
 

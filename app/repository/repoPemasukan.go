@@ -31,7 +31,7 @@ func NewPemasukanRepo(db *gorm.DB) *pemasukanRepository {
 func (c *pemasukanRepository) Store(pemasukan *models.Pemasukanlainnya) error {
     tx := c.db.Begin()
 
-    // Create PembayaranSPP
+
     if err := tx.Create(pemasukan).Error; err != nil {
         tx.Rollback()
         return err

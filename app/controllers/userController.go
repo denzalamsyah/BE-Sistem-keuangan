@@ -36,22 +36,22 @@ func (u *userAPI) Register(c *gin.Context) {
 	}
 
 	if user.Email == "" || user.Password == "" || user.ConfirmPassword == ""{
-		c.JSON(http.StatusBadRequest, gin.H{"messsage": "email or password or password confirmation is empty"})
+		c.JSON(http.StatusBadRequest, gin.H{"messsage": "email atau kata sandi atau konfirmasi kata sandi kosong"})
 		return
 	}
 
 	if len(user.Password) < 8 {
-        c.JSON(http.StatusBadRequest, gin.H{"message": "password must be at least 8 characters long"})
+        c.JSON(http.StatusBadRequest, gin.H{"message": "kata sandi harus terdiri dari minimal 8 karakter"})
         return
     }
 
 	if !u.userService.StrongPassword(user.Password){
-		c.JSON(http.StatusBadRequest, gin.H{"message": "the password must consist of symbols, capital, small and numbers"})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "password harus terdiri dari simbol, huruf kapital, kecil dan angka"})
 		return	
 	}
 
 	if user.Password != user.ConfirmPassword{
-		c.JSON(http.StatusBadRequest, gin.H{"message": "password and password confirmation do not match"})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "kata sandi dan konfirmasi kata sandi tidak cocok"})
 		return
 	}
 
@@ -73,22 +73,22 @@ func (u *userAPI) Register(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"message": "success register", "data": recordUser})
+	c.JSON(http.StatusCreated, gin.H{"message": "daftar pengguna berhasil", "data": recordUser})
 }
 func (u *userAPI) Login(c *gin.Context) {
 	var loginRequest models.UserLogin
 
+	
 	if err := c.BindJSON(&loginRequest); err != nil {
+		if loginRequest.Email == "" || loginRequest.Password == ""{
+		c.JSON(http.StatusBadRequest, gin.H{"error":   "email dan password tidak boleh kosong",})
+			return
+		}
 		c.JSON(http.StatusBadRequest, gin.H{"error":   err.Error(),})
-		
 		return
 	}
+	
 
-
-	if loginRequest.Email == "" || loginRequest.Password == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "email or password is empty"})
-		return
-	}
 	user := &models.User{
 		Email:    loginRequest.Email,
 		Password: loginRequest.Password,
@@ -101,7 +101,7 @@ func (u *userAPI) Login(c *gin.Context) {
 	}
 	
 	
-	c.JSON(http.StatusOK, gin.H{"message": "login success", "token": *token})
+	c.JSON(http.StatusOK, gin.H{"message": "login berhasil", "token": *token})
 }
 
 func (c *userAPI) ResetPassword(ctx *gin.Context) {
@@ -117,25 +117,24 @@ func (c *userAPI) ResetPassword(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"message": "Password reset successfully"})
+	ctx.JSON(http.StatusOK, gin.H{"message": "reset kata sandi berhasil"})
 }
 
 func (c *userAPI) RequestResetToken(ctx *gin.Context) {
 	email := ctx.PostForm("email")
 	user, err := c.userService.GetUserByEmail(email)
 	if err != nil {
-		log.Printf("User not found for email %s", email)
 		return
 	}
 
 	_, err = c.userService.GenerateResetToken(user.Email)
 	if err != nil {
 		log.Printf("Error generating token: %v", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"message": "Token generated and sent"})
+	ctx.JSON(http.StatusOK, gin.H{"message": "Link verifikasi berhasil dikirim, cek email anda"})
 }
 
 

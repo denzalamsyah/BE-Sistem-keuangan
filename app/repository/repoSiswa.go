@@ -144,7 +144,7 @@ func (c *siswaRepository) HistoryPembayaranSiswa(siswaID, page, pageSize int) ([
             Nama_transaksi: p.Transaksi.Nama,
             Biaya:          p.Jumlah,
             Tanggal:        p.Tanggal,
-            Penerima:       p.Penerima.Nama,
+            // Penerima:       p.Penerima.Nama,
 			Status: p.Status,
         })
     }

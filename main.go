@@ -20,13 +20,15 @@ type APIHandler struct {
 	UserAPIHandler controllers.UserAPI
 	SiswaAPIHandler controllers.SiswaAPI
 	StakeAPIHandler controllers.StakeAPI
-	SppAPIHandler controllers.SppAPI
+	// SppAPIHandler controllers.SppAPI
 	SemesterAPIHandler controllers.SemesterAPI
 	PemasukanAPIHandler controllers.PemasukanAPI
 	PengeluaranAPIHandler controllers.PengeluaranAPI
 	KelasAPIHandler controllers.KelasAPI
 	JurusanAPIHandler controllers.JurusanAPI
 	TransaksiAPIHandler controllers.TransaksiAPI
+	ArisanAPIHandler controllers.ArisanAPI
+	KasAPIHandler controllers.KasAPI
 }
 func main() {
 	gin.SetMode(gin.ReleaseMode) //release
@@ -63,7 +65,7 @@ func main() {
 			panic(err)
 		}
 
-		conn.AutoMigrate(&models.User{}, &models.Session{}, &models.Siswa{}, &models.Stakeholder{}, &models.Login{}, &models.Pemasukan{}, &models.Pemasukanlainnya{}, &models.PembayaranSPP{}, &models.HistoryPembayaran{}, &models.PembayaranSemester{}, &models.Pengeluaran{}, &models.Gender{}, &models.Agama{}, models.Kelas{}, &models.Transaksi{}, &models.ResetToken{} )
+		conn.AutoMigrate(&models.User{}, &models.Session{}, &models.Siswa{}, &models.Stakeholder{}, &models.Login{}, &models.Pemasukan{}, &models.Pemasukanlainnya{}, &models.HistoryPembayaran{}, &models.PembayaranSemester{}, &models.Pengeluaran{}, &models.Gender{}, &models.Agama{}, models.Kelas{}, &models.Transaksi{}, &models.ResetToken{}, &models.Arisan{}, &models.KasGuru{} )
 
 		router = RunServer(conn, router)
 	
@@ -85,47 +87,55 @@ func RunServer(db *gorm.DB,  gin *gin.Engine) *gin.Engine{
 	sessionRepo := repository.NewSessionsRepo(db)
 	siswaRepo := repository.NewSiswaRepo(db)
 	stakeRepo := repository.NewStakeholderRepo(db)
-	sppRepo := repository.NewSPPRepo(db)
+	// sppRepo := repository.NewSPPRepo(db)
 	semesterRepo := repository.NewSemesterRepo(db)
 	pemasukanRepo := repository.NewPemasukanRepo(db)
 	pengeluaranRepo := repository.NewPengeluaranRepo(db)
 	kelasRepo := repository.NewKelasRepo(db)
 	jurusanRepo := repository.NewJurusanRepo(db)
 	transaksiRepo := repository.NewTransaksiRepo(db)
+	arisanRepo := repository.NewArisanRepo(db)
+	kasRepo := repository.NewKasRepo(db)
 
 	userService := services.NewUserService(userRepo, sessionRepo,)
 	siswaService := services.NewSiswaService(siswaRepo)
 	stakeService := services.NewStakeService(stakeRepo)
-	sppService := services.NewSPPService(sppRepo)
+	// sppService := services.NewSPPService(sppRepo)
 	semesterService := services.NewSemesterService(semesterRepo)
 	pemasukanService := services.NewPemasukanService(pemasukanRepo)
 	pengeluaranService := services.NewPengeluaranService(pengeluaranRepo)
 	kelasService := services.NewKelasService(kelasRepo)
 	jurusanService := services.NewJurusanService(jurusanRepo)
 	transaksiService := services.NewTransaksiService(transaksiRepo)
+	arisanService := services.NewArisanService(arisanRepo)
+	kasService := services.NewKasService(kasRepo)
 
 	userAPIHandler := controllers.NewUserAPI(userService)
 	siswaAPI := controllers.NewSiswaAPI(siswaService)
 	stakeAPI := controllers.NewStakeAPI(stakeService)
-	sppAPI := controllers.NewSPPAPI(sppService)
+	// sppAPI := controllers.NewSPPAPI(sppService)
 	semesterAPI := controllers.NewSemesterAPI(semesterService)
 	pemasukanAPI := controllers.NewPemasukanAPI(pemasukanService)
 	pengeluaranAPI := controllers.NewPengeluaranAPI(pengeluaranService)
 	kelasAPI := controllers.NewKelasAPI(kelasService)
 	jurusanAPI := controllers.NewJurusanAPI(jurusanService)
 	transaksiAPI := controllers.NewTransaksiAPI(transaksiService)
+	arisanAPI := controllers.NewArisanAPI(arisanService)
+	kasAPI := controllers.NewKasAPI(kasService)
 
 	apiHandler := APIHandler{
 	UserAPIHandler: userAPIHandler,
 	SiswaAPIHandler: siswaAPI,
 	StakeAPIHandler: stakeAPI,
-	SppAPIHandler: sppAPI,
+	// SppAPIHandler: sppAPI,
 	SemesterAPIHandler: semesterAPI,
 	PemasukanAPIHandler: pemasukanAPI,
 	PengeluaranAPIHandler: pengeluaranAPI,
 	KelasAPIHandler: kelasAPI,
 	JurusanAPIHandler: jurusanAPI,
 	TransaksiAPIHandler: transaksiAPI,
+	ArisanAPIHandler: arisanAPI,
+	KasAPIHandler: kasAPI,
 }
 
 gin.Use(cors.New(cors.Config{
@@ -172,15 +182,15 @@ version := gin.Group("/api")
 		stake.GET("/search", apiHandler.StakeAPIHandler.Search)
 	}
 
-	Spp := version.Group("/spp")
-	{
-		Spp.Use(middleware.Auth())
-		Spp.POST("/", apiHandler.SppAPIHandler.AddSPP)
-		Spp.PUT("/:id", apiHandler.SppAPIHandler.Update)
-		Spp.DELETE("/:id", apiHandler.SppAPIHandler.Delete)
-		Spp.GET("/:id", apiHandler.SppAPIHandler.GetByID)
-		Spp.GET("/", apiHandler.SppAPIHandler.GetList)
-	}
+	// Spp := version.Group("/spp")
+	// {
+	// 	Spp.Use(middleware.Auth())
+	// 	Spp.POST("/", apiHandler.SppAPIHandler.AddSPP)
+	// 	Spp.PUT("/:id", apiHandler.SppAPIHandler.Update)
+	// 	Spp.DELETE("/:id", apiHandler.SppAPIHandler.Delete)
+	// 	Spp.GET("/:id", apiHandler.SppAPIHandler.GetByID)
+	// 	Spp.GET("/", apiHandler.SppAPIHandler.GetList)
+	// }
 	
 	Semester := version.Group("/semester")
 	{
@@ -247,6 +257,27 @@ version := gin.Group("/api")
 		Transaksi.DELETE("/:id", apiHandler.TransaksiAPIHandler.Delete)
 		Transaksi.GET("/", apiHandler.TransaksiAPIHandler.GetList)
 		Transaksi.GET("/search", apiHandler.TransaksiAPIHandler.Search)
+	}
+
+	Arisan := version.Group("/arisan")
+	{
+		Arisan.Use(middleware.Auth())
+		Arisan.POST("/", apiHandler.ArisanAPIHandler.Store)
+		Arisan.PUT("/:id", apiHandler.ArisanAPIHandler.Update)
+		Arisan.DELETE("/:id", apiHandler.ArisanAPIHandler.Delete)
+		Arisan.GET("/", apiHandler.ArisanAPIHandler.GetList)
+		Arisan.GET("/search", apiHandler.ArisanAPIHandler.Search)
+	}
+
+	Kas := version.Group("/kas")
+	{
+		Kas.Use(middleware.Auth())
+		Kas.POST("/", apiHandler.KasAPIHandler.Store)
+		Kas.PUT("/:id", apiHandler.KasAPIHandler.Update)
+		Kas.DELETE("/:id", apiHandler.KasAPIHandler.Delete)
+		Kas.GET("/", apiHandler.KasAPIHandler.GetList)
+		Kas.GET("/search", apiHandler.KasAPIHandler.Search)
+
 	}
 }
 return gin
