@@ -134,7 +134,6 @@ func (c *semesterRepository) GetByID(id int) (*models.PembayaranSemesterResponse
 		Status:         PembayaranSemester.Status,
 		Tanggal:        PembayaranSemester.Tanggal,
 		Jumlah:         PembayaranSemester.Jumlah,
-		// Penerima:       PembayaranSemester.Penerima.Nama,
 	}
 
 	return &PembayaranSemesterResponse, nil
@@ -184,7 +183,7 @@ func (c *semesterRepository) Search(siswa, tahunAjar, transaksi, semester, tangg
 
     query := c.db.Table("pembayaran_semesters").
     Select("pembayaran_semesters.id, siswas.nama as siswa, transaksis.nama as transaksi, pembayaran_semesters.semester, pembayaran_semesters.tahun_ajar, pembayaran_semesters.jumlah, pembayaran_semesters.tanggal, pembayaran_semesters.status").
-    Joins("JOIN siswas ON pembayaran_semesters.siswa_id = siswas.id").
+    Joins("JOIN siswas ON pembayaran_semesters.siswa_id = siswas.nisn").
     Joins("JOIN transaksis ON pembayaran_semesters.transaksi_id = transaksis.id").
     Where("LOWER(siswas.nama) LIKE ? AND LOWER(pembayaran_semesters.tahun_ajar) LIKE ? AND LOWER(transaksis.nama) LIKE ? AND LOWER(pembayaran_semesters.semester) LIKE ? AND LOWER(pembayaran_semesters.tanggal) LIKE ?", "%"+siswa+"%", "%"+tahunAjar+"%", "%"+transaksi+"%", "%"+semester+"%", "%"+tanggal+"%")
 

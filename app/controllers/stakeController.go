@@ -65,10 +65,22 @@ func (s *stakeAPI) AddStake(c *gin.Context){
 	if err != nil {
 		log.Printf("Pesan error: %v", err)
 
-		c.JSON(500, gin.H{
-			"message" :  err.Error(),
-			"error":  "Gagal menambah data",
-		})
+		existingStake, err := s.stakeService.GetUserNIP(stake.Nip)
+        if err != nil {
+            log.Printf("Error checking NIP: %v", err)
+            c.JSON(http.StatusInternalServerError, gin.H{
+                "error":   err.Error(),
+            })
+            return
+        }
+        
+        if existingStake.Nip == stake.Nip{
+            c.JSON(http.StatusBadRequest, gin.H{
+                "message":   "Guru dengan NIP tersebut sudah ada",
+                "error":   "Gagal menambah data",
+            })
+            return
+        }
 		return
 	}
 
@@ -81,9 +93,8 @@ func (s *stakeAPI) AddStake(c *gin.Context){
 
 func (s *stakeAPI) Update(c *gin.Context){
 
-	stakeID := c.Param("id")
-
-	if stakeID == "" {
+	stakeNIP := c.Param("nip")
+	if stakeNIP == "" {
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
 
@@ -91,7 +102,7 @@ func (s *stakeAPI) Update(c *gin.Context){
 		return
 	}
 	
-	id, err := strconv.Atoi(stakeID)
+	nip, err := strconv.Atoi(stakeNIP)
 	if err != nil {
 		log.Printf("parse error: %v", err)
 
@@ -140,17 +151,30 @@ func (s *stakeAPI) Update(c *gin.Context){
 		newStake.Gambar = imageURL
 	}
 
-	err = s.stakeService.Update(id, newStake)
-
-	if err != nil {
+	err = s.stakeService.Update(nip, newStake)
+    if err != nil {
 		log.Printf("Update error: %v", err)
 
-		c.JSON(500, gin.H{
-			"message" : err.Error(),
-			"error":   "Gagal mengubah data",
-		})
-		return
-	}
+        existingStake, err := s.stakeService.GetUserNIP(nip)
+        if err != nil {
+            log.Printf("Error checking NISN: %v", err)
+            c.JSON(http.StatusInternalServerError, gin.H{
+                "error":   err.Error(),
+            })
+            return
+        }
+       
+        if existingStake.Nip == nip{
+            c.JSON(http.StatusBadRequest, gin.H{
+                "message":   "NIP yang anda masukan sudah ada",
+                "error":   "Gagal mengubah data",
+            })
+            return
+        }
+        return
+    }
+	
+
 
 	c.JSON(200, gin.H{
 		"message" : "Berhasil mengubah data",
@@ -159,16 +183,16 @@ func (s *stakeAPI) Update(c *gin.Context){
 }
 
 func (s *stakeAPI) Delete(c *gin.Context){
-	stakeID := c.Param("id")
+	stakeNIP := c.Param("nip")
 	
-	if stakeID == "" {
+	if stakeNIP == "" {
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
 		})
 		return
 	}
 
-	id, err := strconv.Atoi(stakeID)
+	nip, err := strconv.Atoi(stakeNIP)
 	if err != nil {
 		log.Printf("Pesan error: %v", err)
 
@@ -179,7 +203,7 @@ func (s *stakeAPI) Delete(c *gin.Context){
 		return
 	}
 
-	err = s.stakeService.Delete(id)
+	err = s.stakeService.Delete(nip)
 	if err != nil {
 		log.Printf("Pesan error: %v", err)
 
@@ -196,8 +220,8 @@ func (s *stakeAPI) Delete(c *gin.Context){
 }
 
 func (s *stakeAPI) GetByID(c *gin.Context){
-	stakeID, err := strconv.Atoi(c.Param("id"))
-	if stakeID == 0 {
+	stakeNIP, err := strconv.Atoi(c.Param("nip"))
+	if stakeNIP == 0 {
 		c.JSON(400, gin.H{
 			"message" : "data notfound",
 			"error":   err.Error(),
@@ -214,7 +238,7 @@ func (s *stakeAPI) GetByID(c *gin.Context){
 		return
 	}
 
-	result, err := s.stakeService.GetByID(stakeID)	
+	result, err := s.stakeService.GetByID(stakeNIP)	
 	if err != nil {
 		log.Printf("Pesan error: %v", err)
 

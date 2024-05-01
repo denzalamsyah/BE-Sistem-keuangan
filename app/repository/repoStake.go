@@ -10,12 +10,14 @@ import (
 
 type StakeholderRepository interface {
 	Store(Stakeholder *models.Stakeholder) error
-	Update(id int, Stakeholder models.Stakeholder) error
-	Delete(id int) error
-	GetByID(id int) (*models.StakeholderResponse, error)
+	Update(nip int, Stakeholder models.Stakeholder) error
+	Delete(nip int) error
+	GetByID(nip int) (*models.StakeholderResponse, error)
 	GetList(page, pageSize int) ([]models.StakeholderResponse, int, error)
 	GetTotalGenderCount() (int, int, error)
 	Search(nama, nip, jabatan string) ([]models.StakeholderResponse, error)
+	GetUserNIP(nip int) (models.Stakeholder, error)
+	// HistoryPembayaranKas(GuruID, page, pageSize int) ([]models.HistoryPembayaranKas, int, error)
 
 }
 
@@ -37,8 +39,8 @@ func(c *stakeholderRepository) Store(Stakeholder *models.Stakeholder) error{
 	return nil
 }
 
-func(c *stakeholderRepository) Update(id int, Stakeholder models.Stakeholder) error{
-	err := c.db.Model(&Stakeholder).Where("id = ?", id).Updates(&Stakeholder).Error
+func(c *stakeholderRepository) Update(nip int, Stakeholder models.Stakeholder) error{
+	err := c.db.Model(&Stakeholder).Where("nip = ?", nip).Updates(&Stakeholder).Error
 
 	if err != nil{
 		return err
@@ -47,9 +49,9 @@ func(c *stakeholderRepository) Update(id int, Stakeholder models.Stakeholder) er
 	return nil
 }
 
-func(c *stakeholderRepository) Delete(id int) (error){
+func(c *stakeholderRepository) Delete(nip int) (error){
 	var stake models.Stakeholder
-	err := c.db.Where("id = ?", id).Delete(&stake).Error
+	err := c.db.Where("nip = ?", nip).Delete(&stake).Error
 
 	if err != nil{
 		return err
@@ -74,9 +76,8 @@ func (c *stakeholderRepository) GetList(page, pageSize int) ([]models.Stakeholde
 	var stakeResponse []models.StakeholderResponse
 	for _, s := range stake{
 		stakeResponse = append(stakeResponse, models.StakeholderResponse{
-			ID: s.ID,
+			Nip: s.Nip,
 			Nama: s.Nama,
-			NIP: s.NIP,
 			Agama: s.Agama.Nama,
 			Gender: s.Gender.Nama,
 			Jabatan: s.Jabatan.Nama,
@@ -92,18 +93,17 @@ func (c *stakeholderRepository) GetList(page, pageSize int) ([]models.Stakeholde
 	return stakeResponse, totalPage, nil
 }
 
-func (c *stakeholderRepository) GetByID(id int) (*models.StakeholderResponse, error){
+func (c *stakeholderRepository) GetByID(nip int) (*models.StakeholderResponse, error){
 	var stake models.Stakeholder
 
-	err := c.db.Preload("Jabatan").Preload("Agama").Preload("Gender").Where("id = ?", id).First(&stake).Error
+	err := c.db.Preload("Jabatan").Preload("Agama").Preload("Gender").Where("nip = ?", nip).First(&stake).Error
 	if err != nil {
 		return nil, err
 	}
 
 	stakeResponse := models.StakeholderResponse{
-		ID: stake.ID,
 		Nama: stake.Nama,
-		NIP: stake.NIP,
+		Nip: stake.Nip,
 		Agama: stake.Agama.Nama,
 		Gender: stake.Gender.Nama,
 		Jabatan: stake.Jabatan.Nama,
@@ -133,20 +133,35 @@ func (c *stakeholderRepository) GetTotalGenderCount() (int, int, error) {
 func (c *stakeholderRepository) Search(nama, nip, jabatan string) ([]models.StakeholderResponse, error){
 	nama = strings.ToLower(nama)
 	jabatan = strings.ToLower(jabatan)
+	nip = strings.ToLower(nip)
 
 	var StakeList []models.StakeholderResponse
 
 	query := c.db.Table("stakeholders").
-	Select("stakeholders.id, stakeholders.nama, stakeholders.n_ip, agamas.nama as agama, jabatans.nama as jabatan, stakeholders.tempat_lahir, stakeholders.tanggal_lahir, genders.nama as gender, stakeholders.nomor_telepon, stakeholders.email, stakeholders.alamat, stakeholders.gambar ").
+	Select("stakeholders.nama, stakeholders.nip, agamas.nama as agama, jabatans.nama as jabatan, stakeholders.tempat_lahir, stakeholders.tanggal_lahir, genders.nama as gender, stakeholders.nomor_telepon, stakeholders.email, stakeholders.alamat, stakeholders.gambar ").
 	Joins("JOIN agamas ON stakeholders.agama_id = agamas.id_agama").
 	Joins("JOIN jabatans on stakeholders.jabatan_id = jabatans.id_jabatan").
 	Joins("JOIN genders ON stakeholders.gender_id = genders.id_gender").
-	Where("LOWER(stakeholders.nama) LIKE ? AND stakeholders.n_ip::TEXT LIKE ? AND LOWER(jabatans.nama) LIKE ?", "%"+nama+"%", "%"+nip+"%", "%"+jabatan+"%")
+	Where("LOWER(stakeholders.nama) LIKE ? AND stakeholders.nip::TEXT LIKE ? AND LOWER(jabatans.nama) LIKE ?", "%"+nama+"%", "%"+nip+"%", "%"+jabatan+"%")
 
 	if err := query.Find(&StakeList).Error; err != nil {
         return nil, err
     }
-
+	
 	return StakeList, nil
 
+}
+
+func (c *stakeholderRepository) GetUserNIP(nip int) (models.Stakeholder, error){
+	var Guru models.Stakeholder
+
+	result :=c.db.Where("nip = ?", nip).First(&Guru)
+	if result.Error != nil{
+		if result.Error == gorm.ErrRecordNotFound{
+			return Guru, nil
+		}
+		return Guru, result.Error
+	}
+	
+	return Guru, nil
 }

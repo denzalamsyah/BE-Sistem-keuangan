@@ -7,13 +7,14 @@ import (
 
 type SiswaServices interface {
 	Store(Siswa *models.Siswa) error
-	Update(id int, Siswa models.Siswa) error
-	Delete(id int) error
-	GetByID(id int) (*models.SiswaResponse, error)
+	Update(nisn int, Siswa models.Siswa) error
+	Delete(nisn int) error
+	GetByID(nisn int) (*models.SiswaResponse, error)
 	GetList(page, pageSize int) ([]models.SiswaResponse, int, error)
 	HistoryPembayaranSiswa(siswaID, page, pageSize int) ([]models.HistoryPembayaran, int, error)
 	GetTotalGenderCount() (int, int, error)
 	Search(name, kelas, nisn, jurusan string) ([]models.SiswaResponse, error)
+	GetUserNisn(nisn int) (models.Siswa, error)
 
 }
 
@@ -33,8 +34,8 @@ func (c *siswaServices) Store(siswa *models.Siswa) error {
     return nil
 }
 
-func (c *siswaServices) Update(id int, siswa models.Siswa) error {
-	err := c.siswaRepo.Update(id, siswa)
+func (c *siswaServices) Update(nisn int, siswa models.Siswa) error {
+	err := c.siswaRepo.Update(nisn, siswa)
 	if err != nil {
 		
 		return err
@@ -42,16 +43,16 @@ func (c *siswaServices) Update(id int, siswa models.Siswa) error {
 	return nil
 }
 
-func (c *siswaServices) Delete(id int) error {
-	err := c.siswaRepo.Delete(id)
+func (c *siswaServices) Delete(nisn int) error {
+	err := c.siswaRepo.Delete(nisn)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (c *siswaServices) GetByID(id int) (*models.SiswaResponse, error) {
-	siswa, err := c.siswaRepo.GetByID(id)
+func (c *siswaServices) GetByID(nisn int) (*models.SiswaResponse, error) {
+	siswa, err := c.siswaRepo.GetByID(nisn)
 	if err != nil {
 		return nil, err
 	}
@@ -91,3 +92,6 @@ func(c *siswaServices) Search(name, nisn, kelas, jurusan string) ([]models.Siswa
 	return siswa, nil
 }
 
+func (c *siswaServices) GetUserNisn(nisn int) (models.Siswa, error) {
+	return c.siswaRepo.GetUserNisn(nisn)
+}

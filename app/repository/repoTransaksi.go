@@ -12,7 +12,7 @@ type TransaksiRepository interface {
 	Store(Transaksi *models.Transaksi) error
 	Update(id int, Transaksi models.Transaksi) error
 	Delete(id int) error
-	GetList(page, paedSize int) ([]models.Transaksi, int, error)
+	GetList(page, paedSize int) ([]models.Transaksi, int, error)	
 	Search(nama string) ([]models.Transaksi, error)
 
 }

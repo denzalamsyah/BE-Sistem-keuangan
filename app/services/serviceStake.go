@@ -7,12 +7,13 @@ import (
 
 type StakeholderServices interface {
 	Store(Stakeholder *models.Stakeholder) error
-	Update(id int, Stakeholder models.Stakeholder) error
-	Delete(id int)error
-	GetByID(id int) (*models.StakeholderResponse, error)
-	GetList(page, pageSize int) ([]models.StakeholderResponse, int,error)
+	Update(nip int, Stakeholder models.Stakeholder) error
+	Delete(nip int) error
+	GetByID(nip int) (*models.StakeholderResponse, error)
+	GetList(page, pageSize int) ([]models.StakeholderResponse, int, error)
 	GetTotalGenderCount() (int, int, error)
 	Search(nama, nip, jabatan string) ([]models.StakeholderResponse, error)
+	GetUserNIP(nip int) (models.Stakeholder, error)
 
 }
 
@@ -30,8 +31,8 @@ func (c *stakeholderServices) Store(Stakeholder *models.Stakeholder) error{
 	return nil
 }
 
-func (c *stakeholderServices) Update(id int, Stakeholder models.Stakeholder) error{
-	err := c.stakeRepo.Update(id, Stakeholder)
+func (c *stakeholderServices) Update(nip int, Stakeholder models.Stakeholder) error{
+	err := c.stakeRepo.Update(nip, Stakeholder)
 	if err != nil {
 		
 		return err
@@ -39,16 +40,16 @@ func (c *stakeholderServices) Update(id int, Stakeholder models.Stakeholder) err
 	return nil
 }
 
-func (c *stakeholderServices) Delete(id int) error{
-	err := c.stakeRepo.Delete(id)
+func (c *stakeholderServices) Delete(nip int) error{
+	err := c.stakeRepo.Delete(nip)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (c *stakeholderServices) GetByID(id int) (*models.StakeholderResponse, error){
-	stake, err := c.stakeRepo.GetByID(id)
+func (c *stakeholderServices) GetByID(nip int) (*models.StakeholderResponse, error){
+	stake, err := c.stakeRepo.GetByID(nip)
 	if err != nil {
 		return nil, err
 	}
@@ -78,4 +79,8 @@ func(c *stakeholderServices) Search(nama, nip, jabatan string) ([]models.Stakeho
         return nil, err
     }
 	return stake, nil
+}
+
+func (c *stakeholderServices) GetUserNIP(nip int) (models.Stakeholder, error) {
+	return c.stakeRepo.GetUserNIP(nip)
 }

@@ -13,9 +13,8 @@ type Credential struct {
 	Schema       string
 }
 type Siswa struct {
-	ID           int    `gorm:"primaryKey" json:"id"`
+	Nisn        int    `gorm:"primaryKey" json:"nisn" form:"nisn"`
 	Nama         string `gorm:"type:varchar(35)" json:"nama" form:"nama"`
-	NISN         int    `json:"nisn" form:"nisn"`
 	KelasID      int    `gorm:"foreignKey:FkId_kelas;references:IDKelas" json:"id_kelas" form:"id_kelas"`
 	Kelas        Kelas  `json:"kelas"`
 	JurusanID    int    `gorm:"foreignKey:FkId_jurusan;references:IDJurusan" json:"id_jurusan" form:"id_jurusan"`
@@ -30,6 +29,22 @@ type Siswa struct {
 	NamaIbu      string `gorm:"type:varchar(35)" json:"nama_ibu" form:"nama_ibu"`
 	NomorTelepon int    `json:"nomor_telepon" form:"nomor_telepon"`
 	Angkatan     string ` gorm:"type:varchar(10)" json:"angkatan" form:"angkatan"`
+	Email        string `gorm:"type:varchar(35)" json:"email" form:"email"`
+	Alamat       string `gorm:"type:varchar(100)" json:"alamat" form:"alamat"`
+	Gambar string `gorm:"type:varchar(255)" json:"gambar" form:"gambar"`
+}
+type Stakeholder struct {
+	Nip        int    `gorm:"primaryKey" json:"nip" form:"nip"`
+	Nama         string `gorm:"type:varchar(35)" json:"nama" form:"nama"`
+	AgamaID      int    `gorm:"foreignKey:FkId_agama;references:IDAgama" json:"id_agama" form:"id_agama"`
+	Agama        Agama  `json:"agama"`
+	JabatanID    int    `gorm:"foreignKey:FkId_jabatan;references:IDJabatan" json:"id_jabatan " form:"id_jabatan"`
+	Jabatan      Jabatan  `json:"jabatan"`
+	TempatLahir  string `gorm:"type:varchar(15)" json:"tempat_lahir" form:"tempat_lahir"`
+	TanggalLahir string `gorm:"type:varchar(15)" json:"tanggal_lahir" form:"tanggal_lahir"`
+	GenderID     int    `gorm:"foreignKey:FkId_gender;references:IDGender" json:"id_gender" form:"id_gender"`
+	Gender       Gender `json:"gender"`
+	NomorTelepon int    `json:"nomor_telepon" form:"nomor_telepon"`
 	Email        string `gorm:"type:varchar(35)" json:"email" form:"email"`
 	Alamat       string `gorm:"type:varchar(100)" json:"alamat" form:"alamat"`
 	Gambar string `gorm:"type:varchar(255)" json:"gambar" form:"gambar"`
@@ -57,25 +72,11 @@ type Pengeluaran struct {
 	Jumlah  int    `json:"total_jumlah"`
 }
 
-// type PembayaranSPP struct {
-//     ID         int         `gorm:"primaryKey" json:"id"`
-//     SiswaID    int         `gorm:"foreignKey:FkId_siswa;references:ID" json:"id_siswa"`
-//     Siswa      Siswa       `json:"siswa"`
-// 	TransaksiID    int      `gorm:"foreignKey:FkId_transaksi;references:ID" json:"id_transaksi"`
-// 	Transaksi  Transaksi   `json:"transaksi"`
-// 	Bulan      string      `gorm:"type:varchar(35)" json:"bulan"`
-// 	Semester    string      `gorm:"type:varchar(35)" json:"semester"`
-// 	TahunAjar   string   	`json:"tahun_ajar"`
-//     Tanggal    string      `json:"tanggal"`
-//     Jumlah     int         `json:"total_jumlah"`
-//     PenerimaID int         `gorm:"foreignKey:FkId_stakeholder;references:ID" json:"id_penerima"`
-//     Penerima   Stakeholder `json:"penerima"`
-// 	Status     string      `json:"status"`
-// }
+
 
 type PembayaranSemester struct {
 	ID             int         `gorm:"primaryKey" json:"id"`
-	SiswaID        int         `gorm:"foreignKey:FkId_siswa;references:ID" json:"id_siswa"`
+	SiswaID        int         `gorm:"foreignKey:FkId_siswa;references:Nisn" json:"id_siswa"`
 	Siswa          Siswa       `json:"siswa"`
 	TransaksiID    int         `gorm:"foreignKey:FkId_transaksi;references:ID" json:"id_transaksi"`
 	Transaksi  Transaksi   `json:"transaksi"`
@@ -83,8 +84,6 @@ type PembayaranSemester struct {
 	TahunAjar      string      `gorm:"type:varchar(15)" json:"tahun_ajar"`
 	Tanggal        string      `gorm:"type:varchar(15)" json:"tanggal"`
 	Jumlah         int         `json:"total_jumlah"`
-	// PenerimaID     int         `gorm:"foreignKey:FkId_stakeholder;references:ID" json:"id_penerima"`
-	// Penerima       Stakeholder `json:"penerima"`
 	Status         string      `gorm:"type:varchar(15)" json:"status"`
 }
 
@@ -93,23 +92,6 @@ type Transaksi struct {
 	ID        int    `gorm:"primaryKey" json:"id"`
 	Nama      string `gorm:"type:varchar(35)" json:"nama"`
 	JumlahBayar int    `json:"jumlah_bayar"`
-}
-type Stakeholder struct {
-	ID           int    `gorm:"primaryKey" json:"id"`
-	Nama         string `gorm:"type:varchar(35)" json:"nama" form:"nama"`
-	NIP          int    `json:"nip" form:"nip"`
-	AgamaID      int    `gorm:"foreignKey:FkId_agama;references:IDAgama" json:"id_agama" form:"id_agama"`
-	Agama        Agama  `json:"agama"`
-	JabatanID    int    `gorm:"foreignKey:FkId_jabatan;references:IDJabatan" json:"id_jabatan " form:"id_jabatan"`
-	Jabatan      Jabatan  `json:"jabatan"`
-	TempatLahir  string `gorm:"type:varchar(15)" json:"tempat_lahir" form:"tempat_lahir"`
-	TanggalLahir string `gorm:"type:varchar(15)" json:"tanggal_lahir" form:"tanggal_lahir"`
-	GenderID     int    `gorm:"foreignKey:FkId_gender;references:IDGender" json:"id_gender" form:"id_gender"`
-	Gender       Gender `json:"gender"`
-	NomorTelepon int    `json:"nomor_telepon" form:"nomor_telepon"`
-	Email        string `gorm:"type:varchar(35)" json:"email" form:"email"`
-	Alamat       string `gorm:"type:varchar(100)" json:"alamat" form:"alamat"`
-	Gambar string `gorm:"type:varchar(255)" json:"gambar" form:"gambar"`
 }
 
 type Login struct {
@@ -179,7 +161,7 @@ type ResetToken struct{
 
 type PesertaArisan struct{
 	ID int  `gorm:"primaryKey" json:"id"`
-	IDPeserta int `gorm:"foreignKey:FkId_stakeholders;references:ID" json:"id_peserta"`
+	IDPeserta int `gorm:"foreignKey:FkId_stakeholders;references:NIP" json:"id_peserta"`
 	Peserta Stakeholder  `json:"peserta"`
 	NomorArisan int `json:"no_arisan"`
 	Jumlah int `json:"jumlah_bayar"`
@@ -196,7 +178,7 @@ type Arisan struct{
 
 type KasGuru struct{
 	ID int  `gorm:"primaryKey" json:"id"`
-	GuruID int `gorm:"foreignKey:FkId_stakeholder;references:ID" json:"id_guru"`
+	GuruID int `gorm:"foreignKey:FkId_stakeholder;references:Nip" json:"id_guru"`
 	Guru Stakeholder `json:"nama_guru"`
 	Jumlah int `json:"jumlah_bayar"`
 	TanggalBayar string `gorm:"type:varchar(15)" json:"tanggal_bayar"`

@@ -11,15 +11,15 @@ import (
 
 type SiswaRepository interface {
 	Store(Siswa *models.Siswa) error
-	Update(id int, Siswa models.Siswa) error
-	Delete(id int) error
-	GetByID(id int) (*models.SiswaResponse, error)
+	Update(nisn int, Siswa models.Siswa) error
+	Delete(nisn int) error
+	GetByID(nisn int) (*models.SiswaResponse, error)
 	GetList(page, pageSize int) ([]models.SiswaResponse, int, error)
 	HistoryPembayaranSiswa(siswaID, page, pageSize int) ([]models.HistoryPembayaran, int, error)
 	GetTotalGenderCount() (int, int, error)
 	Search(name, nisn, kelas, jurusan string) ([]models.SiswaResponse, error)
+	GetUserNisn(nisn int) (models.Siswa, error)
 	
-
 }
 
 type siswaRepository struct{
@@ -38,34 +38,33 @@ func (c *siswaRepository) Store(siswa *models.Siswa) error {
 	return nil
 }
 
-func (c *siswaRepository) Update(id int, Siswa models.Siswa) error {
-	err := c.db.Model(&models.Siswa{}).Where("id = ?", id).Updates(&Siswa).Error
+func (c *siswaRepository) Update(nisn int, Siswa models.Siswa) error {
+	err := c.db.Model(&models.Siswa{}).Where("nisn = ?", nisn).Updates(&Siswa).Error
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (c *siswaRepository) Delete(id int) error {
+func (c *siswaRepository) Delete(nisn int) error {
 	var Siswa models.Siswa
-	err := c.db.Where("id = ?", id).Delete(&Siswa).Error
+	err := c.db.Where("nisn = ?", nisn).Delete(&Siswa).Error
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (c *siswaRepository) GetByID(id int) (*models.SiswaResponse, error) {
+func (c *siswaRepository) GetByID(nisn int) (*models.SiswaResponse, error) {
 	var siswa models.Siswa
-	err := c.db.Preload("Kelas").Preload("Jurusan").Preload("Agama").Preload("Gender").Where("id = ?", id).First(&siswa).Error
+	err := c.db.Preload("Kelas").Preload("Jurusan").Preload("Agama").Preload("Gender").Where("nisn = ?", nisn).First(&siswa).Error
 	if err != nil {
 		return nil, err
 	}
 
 	siswaResponse := models.SiswaResponse{
-		ID:           siswa.ID,
+		NISN:         siswa.Nisn,
 		Nama:         siswa.Nama,
-		NISN:         siswa.NISN,
 		Kelas:   siswa.Kelas.Kelas,
 		Jurusan:      siswa.Jurusan.Nama,
 		Agama:        siswa.Agama.Nama,
@@ -100,9 +99,8 @@ func (c *siswaRepository) GetList(page, pageSize int) ([]models.SiswaResponse, i
 	var SiswaResponse []models.SiswaResponse
 	for _, s := range Siswa{
 		SiswaResponse = append(SiswaResponse, models.SiswaResponse{
-			ID:           s.ID,
+			NISN:         s.Nisn,
 			Nama:         s.Nama,
-			NISN:         s.NISN,
 			Kelas:       s.Kelas.Kelas,
 			Jurusan:      s.Jurusan.Nama,
 			Agama:        s.Agama.Nama,
@@ -127,7 +125,7 @@ func (c *siswaRepository) HistoryPembayaranSiswa(siswaID, page, pageSize int) ([
 
     // Mengambil data pembayaran dari PembayaranSemester
     var pembayaranSemester []models.PembayaranSemester
-    if err := c.db.Preload("Siswa").Preload("Penerima").Preload("Transaksi").Where("siswa_id = ?", siswaID).
+    if err := c.db.Preload("Siswa").Preload("Transaksi").Where("siswa_id = ?", siswaID).
 	Offset((page - 1) * pageSize).Limit(pageSize).Find(&pembayaranSemester).Error; err != nil {
         return nil,0, err
     }
@@ -144,7 +142,6 @@ func (c *siswaRepository) HistoryPembayaranSiswa(siswaID, page, pageSize int) ([
             Nama_transaksi: p.Transaksi.Nama,
             Biaya:          p.Jumlah,
             Tanggal:        p.Tanggal,
-            // Penerima:       p.Penerima.Nama,
 			Status: p.Status,
         })
     }
@@ -175,7 +172,7 @@ func (c *siswaRepository) Search(name, nisn, kelas, jurusan string) ([]models.Si
 
     // Query dengan menggunakan Select untuk menentukan kolom yang akan diambil
     query := c.db.Table("siswas").
-        Select("siswas.id, siswas.nama, siswas.nisn, kelas.kelas as kelas, jurusans.nama as jurusan, agamas.nama as agama, siswas.tempat_lahir, siswas.tanggal_lahir, genders.nama as gender, siswas.nama_ayah, siswas.nama_ibu, siswas.nomor_telepon, siswas.angkatan, siswas.email, siswas.alamat, siswas.gambar").
+        Select("siswas.nama, siswas.nisn, kelas.kelas as kelas, jurusans.nama as jurusan, agamas.nama as agama, siswas.tempat_lahir, siswas.tanggal_lahir, genders.nama as gender, siswas.nama_ayah, siswas.nama_ibu, siswas.nomor_telepon, siswas.angkatan, siswas.email, siswas.alamat, siswas.gambar").
         Joins("JOIN kelas ON siswas.kelas_id = kelas.id_kelas").
         Joins("JOIN jurusans ON siswas.jurusan_id = jurusans.id_jurusan").
 		Joins("JOIN agamas ON siswas.agama_id = agamas.id_agama").
@@ -189,5 +186,17 @@ func (c *siswaRepository) Search(name, nisn, kelas, jurusan string) ([]models.Si
     return siswaList, nil
 }
 
+func (c *siswaRepository) GetUserNisn(nisn int) (models.Siswa, error){
+	var Siswa models.Siswa
+
+	result :=c.db.Where("nisn = ?", nisn).First(&Siswa)
+	if result.Error != nil{
+		if result.Error == gorm.ErrRecordNotFound{
+			return Siswa, nil
+		}
+		return Siswa, result.Error
+	}
+	return Siswa, nil
+}
 
 

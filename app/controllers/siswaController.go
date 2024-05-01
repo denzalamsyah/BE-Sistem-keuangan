@@ -64,19 +64,37 @@ func (s *siswaAPI) AddSiswa(c *gin.Context) {
         }
         newSiswa.Gambar = imageURL
     }
+
+   
+
     err = s.siswaService.Store(&newSiswa)
     if err != nil {
-        if newSiswa.Alamat == "" || newSiswa.AgamaID == 0 || newSiswa.Angkatan == "" || newSiswa.Email == "" || newSiswa.GenderID == 0 || newSiswa.JurusanID == 0 || newSiswa.KelasID == 0 || newSiswa.NISN == 0 || newSiswa.Nama == "" || newSiswa.NamaAyah == "" || newSiswa.NamaIbu == "" || newSiswa.NomorTelepon == 0 || newSiswa.TanggalLahir== "" || newSiswa.TempatLahir == ""{ 
+        if newSiswa.Alamat == "" || newSiswa.AgamaID == 0 || newSiswa.Angkatan == "" || newSiswa.Email == "" || newSiswa.GenderID == 0 || newSiswa.JurusanID == 0 || newSiswa.KelasID == 0 || newSiswa.Nisn == 0 || newSiswa.Nama == "" || newSiswa.NamaAyah == "" || newSiswa.NamaIbu == "" || newSiswa.NomorTelepon == 0 || newSiswa.TanggalLahir== "" || newSiswa.TempatLahir == ""{ 
             c.JSON(http.StatusBadRequest, gin.H{"error":   "semua item harus di isi kecuali gambar",})
 			return
 		}
-		log.Printf("Error: %v", err)
-        c.JSON(http.StatusInternalServerError, gin.H{
-            "message": err.Error(),
-            "error":   "Gagal menambah data",
-        })
+        existingSiswa, err := s.siswaService.GetUserNisn(newSiswa.Nisn)
+        if err != nil {
+            log.Printf("Error checking NISN: %v", err)
+            c.JSON(http.StatusInternalServerError, gin.H{
+                "error":   err.Error(),
+            })
+            return
+        }
+        
+        if existingSiswa.Nisn == newSiswa.Nisn{
+            c.JSON(http.StatusBadRequest, gin.H{
+                "message":   "Siswa dengan NISN tersebut sudah ada",
+                "error":   "Gagal menambah data",
+            })
+            return
+        }
+        
         return
     }
+
+   
+    
 
     c.JSON(http.StatusOK, gin.H{
         "message": "Berhasil menambahkan data",
@@ -85,16 +103,15 @@ func (s *siswaAPI) AddSiswa(c *gin.Context) {
 }
 
 func (s *siswaAPI) Update(c *gin.Context) {
-    siswaID := c.Param("id")
-
-    if siswaID == "" {
+    siswaNISN := c.Param("nisn")
+    if siswaNISN == "" {
         c.JSON(http.StatusBadRequest, gin.H{
             "message": "invalid request body" ,
         })
         return
     }
 
-    id, err := strconv.Atoi(siswaID)
+    nisn, err := strconv.Atoi(siswaNISN)
     if err != nil {
 		log.Printf("Pesan error: %v", err)
 
@@ -104,9 +121,9 @@ func (s *siswaAPI) Update(c *gin.Context) {
         return
     }
 
-    var existingSiswa models.Siswa
-    if err := c.ShouldBind(&existingSiswa); err != nil {
-		log.Printf("Pesan error: %v", err)
+    var newSiswa models.Siswa
+    if err := c.ShouldBind(&newSiswa); err != nil {
+		log.Printf("Encode error: %v", err)
 
         c.JSON(http.StatusBadRequest, gin.H{
             "message": "invalid request body" + err.Error(),
@@ -129,46 +146,58 @@ func (s *siswaAPI) Update(c *gin.Context) {
     if file != nil {
         imageURL, err := middleware.UploadToCloudinary(file)
         if err != nil {
-		log.Printf("Pesan error: %v", err)
+		log.Printf("middleware upload gambar error: %v", err)
             c.JSON(http.StatusInternalServerError, gin.H{
                 "message": "failed to upload image to Cloudinary" + err.Error(),
+                "error":   err.Error(),
+            })
+            return
+        }
+        newSiswa.Gambar = imageURL
+    }
+
+
+    err = s.siswaService.Update(nisn, newSiswa)
+    if err != nil {
+		log.Printf("Update error: %v", err)
+
+        existingSiswa, err := s.siswaService.GetUserNisn(newSiswa.Nisn)
+        if err != nil {
+            log.Printf("Error checking NISN: %v", err)
+            c.JSON(http.StatusInternalServerError, gin.H{
+                "error":   err.Error(),
+            })
+            return
+        }
+        
+        if existingSiswa.Nisn == newSiswa.Nisn{
+            c.JSON(http.StatusBadRequest, gin.H{
+                "message":   "NISN yang anda masukan sudah ada",
                 "error":   "Gagal mengubah data",
             })
             return
         }
-        existingSiswa.Gambar = imageURL
-    }
-
-    // Lakukan pembaruan data siswa di database
-    err = s.siswaService.Update(id, existingSiswa)
-    if err != nil {
-		log.Printf("Pesan error: %v", err)
-
-        c.JSON(http.StatusInternalServerError, gin.H{
-            "message": err.Error(),
-            "error":   "Gagal mengubah data",
-        })
         return
     }
 
     c.JSON(http.StatusOK, gin.H{
         "message": "Berhasil mengubah siswa",
-        "data":    existingSiswa,
+        "data":    newSiswa,
     })
 }
 
 func (s *siswaAPI) Delete(c *gin.Context) {
 
-	siswaID := c.Param("id")
+	siswaNISN := c.Param("nisn")
 	
-	if siswaID == "" {
+	if siswaNISN == "" {
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
 		})
 		return
 	}
 
-	id, err := strconv.Atoi(siswaID)
+	nisn, err := strconv.Atoi(siswaNISN)
 	if err != nil {
 		log.Printf("Pesan error: %v", err)
 
@@ -179,7 +208,7 @@ func (s *siswaAPI) Delete(c *gin.Context) {
 		return
 	}
 
-	err = s.siswaService.Delete(id)
+	err = s.siswaService.Delete(nisn)
 	if err != nil {
 		log.Printf("Pesan error: %v", err)
 
@@ -197,7 +226,7 @@ func (s *siswaAPI) Delete(c *gin.Context) {
 }
 func (s *siswaAPI) GetByID(c *gin.Context) {
 
-	siswaID, err := strconv.Atoi(c.Param("id"))
+	siswaNISN, err := strconv.Atoi(c.Param("nisn"))
 	
 	if err != nil {
 		log.Printf("Pesan error: %v", err)
@@ -208,7 +237,7 @@ func (s *siswaAPI) GetByID(c *gin.Context) {
 		return
 	}
 
-	result, err := s.siswaService.GetByID(siswaID)	
+	result, err := s.siswaService.GetByID(siswaNISN)	
 	if err != nil {
 		log.Printf("Pesan error: %v", err)
 
@@ -268,7 +297,7 @@ func (s *siswaAPI) History(c *gin.Context) {
         pageSize = 100
     }
 
-	siswaID, err := strconv.Atoi(c.Param("id"))
+	siswaNISN, err := strconv.Atoi(c.Param("nisn"))
 	
 	if err != nil {
 		log.Printf("Pesan error: %v", err)
@@ -279,7 +308,7 @@ func (s *siswaAPI) History(c *gin.Context) {
 		return
 	}
 
-	result, totalPage, err := s.siswaService.HistoryPembayaranSiswa(siswaID, page, pageSize)
+	result, totalPage, err := s.siswaService.HistoryPembayaranSiswa(siswaNISN, page, pageSize)
 	if err != nil {
 		log.Printf("Pesan error: %v", err)
 
@@ -411,5 +440,3 @@ func (s *siswaAPI) ExportSiswa(c *gin.Context) {
     c.Header("Content-Transfer-Encoding", "binary")
     c.File(fileName)
 }
-
-
