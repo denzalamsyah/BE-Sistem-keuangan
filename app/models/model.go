@@ -13,7 +13,7 @@ type Credential struct {
 	Schema       string
 }
 type Siswa struct {
-	Nisn        int    `gorm:"primaryKey" json:"nisn" form:"nisn"`
+	Nisn int `gorm:"primaryKey;size:20" json:"nisn" form:"nisn"`
 	Nama         string `gorm:"type:varchar(35)" json:"nama" form:"nama"`
 	KelasID      int    `gorm:"foreignKey:FkId_kelas;references:IDKelas" json:"id_kelas" form:"id_kelas"`
 	Kelas        Kelas  `json:"kelas"`
@@ -33,7 +33,7 @@ type Siswa struct {
 	Alamat       string `gorm:"type:varchar(100)" json:"alamat" form:"alamat"`
 	Gambar string `gorm:"type:varchar(255)" json:"gambar" form:"gambar"`
 }
-type Stakeholder struct {
+type Guru struct {
 	Nip        int    `gorm:"primaryKey" json:"nip" form:"nip"`
 	Nama         string `gorm:"type:varchar(35)" json:"nama" form:"nama"`
 	AgamaID      int    `gorm:"foreignKey:FkId_agama;references:IDAgama" json:"id_agama" form:"id_agama"`
@@ -162,7 +162,7 @@ type ResetToken struct{
 type PesertaArisan struct{
 	ID int  `gorm:"primaryKey" json:"id"`
 	IDPeserta int `gorm:"foreignKey:FkId_stakeholders;references:NIP" json:"id_peserta"`
-	Peserta Stakeholder  `json:"peserta"`
+	Peserta Guru  `json:"peserta"`
 	NomorArisan int `json:"no_arisan"`
 	Jumlah int `json:"jumlah_bayar"`
 	TanggalBayar string `gorm:"type:varchar(15)" json:"tanggal_bayar"`
@@ -179,7 +179,24 @@ type Arisan struct{
 type KasGuru struct{
 	ID int  `gorm:"primaryKey" json:"id"`
 	GuruID int `gorm:"foreignKey:FkId_stakeholder;references:Nip" json:"id_guru"`
-	Guru Stakeholder `json:"nama_guru"`
+	Guru Guru `json:"nama_guru"`
 	Jumlah int `json:"jumlah_bayar"`
 	TanggalBayar string `gorm:"type:varchar(15)" json:"tanggal_bayar"`
+}
+
+type PengambilanKas struct {
+	ID          uint      `gorm:"primaryKey" json:"id"`
+	GuruID      uint      `json:"nip"`
+	Nama      string    `gorm:"type:varchar(35)" json:"nama"`
+	JumlahAmbil int       `json:"jumlah_ambil"`
+	TanggalAmbil string `gorm:"type:varchar(15)" json:"tanggal_ambil"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+}
+
+type HistoryPengambilanKas struct {
+	NIP           uint   `json:"nip"`
+	Nama          string `json:"nama"`
+	JumlahAmbil   int    `json:"jumlah_ambil"`
+	TanggalAmbil  string `json:"tanggal_ambil"`
 }

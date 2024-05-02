@@ -5,82 +5,118 @@ import (
 	"github.com/denzalamsyah/simak/app/repository"
 )
 
-type StakeholderServices interface {
-	Store(Stakeholder *models.Stakeholder) error
-	Update(nip int, Stakeholder models.Stakeholder) error
+type GuruServices interface {
+	Store(Guru *models.Guru) error
+	Update(nip int, Guru models.Guru) error
 	Delete(nip int) error
-	GetByID(nip int) (*models.StakeholderResponse, error)
-	GetList(page, pageSize int) ([]models.StakeholderResponse, int, error)
+	GetByID(nip int) (*models.GuruResponse, error)
+	GetList(page, pageSize int) ([]models.GuruResponse, int, error)
 	GetTotalGenderCount() (int, int, error)
-	Search(nama, nip, jabatan string) ([]models.StakeholderResponse, error)
-	GetUserNIP(nip int) (models.Stakeholder, error)
-
+	Search(nama, nip, jabatan string) ([]models.GuruResponse, error)
+	GetUserNIP(nip int) (models.Guru, error)
+	HistoryPembayaranGuru(nip, page, pageSize int) ([]models.HistoryPembayaranKas, int, error)
+	SaldoKasByNIP(nip int) (int, error)
+	AmbilKasGuru(nip, jumlah int,nama, tanggal string) error
+	HistoryPengambilanKas(nip, page, pageSize int) ([]models.HistoryPengambilanKas, int, error)
 }
 
-type stakeholderServices struct{
-	stakeRepo repository.StakeholderRepository
+type guruServices struct{
+	guruRepo repository.GuruRepository
 }
-func NewStakeService(stakeRepo repository.StakeholderRepository) StakeholderServices{
-	return &stakeholderServices{stakeRepo}
+func NewGuruService(guruRepo repository.GuruRepository) GuruServices{
+	return &guruServices{guruRepo}
 }
-func (c *stakeholderServices) Store(Stakeholder *models.Stakeholder) error{
-	err := c.stakeRepo.Store(Stakeholder)
+func (c *guruServices) Store(Guru *models.Guru) error{
+	err := c.guruRepo.Store(Guru)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (c *stakeholderServices) Update(nip int, Stakeholder models.Stakeholder) error{
-	err := c.stakeRepo.Update(nip, Stakeholder)
+func (c *guruServices) Update(nip int, Guru models.Guru) error {
+	err := c.guruRepo.Update(nip, Guru)
 	if err != nil {
 		
 		return err
 	}
 	return nil
 }
-
-func (c *stakeholderServices) Delete(nip int) error{
-	err := c.stakeRepo.Delete(nip)
+func (c *guruServices) Delete(nip int) error{
+	err := c.guruRepo.Delete(nip)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (c *stakeholderServices) GetByID(nip int) (*models.StakeholderResponse, error){
-	stake, err := c.stakeRepo.GetByID(nip)
+func (c *guruServices) GetByID(nip int) (*models.GuruResponse, error){
+	guru, err := c.guruRepo.GetByID(nip)
 	if err != nil {
 		return nil, err
 	}
-	return stake, nil
+	return guru, nil
 }
 
-func (c *stakeholderServices) GetList(page, pageSize int)([]models.StakeholderResponse, int, error){
-	stake, totalPage, err := c.stakeRepo.GetList(page, pageSize)
+func (c *guruServices) GetList(page, pageSize int)([]models.GuruResponse, int, error){
+	guru, totalPage, err := c.guruRepo.GetList(page, pageSize)
 	if err != nil {
 		return nil, 0, err
 	}
-	return stake, totalPage, nil
+	return guru, totalPage, nil
 }
 
-func (c *stakeholderServices) GetTotalGenderCount() (int, int, error) {
-	countLakiLaki, countPerempuan, err := c.stakeRepo.GetTotalGenderCount()
+func (c *guruServices) GetTotalGenderCount() (int, int, error) {
+	countLakiLaki, countPerempuan, err := c.guruRepo.GetTotalGenderCount()
 	if err != nil {
 		return 0, 0, err
 	}
 	return int(countLakiLaki), int(countPerempuan), nil
 }
 
-func(c *stakeholderServices) Search(nama, nip, jabatan string) ([]models.StakeholderResponse, error){
-	stake, err := c.stakeRepo.Search(nama, nip, jabatan)
+func(c *guruServices) Search(nama, nip, jabatan string) ([]models.GuruResponse, error){
+	guru, err := c.guruRepo.Search(nama, nip, jabatan)
 
 	if err != nil {
         return nil, err
     }
-	return stake, nil
+	return guru, nil
+}
+func (c *guruServices) GetUserNIP(guru int) (models.Guru, error) {
+	return c.guruRepo.GetUserNIP(guru)
 }
 
-func (c *stakeholderServices) GetUserNIP(nip int) (models.Stakeholder, error) {
-	return c.stakeRepo.GetUserNIP(nip)
+func (c *guruServices) HistoryPembayaranGuru(nip, page, pageSize int) ([]models.HistoryPembayaranKas, int, error){
+	history, totalPage, err := c.guruRepo.HistoryPembayaranGuru(nip, page, pageSize)
+	if err != nil {
+		return nil, 0, err
+	}
+	return history, totalPage, nil
+}
+
+// HitungTotalKasGuru menghitung total kas guru berdasarkan NIP
+func (c *guruServices) SaldoKasByNIP(nip int) (int, error) {
+	totalKas, err := c.guruRepo.SaldoKasByNIP(nip)
+	if err != nil {
+		return 0, err
+	}
+	return totalKas, nil
+}
+
+// AmbilKasGuru mengurangi saldo uang kas guru berdasarkan NIP
+func (c *guruServices) AmbilKasGuru(nip, jumlah int, nama, tanggal string) error {
+	err := c.guruRepo.AmbilKasGuru(nip, jumlah, nama, tanggal)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+
+func (c *guruServices) HistoryPengambilanKas(nip, page, pageSize int) ([]models.HistoryPengambilanKas, int, error){
+	history, totalPage, err := c.guruRepo.HistoryPengambilanKas(nip, page, pageSize)
+	if err != nil {
+		return nil, 0, err
+	}
+	return history, totalPage, nil
 }

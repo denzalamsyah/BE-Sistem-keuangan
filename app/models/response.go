@@ -18,7 +18,7 @@ type SiswaResponse struct {
 	Gambar       string `json:"gambar"`
 }
 
-type StakeholderResponse struct {
+type GuruResponse struct {
 	Nip          int    `json:"nip"`
 	Nama         string `json:"nama"`
 	Agama        string `json:"agama"`
@@ -100,7 +100,7 @@ type KasGuruResponse struct {
 
 type HistoryPembayaranKas struct {
 	Nama         string `json:"nama"`
-	NIP          string `json:"nip"`
+	NIP          int    `json:"nip"`
 	Jumlah_Bayar int    `json:"jumlah_bayar"`
 	Tanggal      string `json:"tanggal"`
 }

@@ -19,7 +19,7 @@ import (
 type APIHandler struct {
 	UserAPIHandler controllers.UserAPI
 	SiswaAPIHandler controllers.SiswaAPI
-	StakeAPIHandler controllers.StakeAPI
+	GuruAPIHandler controllers.GuruAPI
 	// SppAPIHandler controllers.SppAPI
 	SemesterAPIHandler controllers.SemesterAPI
 	PemasukanAPIHandler controllers.PemasukanAPI
@@ -65,7 +65,7 @@ func main() {
 			panic(err)
 		}
 
-		conn.AutoMigrate(&models.User{}, &models.Session{}, &models.Siswa{}, &models.Stakeholder{}, &models.Login{}, &models.Pemasukan{}, &models.Pemasukanlainnya{}, &models.HistoryPembayaran{}, &models.PembayaranSemester{}, &models.Pengeluaran{}, &models.Gender{}, &models.Agama{}, models.Kelas{}, &models.Transaksi{}, &models.ResetToken{}, &models.Arisan{}, &models.KasGuru{} )
+		conn.AutoMigrate(&models.User{}, &models.Session{}, &models.Siswa{}, &models.Guru{}, &models.Login{}, &models.Pemasukan{}, &models.Pemasukanlainnya{}, &models.HistoryPembayaran{}, &models.PembayaranSemester{}, &models.Pengeluaran{}, &models.Gender{}, &models.Agama{}, models.Kelas{}, &models.Transaksi{}, &models.ResetToken{}, &models.Arisan{}, &models.KasGuru{}, &models.PengambilanKas{} )
 
 		router = RunServer(conn, router)
 	
@@ -86,7 +86,7 @@ func RunServer(db *gorm.DB,  gin *gin.Engine) *gin.Engine{
 	userRepo := repository.NewUserRepo(db)
 	sessionRepo := repository.NewSessionsRepo(db)
 	siswaRepo := repository.NewSiswaRepo(db)
-	stakeRepo := repository.NewStakeholderRepo(db)
+	guruRepo := repository.NewGuruRepo(db)
 	// sppRepo := repository.NewSPPRepo(db)
 	semesterRepo := repository.NewSemesterRepo(db)
 	pemasukanRepo := repository.NewPemasukanRepo(db)
@@ -99,7 +99,7 @@ func RunServer(db *gorm.DB,  gin *gin.Engine) *gin.Engine{
 
 	userService := services.NewUserService(userRepo, sessionRepo,)
 	siswaService := services.NewSiswaService(siswaRepo)
-	stakeService := services.NewStakeService(stakeRepo)
+	guruService := services.NewGuruService(guruRepo)
 	// sppService := services.NewSPPService(sppRepo)
 	semesterService := services.NewSemesterService(semesterRepo)
 	pemasukanService := services.NewPemasukanService(pemasukanRepo)
@@ -112,7 +112,7 @@ func RunServer(db *gorm.DB,  gin *gin.Engine) *gin.Engine{
 
 	userAPIHandler := controllers.NewUserAPI(userService)
 	siswaAPI := controllers.NewSiswaAPI(siswaService)
-	stakeAPI := controllers.NewStakeAPI(stakeService)
+	guruAPI := controllers.NewGuruAPI(guruService)
 	// sppAPI := controllers.NewSPPAPI(sppService)
 	semesterAPI := controllers.NewSemesterAPI(semesterService)
 	pemasukanAPI := controllers.NewPemasukanAPI(pemasukanService)
@@ -126,7 +126,7 @@ func RunServer(db *gorm.DB,  gin *gin.Engine) *gin.Engine{
 	apiHandler := APIHandler{
 	UserAPIHandler: userAPIHandler,
 	SiswaAPIHandler: siswaAPI,
-	StakeAPIHandler: stakeAPI,
+	GuruAPIHandler: guruAPI,
 	// SppAPIHandler: sppAPI,
 	SemesterAPIHandler: semesterAPI,
 	PemasukanAPIHandler: pemasukanAPI,
@@ -173,13 +173,17 @@ version := gin.Group("/api")
 	stake := version.Group("/stake")
 	{
 		stake.Use(middleware.Auth())
-		stake.POST("/", apiHandler.StakeAPIHandler.AddStake)
-		stake.PUT("/:nip", apiHandler.StakeAPIHandler.Update)
-		stake.DELETE("/:nip", apiHandler.StakeAPIHandler.Delete)
-		stake.GET("/:nip", apiHandler.StakeAPIHandler.GetByID)
-		stake.GET("/", apiHandler.StakeAPIHandler.GetList)
-		stake.GET("/gender", apiHandler.StakeAPIHandler.GetTotalGenderCount)
-		stake.GET("/search", apiHandler.StakeAPIHandler.Search)
+		stake.POST("/", apiHandler.GuruAPIHandler.AddStake)
+		stake.PUT("/:nip", apiHandler.GuruAPIHandler.Update)
+		stake.DELETE("/:nip", apiHandler.GuruAPIHandler.Delete)
+		stake.GET("/:nip", apiHandler.GuruAPIHandler.GetByID)
+		stake.GET("/", apiHandler.GuruAPIHandler.GetList)
+		stake.GET("/gender", apiHandler.GuruAPIHandler.GetTotalGenderCount)
+		stake.GET("/search", apiHandler.GuruAPIHandler.Search)
+		stake.GET("/histori/:nip", apiHandler.GuruAPIHandler.GetHistoriKas)
+		stake.GET("/saldo/:nip", apiHandler.GuruAPIHandler.GetTotalKasByNIP)
+		stake.POST("/ambil/:nip", apiHandler.GuruAPIHandler.AmbilKasGuru)
+		stake.GET("/histori/ambil/:nip", apiHandler.GuruAPIHandler.GetHistoriPengambilanKas)
 	}
 
 	// Spp := version.Group("/spp")

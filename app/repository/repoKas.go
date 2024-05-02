@@ -84,9 +84,9 @@ func ( c *kasRepository) Search(nama, tanggal string) ([]models.KasGuruResponse,
 	var KasGuru []models.KasGuruResponse
 
 	query := c.db.Table("kas_gurus").
-	Select("kas_gurus.id, stakeholders.nama as nama_guru, kas_gurus.jumlah, kas_gurus.tanggal_bayar").
-	Joins("JOIN stakeholders ON kas_gurus.guru_id = stakeholders.nip").
-	Where("LOWER(stakeholders.nama) LIKE ? AND LOWER(kas_gurus.tanggal_bayar) LIKE ?", "%" +nama+ "%", "%"+tanggal+"%")
+	Select("kas_gurus.id, gurus.nama as nama_guru, kas_gurus.jumlah, kas_gurus.tanggal_bayar").
+	Joins("JOIN gurus ON kas_gurus.guru_id = gurus.nip").
+	Where("LOWER(gurus.nama) LIKE ? AND LOWER(kas_gurus.tanggal_bayar) LIKE ?", "%" +nama+ "%", "%"+tanggal+"%")
 
 	if err := query.Find(&KasGuru).Error; err != nil {
         return nil, err
@@ -94,3 +94,4 @@ func ( c *kasRepository) Search(nama, tanggal string) ([]models.KasGuruResponse,
 
 	return KasGuru, nil
 }
+

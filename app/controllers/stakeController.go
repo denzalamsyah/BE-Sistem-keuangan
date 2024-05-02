@@ -11,7 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type StakeAPI interface {
+type GuruAPI interface {
 	AddStake(c *gin.Context)
 	Update(c *gin.Context)
 	Delete(c *gin.Context)
@@ -19,18 +19,23 @@ type StakeAPI interface {
 	GetList(c *gin.Context)
 	GetTotalGenderCount(c *gin.Context)
 	Search(c *gin.Context)
+    GetHistoriKas(c *gin.Context)
+    GetTotalKasByNIP(c *gin.Context)
+	AmbilKasGuru(c *gin.Context)
+    GetHistoriPengambilanKas(c *gin.Context)
+
 }
 
-type stakeAPI struct{
-	stakeService services.StakeholderServices
+type guruAPI struct{
+	guruService services.GuruServices
 }
 
-func NewStakeAPI(stakeRepo services.StakeholderServices) *stakeAPI{
-	return &stakeAPI{stakeRepo}
+func NewGuruAPI(guruRepo services.GuruServices) *guruAPI{
+	return &guruAPI{guruRepo}
 }
 
-func (s *stakeAPI) AddStake(c *gin.Context){
-	var stake models.Stakeholder
+func (s *guruAPI) AddStake(c *gin.Context){
+	var stake models.Guru
 
 	if err := c.ShouldBind(&stake); err != nil{
 		log.Printf("Pesan error: %v", err)
@@ -61,11 +66,11 @@ func (s *stakeAPI) AddStake(c *gin.Context){
         stake.Gambar = imageURL
     }
 
-	err = s.stakeService.Store(&stake)
+	err = s.guruService.Store(&stake)
 	if err != nil {
 		log.Printf("Pesan error: %v", err)
 
-		existingStake, err := s.stakeService.GetUserNIP(stake.Nip)
+		existingStake, err := s.guruService.GetUserNIP(stake.Nip)
         if err != nil {
             log.Printf("Error checking NIP: %v", err)
             c.JSON(http.StatusInternalServerError, gin.H{
@@ -90,46 +95,40 @@ func (s *stakeAPI) AddStake(c *gin.Context){
 	})	
 
 }
+func (s *guruAPI) Update(c *gin.Context) {
+    guruNIP := c.Param("nip")
+    if guruNIP == "" {
+        c.JSON(http.StatusBadRequest, gin.H{
+            "message": "invalid request body" ,
+        })
+        return
+    }
 
-func (s *stakeAPI) Update(c *gin.Context){
+    nip, err := strconv.Atoi(guruNIP)
+    if err != nil {
+		log.Printf("Pesan error: %v", err)
 
-	stakeNIP := c.Param("nip")
-	if stakeNIP == "" {
-		c.JSON(400, gin.H{
-			"message" : "invalid request body",
+        c.JSON(http.StatusBadRequest, gin.H{
+            "message": "invalid request body" + err.Error(),
+        })
+        return
+    }
 
-		})
-		return
-	}
-	
-	nip, err := strconv.Atoi(stakeNIP)
-	if err != nil {
-		log.Printf("parse error: %v", err)
+    var newGuru models.Guru
+    if err := c.ShouldBind(&newGuru); err != nil {
+		log.Printf("Encode error: %v", err)
 
-		c.JSON(400, gin.H{
-			"message" : "invalid request body",
-			"error":   err.Error(),
-		})
-		return
-	}
+        c.JSON(http.StatusBadRequest, gin.H{
+            "message": "invalid request body" + err.Error(),
+            "error":  "Gagal mengubah data",
+        })
+        return
+    }
 
-	var newStake models.Stakeholder
-
-	if err := c.ShouldBind(&newStake); err != nil{
-		log.Printf("Endcode error: %v", err)
-
-		c.JSON(400, gin.H{
-			"message" : "invalid request body",
-			"error":   err.Error(),
-		})
-		return
-	}
-
-	// newStake.ID = id
-	file, err := c.FormFile("file")
+    // Jika ada file yang diunggah, perbarui gambar siswa
+    file, err := c.FormFile("file")
     if err != nil && err != http.ErrMissingFile {
-		log.Printf("file gambar error: %v", err)
-
+        
         c.JSON(http.StatusBadRequest, gin.H{
             "message": "failed to get image from form-data",
             "error":   err.Error(),
@@ -137,25 +136,24 @@ func (s *stakeAPI) Update(c *gin.Context){
         return
     }
 
-	if file != nil {
-		imageURL, err := middleware.UploadToCloudinary(file)
-		if err != nil {
+    if file != nil {
+        imageURL, err := middleware.UploadToCloudinary(file)
+        if err != nil {
 		log.Printf("middleware upload gambar error: %v", err)
+            c.JSON(http.StatusInternalServerError, gin.H{
+                "message": "failed to upload image to Cloudinary" + err.Error(),
+                "error":   err.Error(),
+            })
+            return
+        }
+        newGuru.Gambar = imageURL
+    }
 
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"message": "failed to upload image to Cloudinary",
-				"error":   err.Error(),
-			})
-			return
-		}
-		newStake.Gambar = imageURL
-	}
 
-	err = s.stakeService.Update(nip, newStake)
+    err = s.guruService.Update(nip, newGuru)
     if err != nil {
 		log.Printf("Update error: %v", err)
-
-        existingStake, err := s.stakeService.GetUserNIP(nip)
+        existingSiswa, err := s.guruService.GetUserNIP(newGuru.Nip)
         if err != nil {
             log.Printf("Error checking NISN: %v", err)
             c.JSON(http.StatusInternalServerError, gin.H{
@@ -163,8 +161,8 @@ func (s *stakeAPI) Update(c *gin.Context){
             })
             return
         }
-       
-        if existingStake.Nip == nip{
+        
+        if existingSiswa.Nip== newGuru.Nip{
             c.JSON(http.StatusBadRequest, gin.H{
                 "message":   "NIP yang anda masukan sudah ada",
                 "error":   "Gagal mengubah data",
@@ -173,16 +171,14 @@ func (s *stakeAPI) Update(c *gin.Context){
         }
         return
     }
-	
 
-
-	c.JSON(200, gin.H{
-		"message" : "Berhasil mengubah data",
-		"data" : newStake,
-	})
+    c.JSON(http.StatusOK, gin.H{
+        "message": "Berhasil mengubah siswa",
+        "data":    newGuru,
+    })
 }
 
-func (s *stakeAPI) Delete(c *gin.Context){
+func (s *guruAPI) Delete(c *gin.Context){
 	stakeNIP := c.Param("nip")
 	
 	if stakeNIP == "" {
@@ -203,7 +199,7 @@ func (s *stakeAPI) Delete(c *gin.Context){
 		return
 	}
 
-	err = s.stakeService.Delete(nip)
+	err = s.guruService.Delete(nip)
 	if err != nil {
 		log.Printf("Pesan error: %v", err)
 
@@ -219,7 +215,7 @@ func (s *stakeAPI) Delete(c *gin.Context){
 	})
 }
 
-func (s *stakeAPI) GetByID(c *gin.Context){
+func (s *guruAPI) GetByID(c *gin.Context){
 	stakeNIP, err := strconv.Atoi(c.Param("nip"))
 	if stakeNIP == 0 {
 		c.JSON(400, gin.H{
@@ -238,7 +234,7 @@ func (s *stakeAPI) GetByID(c *gin.Context){
 		return
 	}
 
-	result, err := s.stakeService.GetByID(stakeNIP)	
+	result, err := s.guruService.GetByID(stakeNIP)	
 	if err != nil {
 		log.Printf("Pesan error: %v", err)
 
@@ -252,7 +248,7 @@ func (s *stakeAPI) GetByID(c *gin.Context){
 	c.JSON(200, result)
 }
 
-func (s *stakeAPI) GetList(c *gin.Context){
+func (s *guruAPI) GetList(c *gin.Context){
 	page, err := strconv.Atoi(c.Query("page"))
     if err != nil || page <= 0 {
         page = 1
@@ -263,7 +259,7 @@ func (s *stakeAPI) GetList(c *gin.Context){
         pageSize = 100
     }
 
-	result, totalPage, err := s.stakeService.GetList(page, pageSize)
+	result, totalPage, err := s.guruService.GetList(page, pageSize)
 	if err != nil {
 		log.Printf("Pesan error: %v", err)
 
@@ -286,8 +282,8 @@ func (s *stakeAPI) GetList(c *gin.Context){
     c.JSON(200, response)
 }
 
-func (s *stakeAPI) GetTotalGenderCount(c *gin.Context) {
-    countLakiLaki, countPerempuan, err := s.stakeService.GetTotalGenderCount()
+func (s *guruAPI) GetTotalGenderCount(c *gin.Context) {
+    countLakiLaki, countPerempuan, err := s.guruService.GetTotalGenderCount()
     if err != nil {
         log.Printf("Error: %v", err)
         c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -300,12 +296,12 @@ func (s *stakeAPI) GetTotalGenderCount(c *gin.Context) {
     })
 }
 
-func (s *stakeAPI) Search(c *gin.Context){
+func (s *guruAPI) Search(c *gin.Context){
 	nama := c.Query("nama")
 	nip := c.Query("nip")
 	jabatan := c.Query("jabatan")
 
-	stakeList, err := s.stakeService.Search(nama,  nip, jabatan)
+	stakeList, err := s.guruService.Search(nama,  nip, jabatan)
 	if err != nil {
         log.Printf("Error: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -313,4 +309,188 @@ func (s *stakeAPI) Search(c *gin.Context){
 	}
 
 	c.JSON(http.StatusOK, gin.H{"data": stakeList})
+}
+
+func ( s *guruAPI) GetHistoriKas(c *gin.Context){
+    page, err := strconv.Atoi(c.Query("page"))
+    if err != nil || page <= 0 {
+        page = 1
+    }
+
+    pageSize, err := strconv.Atoi(c.Query("pageSize"))
+    if err != nil || pageSize <= 0 {
+        pageSize = 100
+    }
+
+	guruNIP, err := strconv.Atoi(c.Param("nip"))
+	
+	if err != nil {
+		log.Printf("Pesan error: %v", err)
+
+		c.JSON(400, gin.H{
+			"message" : "invalid request body",
+		})
+		return
+	}
+
+	result, totalPage, err := s.guruService.HistoryPembayaranGuru(guruNIP, page, pageSize)
+	if err != nil {
+		log.Printf("Pesan error: %v", err)
+
+		c.JSON(500, gin.H{
+			"message" : "internal server error",
+            "error" : err.Error(),
+		})
+		return
+	}
+
+    meta := gin.H{
+        "current_page": page,
+        "total_pages":  totalPage,
+    }
+
+    response := gin.H{
+        "data": result,
+        "meta": meta,
+    }
+
+	c.JSON(200, response)
+}
+
+// GetTotalKasGuru mengembalikan total kas guru dalam bentuk JSON
+func (s *guruAPI) GetTotalKasByNIP(c *gin.Context) {
+	guruNIP, err := strconv.Atoi(c.Param("nip"))
+	if err != nil {
+		log.Printf("Pesan error: %v", err)
+
+		c.JSON(400, gin.H{
+			"message": "invalid request body",
+		})
+		return
+	}
+
+	totalKas, err := s.guruService.SaldoKasByNIP(guruNIP)
+	if err != nil {
+		log.Printf("Pesan error: %v", err)
+
+		c.JSON(500, gin.H{
+			"message": "NIP tidak ditemukan",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	guru, err := s.guruService.GetUserNIP(guruNIP)
+	if err != nil {
+		log.Printf("Pesan error: %v", err)
+
+		c.JSON(500, gin.H{
+			"message": "internal server error",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	response := gin.H{
+		"nama": guru.Nama,
+		"nip" : guru.Nip,
+		"total_kas": totalKas,
+	}
+
+	c.JSON(200, response)
+}
+
+// AmbilKasGuru mengurangi saldo uang kas guru dalam bentuk JSON
+func (s *guruAPI) AmbilKasGuru(c *gin.Context) {
+
+	var requestBody models.PengambilanKas
+
+	if err := c.BindJSON(&requestBody); err != nil {
+		log.Printf("Pesan error: %v", err)
+
+		c.JSON(400, gin.H{
+			"message": "invalid request body",
+		})
+		return
+	}
+
+	guruNIP, err := strconv.Atoi(c.Param("nip"))
+	if err != nil {
+		log.Printf("Pesan error: %v", err)
+
+		c.JSON(400, gin.H{
+			"message": "invalid request body",
+		})
+		return
+	}
+
+	 existingSiswa, err := s.guruService.GetUserNIP(guruNIP)
+        if err != nil {
+            log.Printf("Error checking NIP: %v", err)
+            c.JSON(http.StatusInternalServerError, gin.H{
+                "error":   err.Error(),
+            })
+            return
+        }
+
+	err = s.guruService.AmbilKasGuru(guruNIP, requestBody.JumlahAmbil, existingSiswa.Nama, requestBody.TanggalAmbil)
+	if err != nil {
+		log.Printf("Pesan error: %v", err)
+
+		c.JSON(500, gin.H{
+			"message": "internal server error",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"message": "Berhasil mengambil kas guru",
+	})
+}
+
+func ( s *guruAPI) GetHistoriPengambilanKas(c *gin.Context){
+    page, err := strconv.Atoi(c.Query("page"))
+    if err != nil || page <= 0 {
+        page = 1
+    }
+
+    pageSize, err := strconv.Atoi(c.Query("pageSize"))
+    if err != nil || pageSize <= 0 {
+        pageSize = 100
+    }
+
+	guruNIP, err := strconv.Atoi(c.Param("nip"))
+	
+	if err != nil {
+		log.Printf("Pesan error: %v", err)
+
+		c.JSON(400, gin.H{
+			"message" : "invalid request body",
+		})
+		return
+	}
+
+	result, totalPage, err := s.guruService.HistoryPengambilanKas(guruNIP, page, pageSize)
+	if err != nil {
+		log.Printf("Pesan error: %v", err)
+
+		c.JSON(500, gin.H{
+			"message" : "internal server error",
+            "error" : err.Error(),
+		})
+		return
+	}
+
+    meta := gin.H{
+        "current_page": page,
+        "total_pages":  totalPage,
+    }
+
+    response := gin.H{
+        "data": result,
+        "meta": meta,
+    }
+
+	c.JSON(200, response)
 }

@@ -1,81 +1,85 @@
 package repository
 
 import (
+	"errors"
 	"math"
 	"strings"
+	"time"
 
 	"github.com/denzalamsyah/simak/app/models"
 	"gorm.io/gorm"
 )
 
-type StakeholderRepository interface {
-	Store(Stakeholder *models.Stakeholder) error
-	Update(nip int, Stakeholder models.Stakeholder) error
+type GuruRepository interface {
+	Store(Guru *models.Guru) error
+	Update(nip int, Guru models.Guru) error
 	Delete(nip int) error
-	GetByID(nip int) (*models.StakeholderResponse, error)
-	GetList(page, pageSize int) ([]models.StakeholderResponse, int, error)
+	GetByID(nip int) (*models.GuruResponse, error)
+	GetList(page, pageSize int) ([]models.GuruResponse, int, error)
 	GetTotalGenderCount() (int, int, error)
-	Search(nama, nip, jabatan string) ([]models.StakeholderResponse, error)
-	GetUserNIP(nip int) (models.Stakeholder, error)
+	Search(nama, nip, jabatan string) ([]models.GuruResponse, error)
+	GetUserNIP(nip int) (models.Guru, error)
+	HistoryPembayaranGuru(nip, page, pageSize int) ([]models.HistoryPembayaranKas, int, error)
+	SaldoKasByNIP(nip int) (int, error)
+	AmbilKasGuru(nip, jumlah int, nama, tanggal string) error
+	HistoryPengambilanKas(nip, page, pageSize int) ([]models.HistoryPengambilanKas, int, error)
 	// HistoryPembayaranKas(GuruID, page, pageSize int) ([]models.HistoryPembayaranKas, int, error)
 
 }
 
-type stakeholderRepository struct{
+type guruRepository struct{
 	db *gorm.DB
 }
 
 
-func NewStakeholderRepo(db *gorm.DB) *stakeholderRepository{
-	return &stakeholderRepository{db}
+func NewGuruRepo(db *gorm.DB) *guruRepository{
+	return &guruRepository{db}
 }
 
 
-func(c *stakeholderRepository) Store(Stakeholder *models.Stakeholder) error{
-	err := c.db.Create(Stakeholder).Error
+func(c *guruRepository) Store(Guru *models.Guru) error{
+	err := c.db.Create(Guru).Error
 	if err != nil{
 		return err
 	}
 	return nil
 }
 
-func(c *stakeholderRepository) Update(nip int, Stakeholder models.Stakeholder) error{
-	err := c.db.Model(&Stakeholder).Where("nip = ?", nip).Updates(&Stakeholder).Error
-
-	if err != nil{
-		return err
-	}
-
-	return nil
-}
-
-func(c *stakeholderRepository) Delete(nip int) (error){
-	var stake models.Stakeholder
-	err := c.db.Where("nip = ?", nip).Delete(&stake).Error
-
-	if err != nil{
+func (c *guruRepository) Update(nip int, Guru models.Guru) error {
+	err := c.db.Model(&models.Guru{}).Where("nip = ?", nip).Updates(&Guru).Error
+	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (c *stakeholderRepository) GetList(page, pageSize int) ([]models.StakeholderResponse, int, error){
-	var stake []models.Stakeholder
+func(c *guruRepository) Delete(nip int) (error){
+	var guru models.Guru
+	err := c.db.Where("nip = ?", nip).Delete(&guru).Error
+
+	if err != nil{
+		return err
+	}
+	return nil
+}
+
+func (c *guruRepository) GetList(page, pageSize int) ([]models.GuruResponse, int, error){
+	var guru []models.Guru
 
 	err := c.db.Preload("Jabatan").Preload("Agama").Preload("Gender").
-		Offset((page - 1) * pageSize).Limit(pageSize).Find(&stake).Error
+		Offset((page - 1) * pageSize).Limit(pageSize).Find(&guru).Error
 	if err != nil {
 		return nil,0, err
 	}
 
 	var totalData int64
-	if err := c.db.Model(&models.Stakeholder{}).Count(&totalData).Error; err != nil {
+	if err := c.db.Model(&models.Guru{}).Count(&totalData).Error; err != nil {
 		return nil, 0, err
 	}
 
-	var stakeResponse []models.StakeholderResponse
-	for _, s := range stake{
-		stakeResponse = append(stakeResponse, models.StakeholderResponse{
+	var guruResponse []models.GuruResponse
+	for _, s := range guru{
+		guruResponse = append(guruResponse, models.GuruResponse{
 			Nip: s.Nip,
 			Nama: s.Nama,
 			Agama: s.Agama.Nama,
@@ -90,70 +94,70 @@ func (c *stakeholderRepository) GetList(page, pageSize int) ([]models.Stakeholde
 		})
 	}
 	totalPage := int(math.Ceil(float64(totalData) / float64(pageSize)))
-	return stakeResponse, totalPage, nil
+	return guruResponse, totalPage, nil
 }
 
-func (c *stakeholderRepository) GetByID(nip int) (*models.StakeholderResponse, error){
-	var stake models.Stakeholder
+func (c *guruRepository) GetByID(nip int) (*models.GuruResponse, error){
+	var guru models.Guru
 
-	err := c.db.Preload("Jabatan").Preload("Agama").Preload("Gender").Where("nip = ?", nip).First(&stake).Error
+	err := c.db.Preload("Jabatan").Preload("Agama").Preload("Gender").Where("nip = ?", nip).First(&guru).Error
 	if err != nil {
 		return nil, err
 	}
 
-	stakeResponse := models.StakeholderResponse{
-		Nama: stake.Nama,
-		Nip: stake.Nip,
-		Agama: stake.Agama.Nama,
-		Gender: stake.Gender.Nama,
-		Jabatan: stake.Jabatan.Nama,
-		TempatLahir: stake.TempatLahir,
-		TanggalLahir: stake.TanggalLahir,
-		NomorTelepon: stake.NomorTelepon,
-		Email: stake.Email,
-		Alamat: stake.Alamat,
-		Gambar: stake.Gambar,
+	guruResponse := models.GuruResponse{
+		Nama: guru.Nama,
+		Nip: guru.Nip,
+		Agama: guru.Agama.Nama,
+		Gender: guru.Gender.Nama,
+		Jabatan: guru.Jabatan.Nama,
+		TempatLahir: guru.TempatLahir,
+		TanggalLahir: guru.TanggalLahir,
+		NomorTelepon: guru.NomorTelepon,
+		Email: guru.Email,
+		Alamat: guru.Alamat,
+		Gambar: guru.Gambar,
 	}
-	return &stakeResponse, nil
+	return &guruResponse, nil
 }
 
-func (c *stakeholderRepository) GetTotalGenderCount() (int, int, error) {
+func (c *guruRepository) GetTotalGenderCount() (int, int, error) {
     var countLakiLaki, countPerempuan int64
-    if err := c.db.Model(&models.Stakeholder{}).Where("gender_id = ?", 1).Count(&countLakiLaki).Error; err != nil {
+    if err := c.db.Model(&models.Guru{}).Where("gender_id = ?", 1).Count(&countLakiLaki).Error; err != nil {
         return 0, 0, err
     }
 
-    if err := c.db.Model(&models.Stakeholder{}).Where("gender_id = ?", 2).Count(&countPerempuan).Error; err != nil {
+    if err := c.db.Model(&models.Guru{}).Where("gender_id = ?", 2).Count(&countPerempuan).Error; err != nil {
         return 0, 0, err
     }
 
     return int(countLakiLaki), int(countPerempuan), nil
 }
 
-func (c *stakeholderRepository) Search(nama, nip, jabatan string) ([]models.StakeholderResponse, error){
+func (c *guruRepository) Search(nama, nip, jabatan string) ([]models.GuruResponse, error){
 	nama = strings.ToLower(nama)
 	jabatan = strings.ToLower(jabatan)
 	nip = strings.ToLower(nip)
 
-	var StakeList []models.StakeholderResponse
+	var guruList []models.GuruResponse
 
-	query := c.db.Table("stakeholders").
-	Select("stakeholders.nama, stakeholders.nip, agamas.nama as agama, jabatans.nama as jabatan, stakeholders.tempat_lahir, stakeholders.tanggal_lahir, genders.nama as gender, stakeholders.nomor_telepon, stakeholders.email, stakeholders.alamat, stakeholders.gambar ").
-	Joins("JOIN agamas ON stakeholders.agama_id = agamas.id_agama").
-	Joins("JOIN jabatans on stakeholders.jabatan_id = jabatans.id_jabatan").
-	Joins("JOIN genders ON stakeholders.gender_id = genders.id_gender").
-	Where("LOWER(stakeholders.nama) LIKE ? AND stakeholders.nip::TEXT LIKE ? AND LOWER(jabatans.nama) LIKE ?", "%"+nama+"%", "%"+nip+"%", "%"+jabatan+"%")
+	query := c.db.Table("gurus").
+	Select("gurus.nama, gurus.nip, agamas.nama as agama, jabatans.nama as jabatan, gurus.tempat_lahir, gurus.tanggal_lahir, genders.nama as gender, gurus.nomor_telepon, gurus.email, gurus.alamat, gurus.gambar ").
+	Joins("JOIN agamas ON gurus.agama_id = agamas.id_agama").
+	Joins("JOIN jabatans on gurus.jabatan_id = jabatans.id_jabatan").
+	Joins("JOIN genders ON gurus.gender_id = genders.id_gender").
+	Where("LOWER(gurus.nama) LIKE ? AND gurus.nip::TEXT LIKE ? AND LOWER(jabatans.nama) LIKE ?", "%"+nama+"%", "%"+nip+"%", "%"+jabatan+"%")
 
-	if err := query.Find(&StakeList).Error; err != nil {
+	if err := query.Find(&guruList).Error; err != nil {
         return nil, err
     }
 	
-	return StakeList, nil
+	return guruList, nil
 
 }
 
-func (c *stakeholderRepository) GetUserNIP(nip int) (models.Stakeholder, error){
-	var Guru models.Stakeholder
+func (c *guruRepository) GetUserNIP(nip int) (models.Guru, error){
+	var Guru models.Guru
 
 	result :=c.db.Where("nip = ?", nip).First(&Guru)
 	if result.Error != nil{
@@ -162,6 +166,106 @@ func (c *stakeholderRepository) GetUserNIP(nip int) (models.Stakeholder, error){
 		}
 		return Guru, result.Error
 	}
-	
 	return Guru, nil
 }
+
+func (c *guruRepository) HistoryPembayaranGuru(nip, page, pageSize int) ([]models.HistoryPembayaranKas, int, error){
+	var historiPembayaran []models.HistoryPembayaranKas
+
+	var kasGuru []models.KasGuru
+
+	if err := c.db.Preload("Guru").Where("guru_id = ?", nip).
+	Offset((page - 1) * pageSize).Limit(pageSize).Find(&kasGuru).Error; err != nil {
+        return nil,0, err
+    }
+	var totalData int64
+    if err := c.db.Model(&models.KasGuru{}).Count(&totalData).Error; err != nil {
+        return nil, 0, err
+    }
+
+	for _, p := range kasGuru{
+		historiPembayaran = append(historiPembayaran, models.HistoryPembayaranKas{
+			Nama: p.Guru.Nama,
+			NIP: p.Guru.Nip,
+			Jumlah_Bayar: p.Jumlah,
+			Tanggal: p.TanggalBayar,
+		})
+	}
+	totalPage := int(math.Ceil(float64(totalData) / float64(pageSize)))
+
+    return historiPembayaran, totalPage, nil
+}
+
+func ( c *guruRepository) SaldoKasByNIP(nip int) (int, error){
+	var totalKas int
+
+	if err := c.db.Model(&models.KasGuru{}).Where("guru_id = ?", nip).Select("SUM(jumlah)").Scan(&totalKas).Error; err != nil {
+		return 0, err
+	}
+
+	return totalKas, nil
+}
+
+func (c *guruRepository) AmbilKasGuru(nip, jumlah int, nama, tanggal string) error {
+	var kasGuru models.KasGuru
+
+	if err := c.db.Where("guru_id = ?", nip).Last(&kasGuru).Error; err != nil {
+		return err
+	}
+
+	if kasGuru.Jumlah < jumlah {
+		return errors.New("saldo uang kas guru tidak mencukupi")
+	}
+
+	kasGuru.Jumlah -= jumlah
+
+	if err := c.db.Save(&kasGuru).Error; err != nil {
+		return err
+	}
+
+
+
+	// Menyimpan histori pengambilan kas
+	pengambilanKas := models.PengambilanKas{
+		GuruID:      uint(nip),
+		Nama: nama,
+		JumlahAmbil: jumlah,
+		TanggalAmbil: tanggal,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+	if err := c.db.Create(&pengambilanKas).Error; err != nil {
+		return err
+	}
+
+
+	return nil
+}
+
+func ( c *guruRepository) HistoryPengambilanKas(nip, page, pageSize int) ([]models.HistoryPengambilanKas, int, error){
+	var historiPengambilan []models.HistoryPengambilanKas
+
+	var kasGuru []models.PengambilanKas
+
+	if err := c.db.Where("guru_id = ?", nip).
+	Offset((page - 1) * pageSize).Limit(pageSize).Find(&kasGuru).Error; err != nil {
+        return nil,0, err
+    }
+	var totalData int64
+    if err := c.db.Model(&models.KasGuru{}).Count(&totalData).Error; err != nil {
+        return nil, 0, err
+    }
+
+	for _, p := range kasGuru{
+		historiPengambilan = append(historiPengambilan, models.HistoryPengambilanKas{
+			NIP: p.GuruID,
+			Nama: p.Nama,
+			JumlahAmbil: p.JumlahAmbil,
+			TanggalAmbil: p.TanggalAmbil,
+		})
+	}
+	totalPage := int(math.Ceil(float64(totalData) / float64(pageSize)))
+
+    return historiPengambilan, totalPage, nil
+}
+
