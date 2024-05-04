@@ -7,11 +7,12 @@ import (
 
 type KelasService interface {
 	Store(Kelas *models.Kelas) error
-	Update(id int, Kelas models.Kelas) error
-	Delete(id int) error
+	Update(kode int, Kelas models.Kelas) error
+	Delete(kode int) error
 	GetList(page, pageSize int) ([]models.Kelas, int, error)
 	GetTotalKelasCount() (int, error)
 	Search(nama string) ([]models.Kelas, error)
+	GetKode(kode int) (models.Kelas, error)
 
 }
 
@@ -31,16 +32,16 @@ func (s *kelasServices) Store(Kelas *models.Kelas) error {
 	return nil
 }
 
-func (s *kelasServices) Update(id int, Kelas models.Kelas) error {
-	err := s.kelasRepo.Update(id, Kelas)
+func (s *kelasServices) Update(kode int, Kelas models.Kelas) error {
+	err := s.kelasRepo.Update(kode, Kelas)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (s *kelasServices) Delete(id int) error {
-	err := s.kelasRepo.Delete(id)
+func (s *kelasServices) Delete(kode int) error {
+	err := s.kelasRepo.Delete(kode)
 	if err != nil {
 		return err
 	}
@@ -70,4 +71,7 @@ func(s *kelasServices) Search(nama string) ([]models.Kelas, error){
         return nil, err
     }
 	return kelas, nil
+}
+func (s *kelasServices) GetKode(kode int) (models.Kelas, error) {
+	return s.kelasRepo.GetKode(kode)
 }

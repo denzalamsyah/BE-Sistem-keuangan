@@ -66,6 +66,7 @@ func (c *kasRepository) GetList(page, pageSize int) ([]models.KasGuruResponse,in
 	for _, s := range KasGuru{
 		KasGuruResponse = append(KasGuruResponse, models.KasGuruResponse{
 			ID:           s.ID,
+			NIP: s.GuruID,
 			NamaGuru: s.Guru.Nama,
 			Jumlah: s.Jumlah,
 			TanggalBayar: s.TanggalBayar,

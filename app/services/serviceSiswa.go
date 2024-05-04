@@ -26,8 +26,8 @@ func NewSiswaService(siswaRepo repository.SiswaRepository) SiswaServices {
 }
 
 
-func (c *siswaServices) Store(siswa *models.Siswa) error {
-    err := c.siswaRepo.Store(siswa)
+func (c *siswaServices) Store(Siswa *models.Siswa) error {
+    err := c.siswaRepo.Store(Siswa)
     if err != nil {
         return err
     }

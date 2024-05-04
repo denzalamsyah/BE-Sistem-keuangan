@@ -27,7 +27,7 @@ type APIHandler struct {
 	KelasAPIHandler controllers.KelasAPI
 	JurusanAPIHandler controllers.JurusanAPI
 	TransaksiAPIHandler controllers.TransaksiAPI
-	ArisanAPIHandler controllers.ArisanAPI
+	// ArisanAPIHandler controllers.ArisanAPI
 	KasAPIHandler controllers.KasAPI
 }
 func main() {
@@ -65,7 +65,7 @@ func main() {
 			panic(err)
 		}
 
-		conn.AutoMigrate(&models.User{}, &models.Session{}, &models.Siswa{}, &models.Guru{}, &models.Login{}, &models.Pemasukan{}, &models.Pemasukanlainnya{}, &models.HistoryPembayaran{}, &models.PembayaranSemester{}, &models.Pengeluaran{}, &models.Gender{}, &models.Agama{}, models.Kelas{}, &models.Transaksi{}, &models.ResetToken{}, &models.Arisan{}, &models.KasGuru{}, &models.PengambilanKas{} )
+		conn.AutoMigrate(&models.User{},  &models.Session{}, &models.Jurusan{}, models.Siswa{}, &models.Siswa{}, &models.Guru{}, &models.Login{}, &models.Pemasukan{}, &models.Pemasukanlainnya{}, &models.HistoryPembayaran{}, &models.PembayaranSemester{}, &models.Pengeluaran{}, &models.Gender{}, &models.Agama{}, &models.Transaksi{}, &models.ResetToken{}, &models.KasGuru{}, &models.PengambilanKas{} )
 
 		router = RunServer(conn, router)
 	
@@ -94,7 +94,7 @@ func RunServer(db *gorm.DB,  gin *gin.Engine) *gin.Engine{
 	kelasRepo := repository.NewKelasRepo(db)
 	jurusanRepo := repository.NewJurusanRepo(db)
 	transaksiRepo := repository.NewTransaksiRepo(db)
-	arisanRepo := repository.NewArisanRepo(db)
+	// arisanRepo := repository.NewArisanRepo(db)
 	kasRepo := repository.NewKasRepo(db)
 
 	userService := services.NewUserService(userRepo, sessionRepo,)
@@ -107,7 +107,7 @@ func RunServer(db *gorm.DB,  gin *gin.Engine) *gin.Engine{
 	kelasService := services.NewKelasService(kelasRepo)
 	jurusanService := services.NewJurusanService(jurusanRepo)
 	transaksiService := services.NewTransaksiService(transaksiRepo)
-	arisanService := services.NewArisanService(arisanRepo)
+	// arisanService := services.NewArisanService(arisanRepo)
 	kasService := services.NewKasService(kasRepo)
 
 	userAPIHandler := controllers.NewUserAPI(userService)
@@ -120,7 +120,7 @@ func RunServer(db *gorm.DB,  gin *gin.Engine) *gin.Engine{
 	kelasAPI := controllers.NewKelasAPI(kelasService)
 	jurusanAPI := controllers.NewJurusanAPI(jurusanService)
 	transaksiAPI := controllers.NewTransaksiAPI(transaksiService)
-	arisanAPI := controllers.NewArisanAPI(arisanService)
+	// arisanAPI := controllers.NewArisanAPI(arisanService)
 	kasAPI := controllers.NewKasAPI(kasService)
 
 	apiHandler := APIHandler{
@@ -134,7 +134,7 @@ func RunServer(db *gorm.DB,  gin *gin.Engine) *gin.Engine{
 	KelasAPIHandler: kelasAPI,
 	JurusanAPIHandler: jurusanAPI,
 	TransaksiAPIHandler: transaksiAPI,
-	ArisanAPIHandler: arisanAPI,
+	// ArisanAPIHandler: arisanAPI,
 	KasAPIHandler: kasAPI,
 }
 
@@ -235,8 +235,8 @@ version := gin.Group("/api")
 	{
 		kelas.Use(middleware.Auth())
 		kelas.POST("/", apiHandler.KelasAPIHandler.AddKelas)
-		kelas.PUT("/:id", apiHandler.KelasAPIHandler.Update)
-		kelas.DELETE("/:id", apiHandler.KelasAPIHandler.Delete)
+		kelas.PUT("/:kode", apiHandler.KelasAPIHandler.Update)
+		kelas.DELETE("/:kode", apiHandler.KelasAPIHandler.Delete)
 		kelas.GET("/", apiHandler.KelasAPIHandler.GetList)
 		kelas.GET("/total", apiHandler.KelasAPIHandler.GetTotalKelasCount)
 		kelas.GET("/search", apiHandler.KelasAPIHandler.Search)
@@ -246,8 +246,8 @@ version := gin.Group("/api")
 	{
 		Jurusan.Use(middleware.Auth())
 		Jurusan.POST("/", apiHandler.JurusanAPIHandler.AddJurusan)
-		Jurusan.PUT("/:id", apiHandler.JurusanAPIHandler.Update)
-		Jurusan.DELETE("/:id", apiHandler.JurusanAPIHandler.Delete)
+		Jurusan.PUT("/:kode", apiHandler.JurusanAPIHandler.Update)
+		Jurusan.DELETE("/:kode", apiHandler.JurusanAPIHandler.Delete)
 		Jurusan.GET("/", apiHandler.JurusanAPIHandler.GetList)
 		Jurusan.GET("/total", apiHandler.JurusanAPIHandler.GetTotalJurusanCount)
 		Jurusan.GET("/search", apiHandler.JurusanAPIHandler.Search)
@@ -263,15 +263,15 @@ version := gin.Group("/api")
 		Transaksi.GET("/search", apiHandler.TransaksiAPIHandler.Search)
 	}
 
-	Arisan := version.Group("/arisan")
-	{
-		Arisan.Use(middleware.Auth())
-		Arisan.POST("/", apiHandler.ArisanAPIHandler.Store)
-		Arisan.PUT("/:id", apiHandler.ArisanAPIHandler.Update)
-		Arisan.DELETE("/:id", apiHandler.ArisanAPIHandler.Delete)
-		Arisan.GET("/", apiHandler.ArisanAPIHandler.GetList)
-		Arisan.GET("/search", apiHandler.ArisanAPIHandler.Search)
-	}
+	// Arisan := version.Group("/arisan")
+	// {
+	// 	Arisan.Use(middleware.Auth())
+	// 	Arisan.POST("/", apiHandler.ArisanAPIHandler.Store)
+	// 	Arisan.PUT("/:id", apiHandler.ArisanAPIHandler.Update)
+	// 	Arisan.DELETE("/:id", apiHandler.ArisanAPIHandler.Delete)
+	// 	Arisan.GET("/", apiHandler.ArisanAPIHandler.GetList)
+	// 	Arisan.GET("/search", apiHandler.ArisanAPIHandler.Search)
+	// }
 
 	Kas := version.Group("/kas")
 	{

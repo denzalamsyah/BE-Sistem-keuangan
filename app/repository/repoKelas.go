@@ -10,11 +10,12 @@ import (
 
 type KelasRepository interface {
 	Store(Kelas *models.Kelas) error
-	Update(id int, Kelas models.Kelas) error
-	Delete(id int) error
+	Update(kode int, Kelas models.Kelas) error
+	Delete(kode int) error
 	GetList(page, pageSize int) ([]models.Kelas, int, error)
 	GetTotalKelasCount() (int, error)
 	Search(nama string) ([]models.Kelas, error)
+	GetKode(kode int) (models.Kelas, error)
 
 }
 
@@ -34,17 +35,17 @@ func (c *kelasRepository) Store(Kelas *models.Kelas) error {
 	return nil
 }
 
-func (c *kelasRepository) Update(id int, Kelas models.Kelas) error {
-	err := c.db.Model(&Kelas).Where("id_kelas = ?", id).Updates(&Kelas).Error
+func (c *kelasRepository) Update(kode int, Kelas models.Kelas) error {
+	err := c.db.Model(&models.Kelas{}).Where("kode_kelas = ?", kode).Updates(&Kelas).Error
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (c *kelasRepository) Delete(id int) error {
+func (c *kelasRepository) Delete(kode int) error {
 	var Kelas models.Kelas
-	err := c.db.Where("id_kelas = ?", id).Delete(&Kelas).Error
+	err := c.db.Where("kode_kelas = ?", kode).Delete(&Kelas).Error
 	if err != nil {
 		return err
 	}
@@ -83,7 +84,7 @@ func (c *kelasRepository) Search(nama string) ([]models.Kelas, error){
 	var Kelas []models.Kelas
 
 	query := c.db.Table("kelas").
-	Select("kelas.id_kelas, kelas.kelas").
+	Select("kelas.kode_kelas, kelas.kelas").
 	Where("LOWER(kelas.kelas) LIKE ?", "%" +nama+ "%")
 
 	if err := query.Find(&Kelas).Error; err != nil {
@@ -93,3 +94,15 @@ func (c *kelasRepository) Search(nama string) ([]models.Kelas, error){
 	return Kelas, nil
 }
 
+func (c *kelasRepository) GetKode(kode int) (models.Kelas, error){
+	var Kelas models.Kelas
+
+	result :=c.db.Where("kode_kelas = ?", kode).First(&Kelas)
+	if result.Error != nil{
+		if result.Error == gorm.ErrRecordNotFound{
+			return Kelas, nil
+		}
+		return Kelas, result.Error
+	}
+	return Kelas, nil
+}

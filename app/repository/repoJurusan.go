@@ -10,11 +10,12 @@ import (
 
 type JurusanRepository interface {
 	Store(Jurusan *models.Jurusan) error
-	Update(id int, Jurusan models.Jurusan) error
-	Delete(id int) error
+	Update(kode int, Jurusan models.Jurusan) error
+	Delete(kode int) error
 	GetList(page, pageSize int) ([]models.Jurusan,int, error)
 	GetTotalJurusanCount() (int, error)
 	Search(nama string) ([]models.Jurusan, error)
+	GetKode(kode int) (models.Jurusan, error)
 
 }
 
@@ -34,16 +35,17 @@ func (c *jurusanRepository) Store(Jurusan *models.Jurusan) error {
 	return nil
 }
 
-func (c *jurusanRepository) Update(id int, Jurusan models.Jurusan) error {
-	err := c.db.Model(&Jurusan).Where("id_jurusan = ?", id).Updates(&Jurusan).Error
+func (c *jurusanRepository) Update(kode int, Jurusan models.Jurusan) error {
+	err := c.db.Model(&models.Jurusan{}).Where("kode_jurusan = ?", kode).Updates(&Jurusan).Error
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (c *jurusanRepository) Delete(id int) error {
-	err := c.db.Where("id_jurusan = ?", id).Delete(&models.Jurusan{}).Error
+func (c *jurusanRepository) Delete(kode int) error {
+	var Jurusan models.Jurusan
+	err := c.db.Where("kode_jurusan = ?", kode).Delete(&Jurusan).Error
 	if err != nil {
 		return err
 	}
@@ -88,12 +90,25 @@ func (c *jurusanRepository) Search(nama string) ([]models.Jurusan, error){
 	var jurusan []models.Jurusan
 
 	query := c.db.Table("jurusans").
-	Select("jurusans.id_jurusan, jurusans.nama").
-	Where("LOWER(jurusans.nama) LIKE ?", "%" +nama+ "%")
+	Select("jurusans.kode_jurusan, jurusans.jurusan").
+	Where("LOWER(jurusans.jurusan) LIKE ?", "%" +nama+ "%")
 
 	if err := query.Find(&jurusan).Error; err != nil {
         return nil, err
     }
 
 	return jurusan, nil
+}
+
+func (c *jurusanRepository) GetKode(kode int) (models.Jurusan, error){
+	var Jurusan models.Jurusan
+
+	result :=c.db.Where("kode_jurusan = ?", kode).First(&Jurusan)
+	if result.Error != nil{
+		if result.Error == gorm.ErrRecordNotFound{
+			return Jurusan, nil
+		}
+		return Jurusan, result.Error
+	}
+	return Jurusan, nil
 }

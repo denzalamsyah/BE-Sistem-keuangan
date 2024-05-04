@@ -44,8 +44,8 @@ func (s *pengeluaranAPI) Add(c *gin.Context) {
 		log.Printf("Pesan error: %v", err)
 
 		c.JSON(500, gin.H{
-			"message" : err.Error(),
-			"error":   "Gagal menambah data",
+			"error" : err.Error(),
+			"message":   "Gagal menambah data",
 		})
 		return
 	}
@@ -96,8 +96,8 @@ func (s *pengeluaranAPI) Update(c *gin.Context) {
 		log.Printf("Pesan error: %v", err)
 
 		c.JSON(500, gin.H{
-			"message" : err.Error(),
-			"error":   "Gagal mengubah data",
+			"error" : err.Error(),
+			"message":   "Gagal mengubah data",
 		})
 		return
 	}
@@ -134,8 +134,8 @@ func (s *pengeluaranAPI) Delete(c *gin.Context) {
 		log.Printf("Pesan error: %v", err)
 
 		c.JSON(500, gin.H{
-			"message" : err.Error(),
-			"error":   "Gagal menghapus data",
+			"error" : err.Error(),
+			"message":   "Gagal menghapus data",
 		})
 		return
 	}

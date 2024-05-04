@@ -45,8 +45,8 @@ func (a *transaksiAPI) AddTransaksi(c *gin.Context) {
 		log.Printf("Pesan error: %v", err)
 
 		c.JSON(500, gin.H{
-			"message" : err.Error(),
-			"error":   "Gagal menambah data",
+			"error" : err.Error(),
+			"message":   "Gagal menambah data",
 		})
 		return
 	}
@@ -98,8 +98,8 @@ func (a *transaksiAPI) Update(c *gin.Context) {
 		log.Printf("Pesan error: %v", err)
 
 		c.JSON(500, gin.H{
-			"message" : err.Error(),
-			"error":   "Gagal mengubah data",
+			"error" : err.Error(),
+			"message":   "Gagal mengubah data",
 		})
 		return
 	}
@@ -139,8 +139,8 @@ func (a *transaksiAPI) Delete(c *gin.Context) {
 		log.Printf("Pesan error: %v", err)
 
 		c.JSON(500, gin.H{
-			"message" : err.Error(),
-			"error":   "Gagal menghapus data",
+			"error" : err.Error(),
+			"message":   "Gagal menghapus data",
 		})
 		return
 	}

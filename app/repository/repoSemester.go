@@ -128,6 +128,7 @@ func (c *semesterRepository) GetByID(id int) (*models.PembayaranSemesterResponse
 	PembayaranSemesterResponse := models.PembayaranSemesterResponse{
 		ID:             PembayaranSemester.ID,
 		Siswa:          PembayaranSemester.Siswa.Nama,
+        NISN: PembayaranSemester.Siswa.Nisn,
 		Transaksi: PembayaranSemester.Transaksi.Nama,
 		Semester:       PembayaranSemester.Semester,
 		TahunAjar:      PembayaranSemester.TahunAjar,
@@ -157,13 +158,13 @@ func (c *semesterRepository) GetList(page, pageSize int) ([]models.PembayaranSem
 		PembayaranSemesterResponse = append(PembayaranSemesterResponse, models.PembayaranSemesterResponse{
 			ID:             s.ID,
 			Siswa:          s.Siswa.Nama,
+            NISN: s.Siswa.Nisn,
 			Transaksi: s.Transaksi.Nama,
 			Semester:       s.Semester,
 			TahunAjar:      s.TahunAjar,
 			Status:         s.Status,
 			Tanggal:        s.Tanggal,
 			Jumlah:         s.Jumlah,
-			// Penerima:       s.Penerima.Nama,
 		})
 	}
 	totalPage := int(math.Ceil(float64(totalData) / float64(pageSize)))

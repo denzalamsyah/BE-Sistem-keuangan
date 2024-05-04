@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/denzalamsyah/simak/app/models"
 	"github.com/denzalamsyah/simak/app/services"
@@ -43,10 +44,32 @@ func (a *kelasAPI) AddKelas(c *gin.Context) {
 	err := a.kelasService.Store(&newKelas)
 	if err != nil {
 		log.Printf("Pesan error: %v", err)
-		c.JSON(500, gin.H{
-			"message" : err.Error(),
-			"error": "Gagal menambah data"   ,
-		})
+		
+		if strings.Contains(err.Error(), "foreign key constraint") {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"message": "Tidak bisa mengubah kode kelas",
+				"error":   "Gagal mengubah data",
+			})
+			return
+		}
+
+		existingKelas, err := a.kelasService.GetKode(newKelas.KodeKelas)
+        if err != nil {
+            log.Printf("Error checking Kelas: %v", err)
+            c.JSON(http.StatusInternalServerError, gin.H{
+                "error":   err.Error(),
+                "message":   "Gagal menambah data",
+            })
+            return
+        }
+        
+        if existingKelas.KodeKelas == newKelas.KodeKelas{
+            c.JSON(http.StatusBadRequest, gin.H{
+                "message":   "Kode kelas sudah ada",
+                "error":   "Gagal menambah data",
+            })
+            return
+        }
 		return
 	}
 
@@ -57,68 +80,78 @@ func (a *kelasAPI) AddKelas(c *gin.Context) {
 }
 
 func (a *kelasAPI) Update(c *gin.Context) {
+	kodeKelas := c.Param("kode")
+    if kodeKelas == "" {
+        c.JSON(http.StatusBadRequest, gin.H{
+            "message": "invalid request body" ,
+			"error" : "kosong",
+        })
+        return
+    }
 
-	kelasID := c.Param("id")
-
-	if kelasID == "" {
-		c.JSON(400, gin.H{
-			"message" : "invalid request body",
-		})
-		return
-	}
-
-	id, err := strconv.Atoi(kelasID)
-	if err != nil {
-		log.Printf("Pesan error: %v", err)
-		c.JSON(400, gin.H{
-			"message" : "invalid request body",
-			"error":   err.Error(),
-		})
-		return
-	}
-
-	var newKelas models.Kelas
-
-	if err := c.ShouldBindJSON(&newKelas); err != nil {
+    kode, err := strconv.Atoi(kodeKelas)
+    if err != nil {
 		log.Printf("Pesan error: %v", err)
 
-		c.JSON(400, gin.H{
-			"message" : "invalid request body",
-			"error":   err.Error(),
-		})
-		return
-	}
+        c.JSON(http.StatusBadRequest, gin.H{
+            "message": "invalid request body",
+            "error" : err.Error(),
+        })
+        return
+    }
 
-	newKelas.IDKelas = id
+    var newKelas models.Kelas
+    if err := c.ShouldBind(&newKelas); err != nil {
+		log.Printf("Encode error: %v", err)
 
-	err = a.kelasService.Update(id, newKelas)
-	if err != nil {
-		log.Printf("Pesan error: %v", err)
-		c.JSON(500, gin.H{
-			"message" : err.Error(),
-			"error":  "Gagal mengubah data" ,
-		})
-		return
-	}
+        c.JSON(http.StatusBadRequest, gin.H{
+            "message": "invalid request body",
+            "error" : err.Error(),
+        })
+        return
+    }
 
-	c.JSON(200, gin.H{
-		"message" : "Berhasil mengubah data",
-		"data" : newKelas,
-	})
+    err = a.kelasService.Update(kode, newKelas)
+    if err != nil {
+		log.Printf("Update error: %v", err)
+
+        existingKelas, err := a.kelasService.GetKode(newKelas.KodeKelas)
+        if err != nil {
+            log.Printf("Error checking NISN: %v", err)
+            c.JSON(http.StatusInternalServerError, gin.H{
+                "error":   err.Error(),
+            })
+            return
+        }
+        
+        if existingKelas.KodeKelas == newKelas.KodeKelas{
+            c.JSON(http.StatusBadRequest, gin.H{
+                "message":   "Kode kelas sudah ada",
+                "error":   "Gagal mengubah data",
+            })
+            return
+        }
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{
+        "message": "Berhasil mengubah Kelas",
+        "data":    newKelas,
+    })
 }
 
 func (a *kelasAPI) Delete(c *gin.Context) {
 
-	kelasID := c.Param("id")
+	kelasKode := c.Param("kode")
 
-	if kelasID == "" {
+	if kelasKode == "" {
 		c.JSON(400, gin.H{
 			"message" : "invalid request body",
 		})
 		return
 	}
 
-	id, err := strconv.Atoi(kelasID)
+	kode, err := strconv.Atoi(kelasKode)
 	if err != nil {
 		log.Printf("Pesan error: %v", err)
 		c.JSON(400, gin.H{
@@ -128,12 +161,12 @@ func (a *kelasAPI) Delete(c *gin.Context) {
 		return
 	}
 
-	err = a.kelasService.Delete(id)
+	err = a.kelasService.Delete(kode)
 	if err != nil {
 		log.Printf("Pesan error: %v", err)
 		c.JSON(500, gin.H{
-			"message" :  err.Error(),
-			"error": "Gagal mengubah data" ,
+			"error" :  err.Error(),
+			"message": "Gagal mengubah data" ,
 		})
 		return
 	}

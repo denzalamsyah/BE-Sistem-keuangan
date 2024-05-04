@@ -214,7 +214,7 @@ func (c *guruRepository) AmbilKasGuru(nip, jumlah int, nama, tanggal string) err
 	}
 
 	if kasGuru.Jumlah < jumlah {
-		return errors.New("saldo uang kas guru tidak mencukupi")
+		return errors.New("Saldo tidak mencukupi")
 	}
 
 	kasGuru.Jumlah -= jumlah

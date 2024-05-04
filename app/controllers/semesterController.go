@@ -43,8 +43,8 @@ func (s *semesterAPI) AddSemester(c *gin.Context) {
 	if err != nil {
 		log.Printf("Error: %v", err)
 		c.JSON(500, gin.H{
-			"message" : err.Error(),
-			"error":   "Periksa kembali inputan anda",
+			"error" : err.Error(),
+			"message":   "Periksa kembali inputan anda",
 		})
 		return
 	}
@@ -91,8 +91,8 @@ func (s *semesterAPI) Update(c *gin.Context) {
 	if err != nil {
 		log.Printf("Error: %v", err)
 		c.JSON(500, gin.H{
-			"message" : err.Error(),
-			"error":   "Gagal mengubah data",
+			"error" : err.Error(),
+			"message":   "Gagal mengubah data",
 		})
 		return
 	}
@@ -128,8 +128,8 @@ func (s *semesterAPI) Delete(c *gin.Context) {
 	if err != nil {
 		log.Printf("Error: %v", err)
 		c.JSON(500, gin.H{
-			"message" : err.Error(),
-			"error":   "Gagal menghapus data",
+			"error" : err.Error(),
+			"message":   "Gagal menghapus data",
 		})
 		return
 	}

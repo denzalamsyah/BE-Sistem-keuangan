@@ -30,8 +30,8 @@ func NewSiswaRepo(db *gorm.DB) *siswaRepository {
 	return &siswaRepository{db}
 }
 
-func (c *siswaRepository) Store(siswa *models.Siswa) error {
-	if err := c.db.Create(siswa).Error; err != nil {
+func (c *siswaRepository) Store(Siswa *models.Siswa) error {
+	if err := c.db.Create(Siswa).Error; err != nil {
 		return fmt.Errorf("failed to store new siswa: %v", err)
 	}
 
@@ -66,7 +66,7 @@ func (c *siswaRepository) GetByID(nisn int) (*models.SiswaResponse, error) {
 		NISN:         siswa.Nisn,
 		Nama:         siswa.Nama,
 		Kelas:   siswa.Kelas.Kelas,
-		Jurusan:      siswa.Jurusan.Nama,
+		Jurusan:      siswa.Jurusan.Jurusan,
 		Agama:        siswa.Agama.Nama,
 		TempatLahir:  siswa.TempatLahir,
 		TanggalLahir: siswa.TanggalLahir,
@@ -102,7 +102,7 @@ func (c *siswaRepository) GetList(page, pageSize int) ([]models.SiswaResponse, i
 			NISN:         s.Nisn,
 			Nama:         s.Nama,
 			Kelas:       s.Kelas.Kelas,
-			Jurusan:      s.Jurusan.Nama,
+			Jurusan:      s.Jurusan.Jurusan,
 			Agama:        s.Agama.Nama,
 			TempatLahir:  s.TempatLahir,
 			TanggalLahir: s.TanggalLahir,
@@ -139,6 +139,7 @@ func (c *siswaRepository) HistoryPembayaranSiswa(siswaID, page, pageSize int) ([
     for _, p := range pembayaranSemester {
         historyPembayaran = append(historyPembayaran, models.HistoryPembayaran{
             Siswa:          p.Siswa.Nama,
+			NISN: p.Siswa.Nisn,
             Nama_transaksi: p.Transaksi.Nama,
             Biaya:          p.Jumlah,
             Tanggal:        p.Tanggal,
@@ -172,12 +173,12 @@ func (c *siswaRepository) Search(name, nisn, kelas, jurusan string) ([]models.Si
 
     // Query dengan menggunakan Select untuk menentukan kolom yang akan diambil
     query := c.db.Table("siswas").
-        Select("siswas.nama, siswas.nisn, kelas.kelas as kelas, jurusans.nama as jurusan, agamas.nama as agama, siswas.tempat_lahir, siswas.tanggal_lahir, genders.nama as gender, siswas.nama_ayah, siswas.nama_ibu, siswas.nomor_telepon, siswas.angkatan, siswas.email, siswas.alamat, siswas.gambar").
-        Joins("JOIN kelas ON siswas.kelas_id = kelas.id_kelas").
-        Joins("JOIN jurusans ON siswas.jurusan_id = jurusans.id_jurusan").
+        Select("siswas.nama, siswas.nisn, kelas.kelas as kelas, jurusans.jurusan as jurusan, agamas.nama as agama, siswas.tempat_lahir, siswas.tanggal_lahir, genders.nama as gender, siswas.nama_ayah, siswas.nama_ibu, siswas.nomor_telepon, siswas.angkatan, siswas.email, siswas.alamat, siswas.gambar").
+        Joins("JOIN kelas ON siswas.kelas_id = kelas.kode_kelas").
+        Joins("JOIN jurusans ON siswas.jurusan_id = jurusans.kode_jurusan").
 		Joins("JOIN agamas ON siswas.agama_id = agamas.id_agama").
 		Joins("JOIN genders ON siswas.gender_id = genders.id_gender").
-        Where("LOWER(siswas.nama) LIKE ? AND siswas.nisn::TEXT LIKE ? AND LOWER(kelas.kelas) LIKE ? AND LOWER(jurusans.nama) LIKE ?", "%"+name+"%", "%"+nisn+"%", "%"+kelas+"%", "%"+jurusan+"%")
+        Where("LOWER(siswas.nama) LIKE ? AND siswas.nisn::TEXT LIKE ? AND LOWER(kelas.kelas) LIKE ? AND LOWER(jurusans.jurusan) LIKE ?", "%"+name+"%", "%"+nisn+"%", "%"+kelas+"%", "%"+jurusan+"%")
 
     if err := query.Find(&siswaList).Error; err != nil {
         return nil, err

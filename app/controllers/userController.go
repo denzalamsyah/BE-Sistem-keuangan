@@ -81,10 +81,11 @@ func (u *userAPI) Login(c *gin.Context) {
 	
 	if err := c.BindJSON(&loginRequest); err != nil {
 		if loginRequest.Email == "" || loginRequest.Password == ""{
-		c.JSON(http.StatusBadRequest, gin.H{"error":   "email dan password tidak boleh kosong",})
+		c.JSON(http.StatusBadRequest, gin.H{"message":   "email dan password tidak boleh kosong",})
 			return
 		}
-		c.JSON(http.StatusBadRequest, gin.H{"error":   err.Error(),})
+		c.JSON(http.StatusBadRequest, gin.H{"error":   err.Error(),
+	"message" : "bad request"})
 		return
 	}
 	
@@ -96,7 +97,7 @@ func (u *userAPI) Login(c *gin.Context) {
 
 	token, err := u.userService.Login(user)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error":   err.Error(),})
+		c.JSON(http.StatusInternalServerError, gin.H{"message":   err.Error(),})
 		return
 	}
 	
@@ -113,7 +114,7 @@ func (c *userAPI) ResetPassword(ctx *gin.Context) {
 	err := c.userService.VerifyResetToken(email, token, newPassword, confirmPassword) 
 	if err != nil {
 		log.Printf("Error: %v", err)
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 
@@ -130,7 +131,7 @@ func (c *userAPI) RequestResetToken(ctx *gin.Context) {
 	_, err = c.userService.GenerateResetToken(user.Email)
 	if err != nil {
 		log.Printf("Error generating token: %v", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
 

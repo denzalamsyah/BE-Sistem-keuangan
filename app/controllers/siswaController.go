@@ -41,8 +41,8 @@ func (s *siswaAPI) AddSiswa(c *gin.Context) {
        
 		log.Printf("Error: %v", err)
         c.JSON(http.StatusBadRequest, gin.H{
-            "message": "invalid request body" + err.Error(),
-            "error":   "Gagal mengubah data",
+            "message": "invalid request body",
+            "error" : err.Error(),
         })
         return
     }
@@ -69,10 +69,10 @@ func (s *siswaAPI) AddSiswa(c *gin.Context) {
 
     err = s.siswaService.Store(&newSiswa)
     if err != nil {
-        if newSiswa.Alamat == "" || newSiswa.AgamaID == 0 || newSiswa.Angkatan == "" || newSiswa.Email == "" || newSiswa.GenderID == 0 || newSiswa.JurusanID == 0 || newSiswa.KelasID == 0 || newSiswa.Nisn == 0 || newSiswa.Nama == "" || newSiswa.NamaAyah == "" || newSiswa.NamaIbu == "" || newSiswa.NomorTelepon == 0 || newSiswa.TanggalLahir== "" || newSiswa.TempatLahir == ""{ 
-            c.JSON(http.StatusBadRequest, gin.H{"error":   "semua item harus di isi kecuali gambar",})
-			return
-		}
+        // if newSiswa.Alamat == "" || newSiswa.AgamaID == 0 || newSiswa.Angkatan == "" || newSiswa.Email == "" || newSiswa.GenderID == 0 || newSiswa.JurusanID == 0 || newSiswa.KelasID == 0 || newSiswa.Nisn == 0 || newSiswa.Nama == "" || newSiswa.NamaAyah == "" || newSiswa.NamaIbu == "" || newSiswa.NomorTelepon == 0 || newSiswa.TanggalLahir== "" || newSiswa.TempatLahir == ""{ 
+        //     c.JSON(http.StatusBadRequest, gin.H{"error":   "semua item harus di isi kecuali gambar",})
+		// 	return
+		// }
         existingSiswa, err := s.siswaService.GetUserNisn(newSiswa.Nisn)
         if err != nil {
             log.Printf("Error checking NISN: %v", err)
@@ -116,7 +116,8 @@ func (s *siswaAPI) Update(c *gin.Context) {
 		log.Printf("Pesan error: %v", err)
 
         c.JSON(http.StatusBadRequest, gin.H{
-            "message": "invalid request body" + err.Error(),
+            "message": "invalid request body",
+            "error" : err.Error(),
         })
         return
     }
@@ -126,8 +127,8 @@ func (s *siswaAPI) Update(c *gin.Context) {
 		log.Printf("Encode error: %v", err)
 
         c.JSON(http.StatusBadRequest, gin.H{
-            "message": "invalid request body" + err.Error(),
-            "error":  "Gagal mengubah data",
+            "message": "invalid request body",
+            "error" : err.Error(),
         })
         return
     }
@@ -213,8 +214,8 @@ func (s *siswaAPI) Delete(c *gin.Context) {
 		log.Printf("Pesan error: %v", err)
 
 		c.JSON(500, gin.H{
-			"message" : err.Error(),
-            "error" : "Gagal menghapus data",
+			"error" : err.Error(),
+            "message" : "Gagal menghapus data",
 		})
 		return
 	}
@@ -232,7 +233,8 @@ func (s *siswaAPI) GetByID(c *gin.Context) {
 		log.Printf("Pesan error: %v", err)
 
 		c.JSON(400, gin.H{
-			"message" : "invalid request body" + err.Error(),
+			"message" : "invalid request body",
+            "error" : err.Error(),
 		})
 		return
 	}
@@ -242,7 +244,9 @@ func (s *siswaAPI) GetByID(c *gin.Context) {
 		log.Printf("Pesan error: %v", err)
 
 		c.JSON(500, gin.H{
-			"message" : "internal server error" + err.Error(),
+			"message" : "internal server error",
+            "error" : err.Error(),
+
 		})
 		return
 	}

@@ -119,8 +119,8 @@ func (s *guruAPI) Update(c *gin.Context) {
 		log.Printf("Encode error: %v", err)
 
         c.JSON(http.StatusBadRequest, gin.H{
-            "message": "invalid request body" + err.Error(),
-            "error":  "Gagal mengubah data",
+            "message": "invalid request body",
+			"error" : err.Error(),
         })
         return
     }
@@ -141,7 +141,7 @@ func (s *guruAPI) Update(c *gin.Context) {
         if err != nil {
 		log.Printf("middleware upload gambar error: %v", err)
             c.JSON(http.StatusInternalServerError, gin.H{
-                "message": "failed to upload image to Cloudinary" + err.Error(),
+                "message": "failed to upload image to Cloudinary",
                 "error":   err.Error(),
             })
             return
@@ -204,8 +204,8 @@ func (s *guruAPI) Delete(c *gin.Context){
 		log.Printf("Pesan error: %v", err)
 
 		c.JSON(500, gin.H{
-			"message" : err.Error(),
-			"error":   "Gagal menghapus data",
+			"message" : "Gagal menghapus data",
+			"error" : err.Error(),
 		})
 		return
 	}
@@ -391,13 +391,17 @@ func (s *guruAPI) GetTotalKasByNIP(c *gin.Context) {
 		return
 	}
 
-	response := gin.H{
-		"nama": guru.Nama,
-		"nip" : guru.Nip,
-		"total_kas": totalKas,
+	
+
+	response := models.TotalSaldoKas{
+		NIP: guru.Nip,
+		Nama: guru.Nama,
+		TotalKas: totalKas,
 	}
 
-	c.JSON(200, response)
+	c.JSON(200, gin.H{
+		"data" : response,
+	})
 }
 
 // AmbilKasGuru mengurangi saldo uang kas guru dalam bentuk JSON
@@ -438,8 +442,8 @@ func (s *guruAPI) AmbilKasGuru(c *gin.Context) {
 		log.Printf("Pesan error: %v", err)
 
 		c.JSON(500, gin.H{
-			"message": "internal server error",
-			"error":   err.Error(),
+			"error": "internal server error",
+			"message":   err.Error(),
 		})
 		return
 	}

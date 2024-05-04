@@ -33,6 +33,7 @@ type GuruResponse struct {
 }
 type HistoryPembayaran struct {
 	Siswa          string `gorm:"type:varchar(35)" json:"siswa"`
+	NISN           int    `json:"nisn"`
 	Nama_transaksi string `gorm:"type:varchar(35)" json:"nama_transaksi"`
 	Biaya          int    `json:"biaya"`
 	Tanggal        string `gorm:"type:varchar(15)" json:"tanggal"`
@@ -54,12 +55,12 @@ type PembayaranSPPResponse struct {
 type PembayaranSemesterResponse struct {
 	ID        int    `json:"id"`
 	Siswa     string `json:"siswa"`
+	NISN      int    `json:"nisn"`
 	TahunAjar string `json:"tahun_ajar"`
 	Semester  string `json:"semester"`
 	Transaksi string `json:"nama_transaksi"`
 	Tanggal   string `json:"tanggal"`
 	Jumlah    int    `json:"total_jumlah"`
-	Penerima  string `json:"penerima"`
 	Status    string `json:"status"`
 }
 
@@ -76,14 +77,14 @@ type Total struct {
 	Saldo       int `json:"total_saldo"`
 }
 
-type KelasResponse struct {
-	ID    int    `json:"id"`
-	Kelas string `json:"kelas"`
-}
-type JurusanResponse struct {
-	ID   int    `json:"id"`
-	Nama string `json:"nama"`
-}
+// type KelasResponse struct {
+// 	ID    int    `json:"kode_kelas"`
+// 	Kelas string `json:"kelas"`
+// }
+// type JurusanResponse struct {
+// 	ID   int    `json:"kode_jurusan"`
+// 	Nama string `json:"nama"`
+// }
 
 type TransaksiResponse struct {
 	ID          int    `json:"id"`
@@ -93,6 +94,7 @@ type TransaksiResponse struct {
 
 type KasGuruResponse struct {
 	ID           int    `json:"id"`
+	NIP          int    `json:"nip"`
 	NamaGuru     string `json:"nama_guru"`
 	Jumlah       int    `json:"jumlah_bayar"`
 	TanggalBayar string `json:"tanggal_bayar"`
@@ -102,5 +104,11 @@ type HistoryPembayaranKas struct {
 	Nama         string `json:"nama"`
 	NIP          int    `json:"nip"`
 	Jumlah_Bayar int    `json:"jumlah_bayar"`
-	Tanggal      string `json:"tanggal"`
+	Tanggal      string `json:"tanggal_bayar"`
+}
+
+type TotalSaldoKas struct {
+	Nama     string `json:"nama"`
+	NIP      int    `json:"nip"`
+	TotalKas int    `json:"total_kas"`
 }
