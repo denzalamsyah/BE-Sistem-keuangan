@@ -391,6 +391,7 @@ func (s *siswaAPI) ExportSiswa(c *gin.Context) {
     file := excelize.NewFile()
     index, err := file.NewSheet("Siswa")
     if err != nil {
+        log.Printf("Pesan error: %v", err)
         c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return
     }
@@ -401,6 +402,7 @@ func (s *siswaAPI) ExportSiswa(c *gin.Context) {
     for col, val := range header {
         colName, err := excelize.ColumnNumberToName(col + 1)
         if err != nil {
+        log.Printf("Pesan error: %v", err)
             c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
             return
         }
@@ -431,16 +433,20 @@ func (s *siswaAPI) ExportSiswa(c *gin.Context) {
     fileName := "siswa.xlsx"
     err = file.SaveAs("./app/files/"+fileName)
     if err != nil {
+        log.Printf("Pesan error: %v", err)
+
         c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return
     }
-
-    defer os.Remove(fileName)
-
-    // Return the file as attachment
+    filePath := "./app/files/" + fileName
+    defer func() {
+        if err := os.Remove(filePath); err != nil {
+            log.Printf("Gagal menghapus file: %v", err)
+        }
+    }()
     c.Header("Content-Description", "File Transfer")
     c.Header("Content-Disposition", "attachment; filename="+fileName)
     c.Header("Content-Type", "application/octet-stream")
     c.Header("Content-Transfer-Encoding", "binary")
-    c.File(fileName)
+    c.File(filePath)
 }
