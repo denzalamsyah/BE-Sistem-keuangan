@@ -171,26 +171,27 @@ func (c *guruRepository) GetUserNIP(nip int) (models.Guru, error){
 
 func (c *guruRepository) HistoryPembayaranGuru(nip, page, pageSize int) ([]models.HistoryPembayaranKas, int, error){
 	var historiPembayaran []models.HistoryPembayaranKas
+    var kasGuru []models.KasGuru
 
-	var kasGuru []models.KasGuru
-
-	if err := c.db.Preload("Guru").Where("guru_id = ?", nip).
-	Offset((page - 1) * pageSize).Limit(pageSize).Find(&kasGuru).Error; err != nil {
-        return nil,0, err
-    }
-	var totalData int64
-    if err := c.db.Model(&models.KasGuru{}).Count(&totalData).Error; err != nil {
+    if err := c.db.Preload("Guru").Where("guru_id = ?", nip).
+        Offset((page - 1) * pageSize).Limit(pageSize).Find(&kasGuru).Error; err != nil {
         return nil, 0, err
     }
 
-	for _, p := range kasGuru{
-		historiPembayaran = append(historiPembayaran, models.HistoryPembayaranKas{
-			Nama: p.Guru.Nama,
-			NIP: p.Guru.Nip,
-			Jumlah_Bayar: p.Jumlah,
-			Tanggal: p.TanggalBayar,
-		})
-	}
+	var totalData int64
+    if err := c.db.Model(&models.KasGuru{}).Where("guru_id = ?", nip).Count(&totalData).Error; err != nil {
+        return nil, 0, err
+    }
+
+	  for _, p := range kasGuru {
+        historiPembayaran = append(historiPembayaran, models.HistoryPembayaranKas{
+			ID: uint(p.ID),
+            Nama:         p.Guru.Nama,
+            NIP:          p.Guru.Nip,
+            Jumlah_Bayar: p.Jumlah,
+            Tanggal:      p.TanggalBayar,
+        })
+    }
 	totalPage := int(math.Ceil(float64(totalData) / float64(pageSize)))
 
     return historiPembayaran, totalPage, nil
@@ -199,7 +200,7 @@ func (c *guruRepository) HistoryPembayaranGuru(nip, page, pageSize int) ([]model
 func ( c *guruRepository) SaldoKasByNIP(nip int) (int, error){
 	var totalKas int
 
-	if err := c.db.Model(&models.KasGuru{}).Where("guru_id = ?", nip).Select("SUM(jumlah)").Scan(&totalKas).Error; err != nil {
+	if err := c.db.Model(&models.KasGuru{}).Where("guru_id = ?", nip).Select("SUM(saldo)").Scan(&totalKas).Error; err != nil {
 		return 0, err
 	}
 
@@ -213,18 +214,15 @@ func (c *guruRepository) AmbilKasGuru(nip, jumlah int, nama, tanggal string) err
 		return err
 	}
 
-	if kasGuru.Jumlah < jumlah {
+	if kasGuru.Saldo < jumlah {
 		return errors.New("Saldo tidak mencukupi")
 	}
 
-	kasGuru.Jumlah -= jumlah
+	kasGuru.Saldo -= jumlah
 
 	if err := c.db.Save(&kasGuru).Error; err != nil {
 		return err
 	}
-
-
-
 	// Menyimpan histori pengambilan kas
 	pengambilanKas := models.PengambilanKas{
 		GuruID:      uint(nip),
@@ -258,6 +256,7 @@ func ( c *guruRepository) HistoryPengambilanKas(nip, page, pageSize int) ([]mode
 
 	for _, p := range kasGuru{
 		historiPengambilan = append(historiPengambilan, models.HistoryPengambilanKas{
+			ID: p.ID,
 			NIP: p.GuruID,
 			Nama: p.Nama,
 			JumlahAmbil: p.JumlahAmbil,

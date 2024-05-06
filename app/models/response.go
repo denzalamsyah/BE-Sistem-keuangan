@@ -32,6 +32,7 @@ type GuruResponse struct {
 	Gambar       string `json:"gambar"`
 }
 type HistoryPembayaran struct {
+	ID             int    `json:"id"`
 	Siswa          string `gorm:"type:varchar(35)" json:"siswa"`
 	NISN           int    `json:"nisn"`
 	Nama_transaksi string `gorm:"type:varchar(35)" json:"nama_transaksi"`
@@ -97,18 +98,23 @@ type KasGuruResponse struct {
 	NIP          int    `json:"nip"`
 	NamaGuru     string `json:"nama_guru"`
 	Jumlah       int    `json:"jumlah_bayar"`
+	Saldo        int    `json:"saldo"`
 	TanggalBayar string `json:"tanggal_bayar"`
 }
 
 type HistoryPembayaranKas struct {
+	ID           uint   `json:"id"`
 	Nama         string `json:"nama"`
 	NIP          int    `json:"nip"`
+	Saldo        int    `json:"saldo"`
 	Jumlah_Bayar int    `json:"jumlah_bayar"`
 	Tanggal      string `json:"tanggal_bayar"`
 }
 
-type TotalSaldoKas struct {
-	Nama     string `json:"nama"`
-	NIP      int    `json:"nip"`
-	TotalKas int    `json:"total_kas"`
+type HistoryPengambilanKas struct {
+	ID           uint   `json:"id"`
+	NIP          uint   `json:"nip"`
+	Nama         string `json:"nama"`
+	JumlahAmbil  int    `json:"jumlah_ambil"`
+	TanggalAmbil string `json:"tanggal_ambil"`
 }

@@ -183,6 +183,7 @@ type KasGuru struct{
 	GuruID int `gorm:"foreignKey:FkId_stakeholder;references:Nip" json:"id_guru"`
 	Guru Guru `json:"nama_guru"`
 	Jumlah int `json:"jumlah_bayar"`
+	Saldo int `json:"saldo"`
 	TanggalBayar string `gorm:"type:varchar(15)" json:"tanggal_bayar"`
 }
 
@@ -196,9 +197,9 @@ type PengambilanKas struct {
 	UpdatedAt   time.Time `json:"updated_at"`
 }
 
-type HistoryPengambilanKas struct {
-	NIP           uint   `json:"nip"`
-	Nama          string `json:"nama"`
-	JumlahAmbil   int    `json:"jumlah_ambil"`
-	TanggalAmbil  string `json:"tanggal_ambil"`
+type TotalSaldoKas struct {
+	Nama     string `json:"nama"`
+	NIP      int    `json:"nip"`
+	TotalKas int    `json:"total_kas"`
 }
+

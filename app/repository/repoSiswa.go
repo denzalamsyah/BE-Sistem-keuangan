@@ -138,6 +138,7 @@ func (c *siswaRepository) HistoryPembayaranSiswa(siswaID, page, pageSize int) ([
     // Mengonversi data PembayaranSemester ke HistoryPembayaran
     for _, p := range pembayaranSemester {
         historyPembayaran = append(historyPembayaran, models.HistoryPembayaran{
+			ID: p.ID,
             Siswa:          p.Siswa.Nama,
 			NISN: p.Siswa.Nisn,
             Nama_transaksi: p.Transaksi.Nama,

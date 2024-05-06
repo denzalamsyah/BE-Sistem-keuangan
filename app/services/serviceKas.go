@@ -11,6 +11,8 @@ type KasServices interface {
 	GetList(page, pageSize int) ([]models.KasGuruResponse,int, error)
 	Delete(id int) error
 	Search(nama, tanggal string) ([]models.KasGuruResponse, error)
+	GetByID(id int) (*models.HistoryPembayaranKas, error)
+	GetAmbilByID(id int) (*models.HistoryPengambilanKas, error)
 }
 
 type kasServices struct {
@@ -62,3 +64,18 @@ func(c *kasServices) Search(nama, tanggal string) ([]models.KasGuruResponse, err
 	return KasGuru, nil
 }
 
+func (c *kasServices) GetByID(id int) (*models.HistoryPembayaranKas, error){
+	kas, err := c.kasRepo.GetByID(id)
+	if err != nil {
+		return nil, err
+	}
+	return kas, nil
+}
+
+func (c *kasServices) GetAmbilByID(id int) (*models.HistoryPengambilanKas, error){
+	kas, err := c.kasRepo.GetAmbilByID(id)
+	if err != nil {
+		return nil, err
+	}
+	return kas, nil
+}

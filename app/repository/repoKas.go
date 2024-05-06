@@ -15,6 +15,8 @@ type KasRepository interface {
 	GetList(page, pageSize int) ([]models.KasGuruResponse,int, error)
 	Delete(id int) error
 	Search(nama, tanggal string) ([]models.KasGuruResponse, error)
+	GetByID(id int) (*models.HistoryPembayaranKas, error)
+	GetAmbilByID(id int) (*models.HistoryPengambilanKas, error)
 }
 
 type kasRepository struct{
@@ -69,6 +71,7 @@ func (c *kasRepository) GetList(page, pageSize int) ([]models.KasGuruResponse,in
 			NIP: s.GuruID,
 			NamaGuru: s.Guru.Nama,
 			Jumlah: s.Jumlah,
+			Saldo: s.Saldo,
 			TanggalBayar: s.TanggalBayar,
 			
 		})
@@ -96,3 +99,39 @@ func ( c *kasRepository) Search(nama, tanggal string) ([]models.KasGuruResponse,
 	return KasGuru, nil
 }
 
+func (c *kasRepository) GetByID(id int) (*models.HistoryPembayaranKas, error){
+	var historiBayarKas models.KasGuru
+	err := c.db.Preload("Guru").Where("id = ?", id).First(&historiBayarKas).Error
+	if err != nil {
+		return nil, err
+	}
+
+	kasResponse := models.HistoryPembayaranKas{
+		ID: uint(historiBayarKas.ID),
+		NIP: historiBayarKas.Guru.Nip,
+		Nama: historiBayarKas.Guru.Nama,
+		Jumlah_Bayar: historiBayarKas.Jumlah,
+		Tanggal: historiBayarKas.TanggalBayar,
+
+	}
+
+	return &kasResponse, nil
+}
+
+func (c *kasRepository) GetAmbilByID(id int) (*models.HistoryPengambilanKas, error){
+	var historiAmbilKas models.PengambilanKas
+	err := c.db.Where("id = ?", id).First(&historiAmbilKas).Error
+	if err != nil {
+		return nil, err
+	}
+
+	kasResponse := models.HistoryPengambilanKas{
+		ID: uint(historiAmbilKas.ID),
+		NIP: historiAmbilKas.GuruID,
+		Nama: historiAmbilKas.Nama,
+		TanggalAmbil: historiAmbilKas.TanggalAmbil,
+		JumlahAmbil: historiAmbilKas.JumlahAmbil,
+	}
+
+	return &kasResponse, nil
+}
