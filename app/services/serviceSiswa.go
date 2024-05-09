@@ -13,7 +13,7 @@ type SiswaServices interface {
 	GetList(page, pageSize int) ([]models.SiswaResponse, int, error)
 	HistoryPembayaranSiswa(siswaID, page, pageSize int) ([]models.HistoryPembayaran, int, error)
 	GetTotalGenderCount() (int, int, error)
-	Search(name, kelas, nisn, jurusan string) ([]models.SiswaResponse, error)
+	Search(name, kelas, nisn, jurusan, angkatan string) ([]models.SiswaResponse, error)
 	GetUserNisn(nisn int) (models.Siswa, error)
 
 }
@@ -84,8 +84,8 @@ func (c *siswaServices) GetTotalGenderCount() (int, int, error) {
 	return int(countLakiLaki), int(countPerempuan), nil
 }
 
-func(c *siswaServices) Search(name, nisn, kelas, jurusan string) ([]models.SiswaResponse, error){
-	siswa, err := c.siswaRepo.Search(name, nisn, kelas, jurusan)
+func(c *siswaServices) Search(name, nisn, kelas, jurusan, angkatan string) ([]models.SiswaResponse, error){
+	siswa, err := c.siswaRepo.Search(name, nisn, kelas, jurusan, angkatan)
 	if err != nil {
         return nil, err
     }

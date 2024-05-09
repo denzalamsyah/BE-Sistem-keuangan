@@ -3,6 +3,7 @@ package repository
 import (
 	"math"
 	"strings"
+	"time"
 
 	"github.com/denzalamsyah/simak/app/models"
 	"gorm.io/gorm"
@@ -28,6 +29,7 @@ func NewKelasRepo(db *gorm.DB) *kelasRepository {
 }
 
 func (c *kelasRepository) Store(Kelas *models.Kelas) error {
+	Kelas.CreatedAt = time.Now()
 	err := c.db.Create(Kelas).Error
 	if err != nil {
 		return err
@@ -37,6 +39,10 @@ func (c *kelasRepository) Store(Kelas *models.Kelas) error {
 
 func (c *kelasRepository) Update(kode int, Kelas models.Kelas) error {
 	err := c.db.Model(&models.Kelas{}).Where("kode_kelas = ?", kode).Updates(&Kelas).Error
+	if err != nil {
+		return err
+	}
+	err = c.db.Model(&models.Kelas{}).Where("kode_kelas = ?", kode).Update("updated_at", time.Now()).Error
 	if err != nil {
 		return err
 	}
@@ -84,7 +90,7 @@ func (c *kelasRepository) Search(nama string) ([]models.Kelas, error){
 	var Kelas []models.Kelas
 
 	query := c.db.Table("kelas").
-	Select("kelas.kode_kelas, kelas.kelas").
+	Select("kelas.kode_kelas, kelas.kelas, kelas.created_at, kelas.updated_at").
 	Where("LOWER(kelas.kelas) LIKE ?", "%" +nama+ "%")
 
 	if err := query.Find(&Kelas).Error; err != nil {

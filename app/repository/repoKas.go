@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"strings"
+	"time"
 
 	"github.com/denzalamsyah/simak/app/models"
 	"gorm.io/gorm"
@@ -28,6 +29,7 @@ func NewKasRepo(db *gorm.DB) *kasRepository{
 }
 
 func (c *kasRepository) Store(KasGuru *models.KasGuru) error{
+	KasGuru.CreatedAt = time.Now()
 	if err := c.db.Create(KasGuru).Error; err != nil {
 		return fmt.Errorf("failed to store new siswa: %v", err)
 	}
@@ -36,6 +38,10 @@ func (c *kasRepository) Store(KasGuru *models.KasGuru) error{
 
 func (c *kasRepository) Update(id int, KasGuru models.KasGuru) error{
 	err := c.db.Model(&models.KasGuru{}).Where("id = ?", id).Updates(&KasGuru).Error
+	if err != nil {
+		return err
+	}
+	err = c.db.Model(&models.KasGuru{}).Where("id = ?", id).Update("updated_at", time.Now()).Error
 	if err != nil {
 		return err
 	}
@@ -73,6 +79,8 @@ func (c *kasRepository) GetList(page, pageSize int) ([]models.KasGuruResponse,in
 			Jumlah: s.Jumlah,
 			Saldo: s.Saldo,
 			TanggalBayar: s.TanggalBayar,
+			CreatedAt: s.CreatedAt,
+			UpdatedAt: s.UpdatedAt,
 			
 		})
 	}
@@ -88,7 +96,7 @@ func ( c *kasRepository) Search(nama, tanggal string) ([]models.KasGuruResponse,
 	var KasGuru []models.KasGuruResponse
 
 	query := c.db.Table("kas_gurus").
-	Select("kas_gurus.id, gurus.nama as nama_guru, kas_gurus.jumlah, kas_gurus.tanggal_bayar").
+	Select("kas_gurus.id, gurus.nama as nama_guru, kas_gurus.jumlah, kas_gurus.tanggal_bayar, kas_gurus.created_at, kas_gurus.updated_at").
 	Joins("JOIN gurus ON kas_gurus.guru_id = gurus.nip").
 	Where("LOWER(gurus.nama) LIKE ? AND LOWER(kas_gurus.tanggal_bayar) LIKE ?", "%" +nama+ "%", "%"+tanggal+"%")
 
@@ -112,6 +120,8 @@ func (c *kasRepository) GetByID(id int) (*models.HistoryPembayaranKas, error){
 		Nama: historiBayarKas.Guru.Nama,
 		Jumlah_Bayar: historiBayarKas.Jumlah,
 		Tanggal: historiBayarKas.TanggalBayar,
+		CreatedAt: historiBayarKas.CreatedAt,
+		UpdatedAt: historiBayarKas.UpdatedAt,
 
 	}
 
@@ -131,6 +141,8 @@ func (c *kasRepository) GetAmbilByID(id int) (*models.HistoryPengambilanKas, err
 		Nama: historiAmbilKas.Nama,
 		TanggalAmbil: historiAmbilKas.TanggalAmbil,
 		JumlahAmbil: historiAmbilKas.JumlahAmbil,
+		CreatedAt: historiAmbilKas.CreatedAt,
+		UpdatedAt: historiAmbilKas.UpdatedAt,
 	}
 
 	return &kasResponse, nil

@@ -169,6 +169,7 @@ version := gin.Group("/api")
 		siswa.GET("/gender", apiHandler.SiswaAPIHandler.GetTotalGenderCount)
 		siswa.GET("/search", apiHandler.SiswaAPIHandler.Search)
 		siswa.GET("/export", apiHandler.SiswaAPIHandler.ExportSiswa)
+		siswa.GET("/download", apiHandler.SiswaAPIHandler.DownloadSiswa)
 	}
 	stake := version.Group("/stake")
 	{
@@ -186,16 +187,6 @@ version := gin.Group("/api")
 		stake.GET("/histori/ambil/:nip", apiHandler.GuruAPIHandler.GetHistoriPengambilanKas)
 	}
 
-	// Spp := version.Group("/spp")
-	// {
-	// 	Spp.Use(middleware.Auth())
-	// 	Spp.POST("/", apiHandler.SppAPIHandler.AddSPP)
-	// 	Spp.PUT("/:id", apiHandler.SppAPIHandler.Update)
-	// 	Spp.DELETE("/:id", apiHandler.SppAPIHandler.Delete)
-	// 	Spp.GET("/:id", apiHandler.SppAPIHandler.GetByID)
-	// 	Spp.GET("/", apiHandler.SppAPIHandler.GetList)
-	// }
-	
 	Semester := version.Group("/semester")
 	{
 		Semester.Use(middleware.Auth())
@@ -206,6 +197,8 @@ version := gin.Group("/api")
 		Semester.GET("/", apiHandler.SemesterAPIHandler.GetList)
 		Semester.GET("/search", apiHandler.SemesterAPIHandler.Search)
 		Semester.GET("/kwitansi/histori/:id", apiHandler.SemesterAPIHandler.DownloadPembayaranSiswa)
+		Semester.GET("/lunas/:nisn", apiHandler.SemesterAPIHandler.GetLunasByNIP)
+		Semester.GET("/report/:nisn", apiHandler.SemesterAPIHandler.DownloadReportSiswa)
 	}
 	pemasukan := version.Group("/pemasukan")
 	{

@@ -3,6 +3,7 @@ package repository
 import (
 	"math"
 	"strings"
+	"time"
 
 	"github.com/denzalamsyah/simak/app/models"
 	"gorm.io/gorm"
@@ -26,6 +27,7 @@ func NewPengeluaranRepo(db *gorm.DB) *pengeluaranRepository {
 }
 
 func (c *pengeluaranRepository) Store(pengeluaran *models.Pengeluaran) error{
+	pengeluaran.CreatedAt = time.Now()
 	err := c.db.Create(pengeluaran).Error
 	if err != nil {
 		return err
@@ -35,6 +37,10 @@ func (c *pengeluaranRepository) Store(pengeluaran *models.Pengeluaran) error{
 
 func (c *pengeluaranRepository) Update(id int, pengeluaran models.Pengeluaran) error{
 	err := c.db.Model(&pengeluaran).Where("id = ?", id).Updates(&pengeluaran).Error
+	if err != nil {
+		return err
+	}
+	err = c.db.Model(&models.Pengeluaran{}).Where("id = ?", id).Update("updated_at", time.Now()).Error
 	if err != nil {
 		return err
 	}
@@ -88,7 +94,7 @@ func (c *pengeluaranRepository) Search(nama, tanggal string) ([]models.Pengeluar
     var pengeluaran []models.Pengeluaran
 
     query := c.db.Table("pengeluarans").
-    Select("pengeluarans.id, pengeluarans.nama, pengeluarans.tanggal, pengeluarans.jumlah").
+    Select("pengeluarans.id, pengeluarans.nama, pengeluarans.tanggal, pengeluarans.jumlah, pengeluarans.created_at, pengeluarans.updated_at").
     Where("LOWER(pengeluarans.nama) LIKE ? AND LOWER(pengeluarans.tanggal) LIKE ?", "%"+nama+"%", "%"+tanggal+"%")
 
     if err := query.Find(&pengeluaran).Error; err != nil {

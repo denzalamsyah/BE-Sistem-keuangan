@@ -38,6 +38,7 @@ func NewGuruRepo(db *gorm.DB) *guruRepository{
 
 
 func(c *guruRepository) Store(Guru *models.Guru) error{
+	Guru.CreatedAt = time.Now()
 	err := c.db.Create(Guru).Error
 	if err != nil{
 		return err
@@ -47,6 +48,10 @@ func(c *guruRepository) Store(Guru *models.Guru) error{
 
 func (c *guruRepository) Update(nip int, Guru models.Guru) error {
 	err := c.db.Model(&models.Guru{}).Where("nip = ?", nip).Updates(&Guru).Error
+	if err != nil {
+		return err
+	}
+	err = c.db.Model(&models.Guru{}).Where("nip = ?", nip).Update("updated_at", time.Now()).Error
 	if err != nil {
 		return err
 	}
@@ -91,6 +96,8 @@ func (c *guruRepository) GetList(page, pageSize int) ([]models.GuruResponse, int
 			Email: s.Email,
 			Alamat: s.Alamat,
 			Gambar: s.Gambar,
+			CreatedAt: s.CreatedAt,
+			UpdatedAt: s.UpdatedAt,
 		})
 	}
 	totalPage := int(math.Ceil(float64(totalData) / float64(pageSize)))
@@ -117,6 +124,8 @@ func (c *guruRepository) GetByID(nip int) (*models.GuruResponse, error){
 		Email: guru.Email,
 		Alamat: guru.Alamat,
 		Gambar: guru.Gambar,
+		CreatedAt: guru.CreatedAt,
+		UpdatedAt: guru.UpdatedAt,
 	}
 	return &guruResponse, nil
 }
@@ -142,7 +151,7 @@ func (c *guruRepository) Search(nama, nip, jabatan string) ([]models.GuruRespons
 	var guruList []models.GuruResponse
 
 	query := c.db.Table("gurus").
-	Select("gurus.nama, gurus.nip, agamas.nama as agama, jabatans.nama as jabatan, gurus.tempat_lahir, gurus.tanggal_lahir, genders.nama as gender, gurus.nomor_telepon, gurus.email, gurus.alamat, gurus.gambar ").
+	Select("gurus.nama, gurus.nip, agamas.nama as agama, jabatans.nama as jabatan, gurus.tempat_lahir, gurus.tanggal_lahir, genders.nama as gender, gurus.nomor_telepon, gurus.email, gurus.alamat, gurus.gambar, gurus.created_at, gurus.updated_at ").
 	Joins("JOIN agamas ON gurus.agama_id = agamas.id_agama").
 	Joins("JOIN jabatans on gurus.jabatan_id = jabatans.id_jabatan").
 	Joins("JOIN genders ON gurus.gender_id = genders.id_gender").
@@ -190,6 +199,8 @@ func (c *guruRepository) HistoryPembayaranGuru(nip, page, pageSize int) ([]model
             NIP:          p.Guru.Nip,
             Jumlah_Bayar: p.Jumlah,
             Tanggal:      p.TanggalBayar,
+			CreatedAt: p.CreatedAt,
+			UpdatedAt: p.UpdatedAt,
         })
     }
 	totalPage := int(math.Ceil(float64(totalData) / float64(pageSize)))
@@ -261,6 +272,8 @@ func ( c *guruRepository) HistoryPengambilanKas(nip, page, pageSize int) ([]mode
 			Nama: p.Nama,
 			JumlahAmbil: p.JumlahAmbil,
 			TanggalAmbil: p.TanggalAmbil,
+			CreatedAt: p.CreatedAt,
+			UpdatedAt: p.UpdatedAt,
 		})
 	}
 	totalPage := int(math.Ceil(float64(totalData) / float64(pageSize)))

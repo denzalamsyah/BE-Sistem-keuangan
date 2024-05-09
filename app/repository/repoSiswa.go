@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"strings"
+	"time"
 
 	"github.com/denzalamsyah/simak/app/models"
 	"gorm.io/gorm"
@@ -17,7 +18,7 @@ type SiswaRepository interface {
 	GetList(page, pageSize int) ([]models.SiswaResponse, int, error)
 	HistoryPembayaranSiswa(siswaID, page, pageSize int) ([]models.HistoryPembayaran, int, error)
 	GetTotalGenderCount() (int, int, error)
-	Search(name, nisn, kelas, jurusan string) ([]models.SiswaResponse, error)
+	Search(name, nisn, kelas, jurusan, angkatan string) ([]models.SiswaResponse, error)
 	GetUserNisn(nisn int) (models.Siswa, error)
 	
 }
@@ -31,6 +32,7 @@ func NewSiswaRepo(db *gorm.DB) *siswaRepository {
 }
 
 func (c *siswaRepository) Store(Siswa *models.Siswa) error {
+	Siswa.CreatedAt = time.Now()
 	if err := c.db.Create(Siswa).Error; err != nil {
 		return fmt.Errorf("failed to store new siswa: %v", err)
 	}
@@ -40,6 +42,11 @@ func (c *siswaRepository) Store(Siswa *models.Siswa) error {
 
 func (c *siswaRepository) Update(nisn int, Siswa models.Siswa) error {
 	err := c.db.Model(&models.Siswa{}).Where("nisn = ?", nisn).Updates(&Siswa).Error
+	if err != nil {
+		return err
+	}
+
+	err = c.db.Model(&models.Siswa{}).Where("nisn = ?", nisn).Update("updated_at", time.Now()).Error
 	if err != nil {
 		return err
 	}
@@ -78,6 +85,8 @@ func (c *siswaRepository) GetByID(nisn int) (*models.SiswaResponse, error) {
 		Email:        siswa.Email,
 		Alamat:       siswa.Alamat,
 		Gambar:       siswa.Gambar,
+		CreatedAt: siswa.CreatedAt,
+		UpdatedAt: siswa.UpdatedAt,
 	}
 
 	return &siswaResponse, nil
@@ -114,6 +123,8 @@ func (c *siswaRepository) GetList(page, pageSize int) ([]models.SiswaResponse, i
 			Email:        s.Email,
 			Alamat:       s.Alamat,
 			Gambar:       s.Gambar,
+			CreatedAt: s.CreatedAt,
+			UpdatedAt: s.UpdatedAt,
 		})
 	}
 	totalPage := int(math.Ceil(float64(totalData) / float64(pageSize)))
@@ -145,6 +156,8 @@ func (c *siswaRepository) HistoryPembayaranSiswa(siswaID, page, pageSize int) ([
             Biaya:          p.Jumlah,
             Tanggal:        p.Tanggal,
 			Status: p.Status,
+			CreatedAt: p.CreatedAt,
+			UpdatedAt: p.UpdatedAt,
         })
     }
 	totalPage := int(math.Ceil(float64(totalData) / float64(pageSize)))
@@ -165,22 +178,22 @@ func (c *siswaRepository) GetTotalGenderCount() (int, int, error) {
     return int(countLakiLaki), int(countPerempuan), nil
 }
 
-func (c *siswaRepository) Search(name, nisn, kelas, jurusan string) ([]models.SiswaResponse, error) {
+func (c *siswaRepository) Search(name, nisn, kelas, jurusan, angkatan string) ([]models.SiswaResponse, error) {
     name = strings.ToLower(name)
     kelas = strings.ToLower(kelas)
     jurusan = strings.ToLower(jurusan)
+	angkatan = strings.ToLower(angkatan)
 
     var siswaList []models.SiswaResponse
 
     // Query dengan menggunakan Select untuk menentukan kolom yang akan diambil
     query := c.db.Table("siswas").
-        Select("siswas.nama, siswas.nisn, kelas.kelas as kelas, jurusans.jurusan as jurusan, agamas.nama as agama, siswas.tempat_lahir, siswas.tanggal_lahir, genders.nama as gender, siswas.nama_ayah, siswas.nama_ibu, siswas.nomor_telepon, siswas.angkatan, siswas.email, siswas.alamat, siswas.gambar").
+        Select("siswas.nama, siswas.nisn, kelas.kelas as kelas, jurusans.jurusan as jurusan, agamas.nama as agama, siswas.tempat_lahir, siswas.tanggal_lahir, genders.nama as gender, siswas.nama_ayah, siswas.nama_ibu, siswas.nomor_telepon, siswas.angkatan, siswas.email, siswas.alamat, siswas.gambar, siswas.created_at, siswas.updated_at").
         Joins("JOIN kelas ON siswas.kelas_id = kelas.kode_kelas").
         Joins("JOIN jurusans ON siswas.jurusan_id = jurusans.kode_jurusan").
 		Joins("JOIN agamas ON siswas.agama_id = agamas.id_agama").
 		Joins("JOIN genders ON siswas.gender_id = genders.id_gender").
-        Where("LOWER(siswas.nama) LIKE ? AND siswas.nisn::TEXT LIKE ? AND LOWER(kelas.kelas) LIKE ? AND LOWER(jurusans.jurusan) LIKE ?", "%"+name+"%", "%"+nisn+"%", "%"+kelas+"%", "%"+jurusan+"%")
-
+        Where("LOWER(siswas.nama) LIKE ? AND siswas.nisn::TEXT LIKE ? AND LOWER(kelas.kelas) LIKE ? AND LOWER(jurusans.jurusan) LIKE ? AND LOWER(siswas.angkatan) LIKE ?", "%"+name+"%", "%"+nisn+"%", "%"+kelas+"%", "%"+jurusan+"%", "%"+angkatan+"%")
     if err := query.Find(&siswaList).Error; err != nil {
         return nil, err
     }

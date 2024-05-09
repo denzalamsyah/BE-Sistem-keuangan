@@ -20,6 +20,8 @@ type SemesterAPI interface {
 	GetList(c *gin.Context)
 	Search(c *gin.Context)
 	DownloadPembayaranSiswa(c *gin.Context)
+	GetLunasByNIP(ctx *gin.Context)
+	DownloadReportSiswa(c *gin.Context)
 }
 
 type semesterAPI struct{
@@ -46,8 +48,8 @@ func (s *semesterAPI) AddSemester(c *gin.Context) {
 	if err != nil {
 		log.Printf("Error: %v", err)
 		c.JSON(500, gin.H{
-			"error" : err.Error(),
-			"message":   "Periksa kembali inputan anda",
+			"message" : err.Error(),
+			"error":   "Periksa kembali inputan anda",
 		})
 		return
 	}
@@ -94,8 +96,8 @@ func (s *semesterAPI) Update(c *gin.Context) {
 	if err != nil {
 		log.Printf("Error: %v", err)
 		c.JSON(500, gin.H{
-			"error" : err.Error(),
-			"message":   "Gagal mengubah data",
+			"message" : err.Error(),
+			"error":   "Periksa kembali inputan anda",
 		})
 		return
 	}
@@ -221,7 +223,7 @@ func (s *semesterAPI) Search(c *gin.Context){
 
 func (s *semesterAPI) DownloadPembayaranSiswa(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
-	log.Printf("ID: %v", id)
+
 	
 	if err != nil {
 		log.Printf("Pesan error: %v", err)
@@ -270,7 +272,7 @@ func (s *semesterAPI) DownloadPembayaranSiswa(c *gin.Context) {
 		pdf.Cell(0, 10, "Kp. Galumpit Kidul RT 005/RW 004 Des. Cipancar Kec. Leles Garut Jawa Barat")
 		pdf.Ln(5)
 		pdf.SetX(float64(xText))
-		pdf.CellFormat(0, 10, "Garut, "+result.TahunAjar, "0", 1, "", false, 0, "")
+		pdf.CellFormat(0, 10, "Garut, "+result.Kelas, "0", 1, "", false, 0, "")
 		// pdf.Ln(5)
 		pdf.SetX(float64(xText))
 		pdf.Cell(0, 0, "No. Telp: 123456789")
@@ -292,7 +294,7 @@ func (s *semesterAPI) DownloadPembayaranSiswa(c *gin.Context) {
 	pdf.CellFormat(0, 10, "NISN : "+strconv.Itoa(int(result.NISN)), "0", 1, "", false, 0, "")
 	pdf.CellFormat(0, 10, "Nama Pembayaran : "+result.Transaksi, "0", 1, "", false, 0, "")
 	pdf.CellFormat(0, 10, "Semester : "+result.Semester, "0", 1, "", false, 0, "")
-	pdf.CellFormat(0, 10, "Tahun Pelajaran : "+result.TahunAjar, "0", 1, "", false, 0, "")
+	pdf.CellFormat(0, 10, "Kelas : "+result.Kelas, "0", 1, "", false, 0, "")
 	pdf.CellFormat(0, 10, "Jumlah Bayar : Rp. "+strconv.Itoa(result.Jumlah), "0", 1, "", false, 0, "")
     pdf.CellFormat(0, 10, "Tanggal Pembayaran : "+result.Tanggal, "0", 1, "", false, 0, "")
 	pdf.CellFormat(0, 10, "Status : "+result.Status, "0", 1, "", false, 0, "")
@@ -322,3 +324,48 @@ func (s *semesterAPI) DownloadPembayaranSiswa(c *gin.Context) {
     c.File("./app/files/" + fileName)
 
 }
+
+func (c *semesterAPI) GetLunasByNIP(ctx *gin.Context) {
+	nisn, err := strconv.Atoi(ctx.Param("nisn"))
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid NIP"})
+		return
+	}
+
+	pembayaran, err := c.semesterService.GetLunasByNISN(nisn)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to get data"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, pembayaran)
+}
+
+func (s *semesterAPI) DownloadReportSiswa(c *gin.Context) {
+	nisn, err := strconv.Atoi(c.Param("nisn"))
+
+	if err != nil {
+		log.Printf("Pesan error: %v", err)
+
+		c.JSON(400, gin.H{
+			"message" : "invalid request body",
+		})
+		return
+	}
+
+	result, err := s.semesterService.GetLunasByNISN(nisn)
+	log.Printf("data: %v", result)
+	if err != nil {
+		log.Printf("Pesan error: %v", err)
+
+		c.JSON(500, gin.H{
+			"message" : "internal server error",
+            "error" : err.Error(),
+		})
+		return
+	}
+
+	// file :=excelize.NewFile()
+
+}
+

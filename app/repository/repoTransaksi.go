@@ -3,6 +3,7 @@ package repository
 import (
 	"math"
 	"strings"
+	"time"
 
 	"github.com/denzalamsyah/simak/app/models"
 	"gorm.io/gorm"
@@ -26,6 +27,7 @@ func NewTransaksiRepo(db *gorm.DB) *transaksiRepository {
 }
 
 func (c *transaksiRepository) Store(Transaksi *models.Transaksi) error {
+	Transaksi.CreatedAt = time.Now()
 	err := c.db.Create(Transaksi).Error
 	if err != nil {
 		return err
@@ -35,6 +37,10 @@ func (c *transaksiRepository) Store(Transaksi *models.Transaksi) error {
 
 func (c *transaksiRepository) Update(id int, Transaksi models.Transaksi) error {
 	err := c.db.Model(&Transaksi).Where("id = ?", id).Updates(&Transaksi).Error
+	if err != nil {
+		return err
+	}
+	err = c.db.Model(&models.Transaksi{}).Where("id = ?", id).Update("updated_at", time.Now()).Error
 	if err != nil {
 		return err
 	}
@@ -74,7 +80,7 @@ func (c *transaksiRepository) Search(nama string) ([]models.Transaksi, error){
 	var Transaksi []models.Transaksi
 
 	query := c.db.Table("transaksis").
-	Select("transaksis.id, transaksis.nama, transaksis.jumlah_bayar").
+	Select("transaksis.id, transaksis.nama, transaksis.jumlah_bayar, transaksis.created_at, transaksis.updated_at").
 	Where("LOWER(transaksis.nama) LIKE ?", "%" +nama+ "%")
 
 	if err := query.Find(&Transaksi).Error; err != nil {

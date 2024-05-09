@@ -23,6 +23,7 @@ type SiswaAPI interface {
     GetTotalGenderCount(c *gin.Context)
     Search(c *gin.Context)
     ExportSiswa(c *gin.Context)
+    DownloadSiswa(c *gin.Context)
 }
 
 type siswaAPI struct {
@@ -355,16 +356,21 @@ func (s *siswaAPI) Search(c *gin.Context) {
 	kelas := c.Query("kelas")
 	nisn := c.Query("nisn")
     jurusan := c.Query("jurusan")
+    angkatan := c.Query("angkatan")
 
-	siswaList, err := s.siswaService.Search(name,  nisn, kelas, jurusan)
+
+	siswaList, err := s.siswaService.Search(name,  nisn, kelas, jurusan, angkatan)
 	if err != nil {
         log.Printf("Error: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
+   
 
-	c.JSON(http.StatusOK, gin.H{"data": siswaList})
-}
+	c.JSON(http.StatusOK, gin.H{
+        "data": siswaList,
+        "message" : "Berhasil mendapatkan data"})
+    }
 
 func (s *siswaAPI) ExportSiswa(c *gin.Context) {
     page, err := strconv.Atoi(c.Query("page"))
@@ -449,4 +455,89 @@ func (s *siswaAPI) ExportSiswa(c *gin.Context) {
     c.Header("Content-Type", "application/octet-stream")
     c.Header("Content-Transfer-Encoding", "binary")
     c.File(filePath)
+}
+
+func (s *siswaAPI) DownloadSiswa(c *gin.Context) {
+    name := c.Query("nama")
+	kelas := c.Query("kelas")
+	nisn := c.Query("nisn")
+    jurusan := c.Query("jurusan")
+    angkatan := c.Query("angkatan")
+
+
+	result, err := s.siswaService.Search(name,  nisn, kelas, jurusan, angkatan)
+	if err != nil {
+        log.Printf("Error: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+    if len(result) == 0 {
+        log.Printf("Error: %v", "data tidak ada")
+        c.JSON(http.StatusNotFound, gin.H{"message": "Data tidak ditemukan"})
+        return
+    }
+    
+
+    file := excelize.NewFile()
+    index, err := file.NewSheet("Siswa")
+    if err != nil {
+        log.Printf("Pesan error: %v", err)
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+    file.SetActiveSheet(index)
+
+    // Add header row
+    header := []string{"NO", "Nama", "NISN", "Kelas", "Jurusan", "Agama", "Tempat Lahir", "Tanggal Lahir", "Gender", "Nama Ayah", "Nama Ibu", "Nomor Telepon", "Angkatan", "Email", "Alamat"}
+    for col, val := range header {
+        colName, err := excelize.ColumnNumberToName(col + 1)
+        if err != nil {
+        log.Printf("Pesan error: %v", err)
+            c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+            return
+        }
+        cell := colName + "1"
+        file.SetCellValue("Siswa", cell, val)
+    }
+
+    // Add data rows
+    for i, data := range result {
+        row := i + 2
+        file.SetCellValue("Siswa", "A"+strconv.Itoa(row), i+1)
+        file.SetCellValue("Siswa", "B"+strconv.Itoa(row), data.Nama)
+        file.SetCellValue("Siswa", "C"+strconv.Itoa(row), data.NISN)
+        file.SetCellValue("Siswa", "D"+strconv.Itoa(row), data.Kelas)
+        file.SetCellValue("Siswa", "E"+strconv.Itoa(row), data.Jurusan)
+        file.SetCellValue("Siswa", "F"+strconv.Itoa(row), data.Agama)
+        file.SetCellValue("Siswa", "G"+strconv.Itoa(row), data.TempatLahir)
+        file.SetCellValue("Siswa", "H"+strconv.Itoa(row), data.TanggalLahir)
+        file.SetCellValue("Siswa", "I"+strconv.Itoa(row), data.Gender)
+        file.SetCellValue("Siswa", "J"+strconv.Itoa(row), data.NamaAyah)
+        file.SetCellValue("Siswa", "K"+strconv.Itoa(row), data.NamaIbu)
+        file.SetCellValue("Siswa", "L"+strconv.Itoa(row), data.NomorTelepon)
+        file.SetCellValue("Siswa", "M"+strconv.Itoa(row), data.Angkatan)
+        file.SetCellValue("Siswa", "N"+strconv.Itoa(row), data.Email)
+        file.SetCellValue("Siswa", "O"+strconv.Itoa(row), data.Alamat)
+    }
+
+    fileName := "siswa.xlsx"
+    err = file.SaveAs("./app/files/"+fileName)
+    if err != nil {
+        log.Printf("Pesan error: %v", err)
+
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+    filePath := "./app/files/" + fileName
+    defer func() {
+        if err := os.Remove(filePath); err != nil {
+            log.Printf("Gagal menghapus file: %v", err)
+        }
+    }()
+    c.Header("Content-Description", "File Transfer")
+    c.Header("Content-Disposition", "attachment; filename="+fileName)
+    c.Header("Content-Type", "application/octet-stream")
+    c.Header("Content-Transfer-Encoding", "binary")
+    c.File(filePath)
+    
 }

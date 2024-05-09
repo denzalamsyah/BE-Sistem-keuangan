@@ -3,6 +3,7 @@ package repository
 import (
 	"math"
 	"strings"
+	"time"
 
 	"github.com/denzalamsyah/simak/app/models"
 	"gorm.io/gorm"
@@ -31,7 +32,7 @@ func NewPemasukanRepo(db *gorm.DB) *pemasukanRepository {
 func (c *pemasukanRepository) Store(pemasukan *models.Pemasukanlainnya) error {
     tx := c.db.Begin()
 
-
+    pemasukan.CreatedAt = time.Now()
     if err := tx.Create(pemasukan).Error; err != nil {
         tx.Rollback()
         return err
@@ -42,6 +43,7 @@ func (c *pemasukanRepository) Store(pemasukan *models.Pemasukanlainnya) error {
         Nama:    pemasukan.Nama,
         Tanggal: pemasukan.Tanggal,
         Jumlah:  pemasukan.Jumlah,
+        CreatedAt: pemasukan.CreatedAt,
     }
     if err := tx.Create(&pemasukanLainnya).Error; err != nil {
         tx.Rollback()
@@ -73,6 +75,7 @@ func (c *pemasukanRepository) Update(id int, pemasukan models.Pemasukanlainnya) 
             "nama" : pemasukanlainnya.Nama,
             "tanggal": pemasukanlainnya.Tanggal,
             "jumlah":  pemasukanlainnya.Jumlah,
+            "updated_at": time.Now(),
         }).Error; err != nil {
         tx.Rollback()
         return err
@@ -157,6 +160,8 @@ func (c *pemasukanRepository) FindAll(page, pageSize int) ([]models.PemasukanRes
             Nama: s.Nama,
             Tanggal: s.Tanggal,
             Jumlah: s.Jumlah,
+            CreatedAt: s.CreatedAt,
+            UpdatedAt: s.UpdatedAt,
         })
     }
 	totalPage := int(math.Ceil(float64(totalData) / float64(pageSize)))
@@ -188,7 +193,7 @@ func (c *pemasukanRepository) SearchAll(nama, tanggal string) ([]models.Pemasuka
     var pemasukan []models.PemasukanResponse
 
     query := c.db.Table("pemasukans").
-    Select("pemasukans.id, pemasukans.nama, pemasukans.tanggal, pemasukans.jumlah").
+    Select("pemasukans.id, pemasukans.nama, pemasukans.tanggal, pemasukans.jumlah,  pemasukans.created_at, pemasukans.updated_at").
     Where("LOWER(pemasukans.nama) LIKE ? AND LOWER(pemasukans.tanggal) LIKE ?", "%"+nama+"%", "%"+tanggal+"%")
 
     if err := query.Find(&pemasukan).Error; err != nil {
@@ -205,7 +210,7 @@ func (c *pemasukanRepository) Search(nama, tanggal string) ([]models.Pemasukanla
     var pemasukan []models.Pemasukanlainnya
 
     query := c.db.Table("pemasukanlainnyas").
-    Select("pemasukanlainnyas.id, pemasukanlainnyas.nama, pemasukanlainnyas.tanggal, pemasukanlainnyas.jumlah").
+    Select("pemasukanlainnyas.id, pemasukanlainnyas.nama, pemasukanlainnyas.tanggal, pemasukanlainnyas.jumlah, pemasukanlainnyas.created_at, pemasukanlainnyas.updated_at").
     Where("LOWER(pemasukanlainnyas.nama) LIKE ? AND LOWER(pemasukanlainnyas.tanggal) LIKE ?", "%"+nama+"%", "%"+tanggal+"%")
 
     if err := query.Find(&pemasukan).Error; err != nil {

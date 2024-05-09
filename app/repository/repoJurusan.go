@@ -3,6 +3,7 @@ package repository
 import (
 	"math"
 	"strings"
+	"time"
 
 	"github.com/denzalamsyah/simak/app/models"
 	"gorm.io/gorm"
@@ -28,6 +29,7 @@ func NewJurusanRepo(db *gorm.DB) *jurusanRepository {
 }
 
 func (c *jurusanRepository) Store(Jurusan *models.Jurusan) error {
+	Jurusan.CreatedAt = time.Now()
 	err := c.db.Create(Jurusan).Error
 	if err != nil {
 		return err
@@ -40,6 +42,12 @@ func (c *jurusanRepository) Update(kode int, Jurusan models.Jurusan) error {
 	if err != nil {
 		return err
 	}
+	// Atur nilai UpdatedAt dengan waktu sekarang
+	err = c.db.Model(&models.Jurusan{}).Where("kode_jurusan = ?", kode).Update("updated_at", time.Now()).Error
+	if err != nil {
+			return err
+		}
+	
 	return nil
 }
 
@@ -90,7 +98,7 @@ func (c *jurusanRepository) Search(nama string) ([]models.Jurusan, error){
 	var jurusan []models.Jurusan
 
 	query := c.db.Table("jurusans").
-	Select("jurusans.kode_jurusan, jurusans.jurusan").
+	Select("jurusans.kode_jurusan, jurusans.jurusan, jurusans.created_at, jurusans.updated_at").
 	Where("LOWER(jurusans.jurusan) LIKE ?", "%" +nama+ "%")
 
 	if err := query.Find(&jurusan).Error; err != nil {

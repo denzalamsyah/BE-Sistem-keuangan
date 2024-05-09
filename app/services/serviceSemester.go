@@ -12,6 +12,7 @@ type SemesterServices interface {
 	GetByID(id int) (*models.PembayaranSemesterResponse, error)
 	GetList(page, pageSize int) ([]models.PembayaranSemesterResponse, int, error)
 	Search(siswa, tahunAjar, transaksi, semester, tanggal string) ([]models.PembayaranSemesterResponse, error)
+	GetLunasByNISN(nisn int) ([]models.PembayaranSemesterResponse, error)
 }
 
 type semesterServices struct{
@@ -70,4 +71,7 @@ func (c *semesterServices)  Search(siswa, tahunAjar, transaksi, semester, tangga
         return nil, err
     }
 	return pembeyaran, nil
+}
+func (s *semesterServices) GetLunasByNISN(nisn int) ([]models.PembayaranSemesterResponse, error) {
+	return s.semesterRepo.GetLunasByNISN(nisn)
 }
