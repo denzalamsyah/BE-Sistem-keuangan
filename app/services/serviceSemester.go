@@ -11,7 +11,8 @@ type SemesterServices interface {
 	Delete(id int) error
 	GetByID(id int) (*models.PembayaranSemesterResponse, error)
 	GetList(page, pageSize int) ([]models.PembayaranSemesterResponse, int, error)
-	Search(siswa, tahunAjar, transaksi, semester, tanggal string) ([]models.PembayaranSemesterResponse, error)
+	GetListByCategory(page, pageSize int, category string) ([]models.PembayaranSemesterResponse, int, error)
+	Search(siswa, tahunAjar, transaksi, semester, tanggal, nisn, kategori  string) ([]models.PembayaranSemesterResponse, error)
 	GetLunasByNISN(nisn int) ([]models.PembayaranSemesterResponse, error)
 }
 
@@ -64,8 +65,16 @@ func (c *semesterServices) GetList(page, pageSize int) ([]models.PembayaranSemes
 	return PembayaranSemesters, totalPage, nil
 }
 
-func (c *semesterServices)  Search(siswa, tahunAjar, transaksi, semester, tanggal string) ([]models.PembayaranSemesterResponse, error){
-	pembeyaran, err := c.semesterRepo.Search(siswa, tahunAjar, transaksi, semester, tanggal)
+func (c *semesterServices) GetListByCategory(page, pageSize int, category string) ([]models.PembayaranSemesterResponse, int, error){
+	PembayaranSemesters, totalPage, err := c.semesterRepo.GetListByCategory(page, pageSize, category)
+	if err != nil {
+		return nil,0, err
+	}
+	return PembayaranSemesters, totalPage, nil
+}
+
+func (c *semesterServices)  Search(siswa, tahunAjar, transaksi, semester, tanggal, nisn, kategori string) ([]models.PembayaranSemesterResponse, error){
+	pembeyaran, err := c.semesterRepo.Search(siswa, tahunAjar, transaksi, semester, tanggal, nisn, kategori)
 
 	if err != nil {
         return nil, err

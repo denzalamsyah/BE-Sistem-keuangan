@@ -37,38 +37,29 @@ type GuruResponse struct {
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
-type HistoryPembayaran struct {
-	ID             int    `json:"id"`
-	Siswa          string `gorm:"type:varchar(35)" json:"siswa"`
-	NISN           int    `json:"nisn"`
-	Nama_transaksi string `gorm:"type:varchar(35)" json:"nama_transaksi"`
-	Biaya          int    `json:"biaya"`
-	Tanggal        string `gorm:"type:varchar(15)" json:"tanggal"`
-	Status         string `gorm:"type:varchar(15)" json:"status"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-}
-type PembayaranSPPResponse struct {
-	ID        int    `json:"id"`
-	Siswa     string `json:"siswa"`
-	Bulan     string `json:"bulan"`
-	Semester  string `json:"semester"`
-	Transaksi string `json:"nama_transaksi"`
-	TahunAjar string `json:"tahun_ajar"`
-	Tanggal   string `json:"tanggal"`
-	Jumlah    int    `json:"total_jumlah"`
-	Penerima  string `json:"penerima"`
-	Status    string `json:"status"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-}
+
+// type PembayaranSPPResponse struct {
+// 	ID        int    `json:"id"`
+// 	Siswa     string `json:"siswa"`
+// 	Bulan     string `json:"bulan"`
+// 	Semester  string `json:"semester"`
+// 	Transaksi string `json:"nama_transaksi"`
+// 	TahunAjar string `json:"tahun_ajar"`
+// 	Tanggal   string `json:"tanggal"`
+// 	Jumlah    int    `json:"total_jumlah"`
+// 	Penerima  string `json:"penerima"`
+// 	Status    string `json:"status"`
+// 	CreatedAt time.Time `json:"created_at"`
+// 	UpdatedAt time.Time `json:"updated_at"`
+// }
 
 type PembayaranSemesterResponse struct {
 	ID        int    `json:"id"`
 	Siswa     string `json:"siswa"`
 	NISN      int    `json:"nisn"`
 	Kelas     string `json:"kelas"`
-	Semester  string `json:"semester"`
+	Bulan  string `json:"bulan"`
+	Semester  string  `json:"semester"`
 	Transaksi string `json:"nama_transaksi"`
 	Tanggal   string `json:"tanggal"`
 	Jumlah    int    `json:"total_jumlah"`

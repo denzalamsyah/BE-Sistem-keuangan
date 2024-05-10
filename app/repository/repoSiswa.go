@@ -19,6 +19,7 @@ type SiswaRepository interface {
 	HistoryPembayaranSiswa(siswaID, page, pageSize int) ([]models.HistoryPembayaran, int, error)
 	GetTotalGenderCount() (int, int, error)
 	Search(name, nisn, kelas, jurusan, angkatan string) ([]models.SiswaResponse, error)
+	SearchByKodeKelas(name, nisn, kodeKelas string) ([]models.SiswaResponse, error)
 	GetUserNisn(nisn int) (models.Siswa, error)
 	
 }
@@ -201,6 +202,27 @@ func (c *siswaRepository) Search(name, nisn, kelas, jurusan, angkatan string) ([
     return siswaList, nil
 }
 
+func (c *siswaRepository) SearchByKodeKelas(name, nisn, kodeKelas string) ([]models.SiswaResponse, error) {
+	var siswaList []models.SiswaResponse
+	name = strings.ToLower(name)
+	kodeKelas = strings.ToLower(kodeKelas)
+
+
+    // Query dengan menggunakan Select untuk menentukan kolom yang akan diambil
+    query := c.db.Table("siswas").
+		Select("siswas.nama, siswas.nisn, kelas.kelas as kelas, jurusans.jurusan as jurusan, agamas.nama as agama, siswas.tempat_lahir, siswas.tanggal_lahir, genders.nama as gender, siswas.nama_ayah, siswas.nama_ibu, siswas.nomor_telepon, siswas.angkatan, siswas.email, siswas.alamat, siswas.gambar, siswas.created_at, siswas.updated_at").
+        Joins("JOIN kelas ON siswas.kelas_id = kelas.kode_kelas").
+        Joins("JOIN jurusans ON siswas.jurusan_id = jurusans.kode_jurusan").
+        Joins("JOIN agamas ON siswas.agama_id = agamas.id_agama").
+        Joins("JOIN genders ON siswas.gender_id = genders.id_gender").
+        Where("LOWER(siswas.nama) LIKE ? AND siswas.nisn::TEXT LIKE ? AND LOWER(kelas.kode_kelas) LIKE ?", "%"+name+"%", "%"+nisn+"%", "%"+kodeKelas+"%")
+    if err := query.Find(&siswaList).Error; err != nil {
+        return nil, err
+    }
+
+    return siswaList, nil
+}
+
 func (c *siswaRepository) GetUserNisn(nisn int) (models.Siswa, error){
 	var Siswa models.Siswa
 
@@ -213,5 +235,6 @@ func (c *siswaRepository) GetUserNisn(nisn int) (models.Siswa, error){
 	}
 	return Siswa, nil
 }
+
 
 

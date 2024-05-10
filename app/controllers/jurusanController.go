@@ -59,7 +59,7 @@ func (a *jurusanAPI) AddJurusan(c *gin.Context) {
         
         if existingJurusan.KodeJurusan == newJurusan.KodeJurusan{
             c.JSON(http.StatusBadRequest, gin.H{
-                "message":   "Kode kelas sudah ada",
+                "message":   "Kode jurusan sudah ada",
                 "error":   "Gagal menambah data",
             })
             return
@@ -84,16 +84,16 @@ func (a *jurusanAPI) Update(c *gin.Context) {
         return
     }
 
-    kode, err := strconv.Atoi(jurusanKode)
-    if err != nil {
-		log.Printf("Pesan error: %v", err)
+    // kode, err := strconv.Atoi(jurusanKode)
+    // if err != nil {
+	// 	log.Printf("Pesan error: %v", err)
 
-        c.JSON(http.StatusBadRequest, gin.H{
-            "message": "invalid request body",
-            "error" : err.Error(),
-        })
-        return
-    }
+    //     c.JSON(http.StatusBadRequest, gin.H{
+    //         "message": "invalid request body",
+    //         "error" : err.Error(),
+    //     })
+    //     return
+    // }
 
     var newJurusan models.Jurusan
     if err := c.ShouldBind(&newJurusan); err != nil {
@@ -106,7 +106,7 @@ func (a *jurusanAPI) Update(c *gin.Context) {
         return
     }
 
-    err = a.jurusanService.Update(kode, newJurusan)
+    err := a.jurusanService.Update(jurusanKode, newJurusan)
     if err != nil {
 		log.Printf("Update error: %v", err)
 
@@ -129,7 +129,7 @@ func (a *jurusanAPI) Update(c *gin.Context) {
         
         if existingJurusan.KodeJurusan == newJurusan.KodeJurusan{
             c.JSON(http.StatusBadRequest, gin.H{
-                "message":   "Kode kelas sudah ada",
+                "message":   "Kode jurusan sudah ada",
                 "error":   "Gagal mengubah data",
             })
             return
@@ -139,7 +139,7 @@ func (a *jurusanAPI) Update(c *gin.Context) {
     }
 
     c.JSON(http.StatusOK, gin.H{
-        "message": "Berhasil mengubah Kelas",
+        "message": "Berhasil mengubah jurusan",
         "data":    newJurusan,
     })
 }
@@ -155,17 +155,17 @@ func (a *jurusanAPI) Delete(c *gin.Context) {
 		return
 	}
 
-	kode, err := strconv.Atoi(jurusanKode)
-	if err != nil {
-		log.Printf("Error: %v", err)
-		c.JSON(400, gin.H{
-			"message" : "invalid request body",
-			"error":   err.Error(),
-		})
-		return
-	}
+	// kode, err := strconv.Atoi(jurusanKode)
+	// if err != nil {
+	// 	log.Printf("Error: %v", err)
+	// 	c.JSON(400, gin.H{
+	// 		"message" : "invalid request body",
+	// 		"error":   err.Error(),
+	// 	})
+	// 	return
+	// }
 
-	err = a.jurusanService.Delete(kode)
+	err := a.jurusanService.Delete(jurusanKode)
 	if err != nil {
 		log.Printf("Error: %v", err)
 		c.JSON(500, gin.H{

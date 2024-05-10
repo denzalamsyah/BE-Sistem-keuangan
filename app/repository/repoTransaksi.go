@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"errors"
 	"math"
 	"strings"
 	"time"
@@ -14,7 +15,7 @@ type TransaksiRepository interface {
 	Update(id int, Transaksi models.Transaksi) error
 	Delete(id int) error
 	GetList(page, paedSize int) ([]models.Transaksi, int, error)	
-	Search(nama string) ([]models.Transaksi, error)
+	Search(nama, kategori  string) ([]models.Transaksi, error)
 
 }
 
@@ -27,6 +28,19 @@ func NewTransaksiRepo(db *gorm.DB) *transaksiRepository {
 }
 
 func (c *transaksiRepository) Store(Transaksi *models.Transaksi) error {
+	var count int64
+    if err := c.db.Model(&models.Transaksi{}).
+        Where("nama = ?", Transaksi.Nama).
+        Where("kategori = ?", Transaksi.Kategori).
+        Count(&count).Error; err != nil {
+    
+        return err
+    }
+
+    if count > 0 {
+        return errors.New("Transaksi sudah ada")
+    }
+
 	Transaksi.CreatedAt = time.Now()
 	err := c.db.Create(Transaksi).Error
 	if err != nil {
@@ -74,14 +88,15 @@ func (c *transaksiRepository) GetList(page, pageSize int) ([]models.Transaksi, i
 	return Transaksi, totalPage, nil
 }
 
-func (c *transaksiRepository) Search(nama string) ([]models.Transaksi, error){
+func (c *transaksiRepository) Search(nama, kategori string) ([]models.Transaksi, error){
 	nama = strings.ToLower(nama)
+	kategori = strings.ToLower(kategori)
 
 	var Transaksi []models.Transaksi
 
 	query := c.db.Table("transaksis").
-	Select("transaksis.id, transaksis.nama, transaksis.jumlah_bayar, transaksis.created_at, transaksis.updated_at").
-	Where("LOWER(transaksis.nama) LIKE ?", "%" +nama+ "%")
+	Select("transaksis.id, transaksis.nama, transaksis.jumlah, transaksis.kategori, transaksis.created_at, transaksis.updated_at").
+	Where("LOWER(transaksis.nama) LIKE ? AND LOWER(transaksis.kategori) LIKE ?", "%" +nama+ "%", "%" +kategori+ "%" )
 
 	if err := query.Find(&Transaksi).Error; err != nil {
         return nil, err

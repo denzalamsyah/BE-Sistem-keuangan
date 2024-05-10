@@ -45,8 +45,8 @@ func (a *transaksiAPI) AddTransaksi(c *gin.Context) {
 		log.Printf("Pesan error: %v", err)
 
 		c.JSON(500, gin.H{
-			"error" : err.Error(),
-			"message":   "Gagal menambah data",
+			"message" : err.Error(),
+			"error":   "Gagal menambah data",
 		})
 		return
 	}
@@ -188,8 +188,9 @@ func (a *transaksiAPI) GetList(c *gin.Context) {
 
 func (a *transaksiAPI) Search(c *gin.Context){
 	nama := c.Query("nama")
+	kategori := c.Query("kategori")
 
-	transaksi, err := a.transaksiService.Search(nama)
+	transaksi, err := a.transaksiService.Search(nama, kategori)
 	if err != nil {
         log.Printf("Error: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

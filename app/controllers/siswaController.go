@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -22,6 +23,7 @@ type SiswaAPI interface {
 	History(c *gin.Context)
     GetTotalGenderCount(c *gin.Context)
     Search(c *gin.Context)
+    SearchByKode(c *gin.Context)
     ExportSiswa(c *gin.Context)
     DownloadSiswa(c *gin.Context)
 }
@@ -371,6 +373,27 @@ func (s *siswaAPI) Search(c *gin.Context) {
         "data": siswaList,
         "message" : "Berhasil mendapatkan data"})
     }
+
+func (s *siswaAPI)SearchByKode(c *gin.Context){
+    name := c.Query("nama")
+	kode := c.Query("kode")
+	nisn := c.Query("nisn")
+
+
+	siswaList, err := s.siswaService.SearchByKodeKelas(name,  nisn, kode)
+	if err != nil {
+        log.Printf("Error: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
+	}
+   
+    fmt.Println(siswaList)
+
+	c.JSON(http.StatusOK, gin.H{
+        "data": siswaList,
+        "message" : "Berhasil mendapatkan data"})
+    }
+
 
 func (s *siswaAPI) ExportSiswa(c *gin.Context) {
     page, err := strconv.Atoi(c.Query("page"))

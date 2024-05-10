@@ -11,12 +11,12 @@ import (
 
 type KelasRepository interface {
 	Store(Kelas *models.Kelas) error
-	Update(kode int, Kelas models.Kelas) error
-	Delete(kode int) error
+	Update(kode string, Kelas models.Kelas) error
+	Delete(kode string) error
 	GetList(page, pageSize int) ([]models.Kelas, int, error)
 	GetTotalKelasCount() (int, error)
 	Search(nama string) ([]models.Kelas, error)
-	GetKode(kode int) (models.Kelas, error)
+	GetKode(kode string) (models.Kelas, error)
 
 }
 
@@ -37,7 +37,7 @@ func (c *kelasRepository) Store(Kelas *models.Kelas) error {
 	return nil
 }
 
-func (c *kelasRepository) Update(kode int, Kelas models.Kelas) error {
+func (c *kelasRepository) Update(kode string, Kelas models.Kelas) error {
 	err := c.db.Model(&models.Kelas{}).Where("kode_kelas = ?", kode).Updates(&Kelas).Error
 	if err != nil {
 		return err
@@ -49,7 +49,7 @@ func (c *kelasRepository) Update(kode int, Kelas models.Kelas) error {
 	return nil
 }
 
-func (c *kelasRepository) Delete(kode int) error {
+func (c *kelasRepository) Delete(kode string) error {
 	var Kelas models.Kelas
 	err := c.db.Where("kode_kelas = ?", kode).Delete(&Kelas).Error
 	if err != nil {
@@ -100,7 +100,7 @@ func (c *kelasRepository) Search(nama string) ([]models.Kelas, error){
 	return Kelas, nil
 }
 
-func (c *kelasRepository) GetKode(kode int) (models.Kelas, error){
+func (c *kelasRepository) GetKode(kode string) (models.Kelas, error){
 	var Kelas models.Kelas
 
 	result :=c.db.Where("kode_kelas = ?", kode).First(&Kelas)

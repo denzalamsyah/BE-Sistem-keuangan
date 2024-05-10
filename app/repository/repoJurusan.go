@@ -11,12 +11,12 @@ import (
 
 type JurusanRepository interface {
 	Store(Jurusan *models.Jurusan) error
-	Update(kode int, Jurusan models.Jurusan) error
-	Delete(kode int) error
+	Update(kode string, Jurusan models.Jurusan) error
+	Delete(kode string) error
 	GetList(page, pageSize int) ([]models.Jurusan,int, error)
 	GetTotalJurusanCount() (int, error)
 	Search(nama string) ([]models.Jurusan, error)
-	GetKode(kode int) (models.Jurusan, error)
+	GetKode(kode string) (models.Jurusan, error)
 
 }
 
@@ -37,7 +37,7 @@ func (c *jurusanRepository) Store(Jurusan *models.Jurusan) error {
 	return nil
 }
 
-func (c *jurusanRepository) Update(kode int, Jurusan models.Jurusan) error {
+func (c *jurusanRepository) Update(kode string, Jurusan models.Jurusan) error {
 	err := c.db.Model(&models.Jurusan{}).Where("kode_jurusan = ?", kode).Updates(&Jurusan).Error
 	if err != nil {
 		return err
@@ -51,7 +51,7 @@ func (c *jurusanRepository) Update(kode int, Jurusan models.Jurusan) error {
 	return nil
 }
 
-func (c *jurusanRepository) Delete(kode int) error {
+func (c *jurusanRepository) Delete(kode string) error {
 	var Jurusan models.Jurusan
 	err := c.db.Where("kode_jurusan = ?", kode).Delete(&Jurusan).Error
 	if err != nil {
@@ -108,7 +108,7 @@ func (c *jurusanRepository) Search(nama string) ([]models.Jurusan, error){
 	return jurusan, nil
 }
 
-func (c *jurusanRepository) GetKode(kode int) (models.Jurusan, error){
+func (c *jurusanRepository) GetKode(kode string) (models.Jurusan, error){
 	var Jurusan models.Jurusan
 
 	result :=c.db.Where("kode_jurusan = ?", kode).First(&Jurusan)

@@ -16,7 +16,8 @@ type SemesterRepository interface {
 	Delete(id int) error
 	GetByID(id int) (*models.PembayaranSemesterResponse, error)
 	GetList(page, pageSize int) ([]models.PembayaranSemesterResponse, int, error)
-    Search(siswa, tahunAjar, transaksi, semester, tanggal string) ([]models.PembayaranSemesterResponse, error)
+    GetListByCategory(page, pageSize int, category string) ([]models.PembayaranSemesterResponse, int, error)
+    Search(siswa, tahunAjar, transaksi, bulan, tanggal, nisn, kategori  string) ([]models.PembayaranSemesterResponse, error)
     GetLunasByNISN(nisn int) ([]models.PembayaranSemesterResponse, error)
 }
 
@@ -35,9 +36,8 @@ func (c *semesterRepository) Store(PembayaranSemester *models.PembayaranSemester
     if err := tx.Model(&models.PembayaranSemester{}).
         Where("transaksi_id = ?", PembayaranSemester.TransaksiID).
         Where("siswa_id = ?", PembayaranSemester.SiswaID).
-        Where("kelas = ?", PembayaranSemester.Kelas).
+        Where("bulan = ?", PembayaranSemester.Bulan).
         Where("semester = ?", PembayaranSemester.Semester).
-        Where("tanggal = ?", PembayaranSemester.Tanggal).
         Count(&count).Error; err != nil {
         tx.Rollback()
         return err
@@ -180,8 +180,8 @@ func (c *semesterRepository) GetByID(id int) (*models.PembayaranSemesterResponse
 		Siswa:          PembayaranSemester.Siswa.Nama,
         NISN: PembayaranSemester.Siswa.Nisn,
 		Transaksi: PembayaranSemester.Transaksi.Nama,
-		Semester:       PembayaranSemester.Semester,
-		Kelas:      PembayaranSemester.Kelas,
+		Bulan:       PembayaranSemester.Bulan,
+        Semester: PembayaranSemester.Semester,
 		Status:         PembayaranSemester.Status,
 		Tanggal:        PembayaranSemester.Tanggal,
 		Jumlah:         PembayaranSemester.Jumlah,
@@ -212,8 +212,8 @@ func (c *semesterRepository) GetList(page, pageSize int) ([]models.PembayaranSem
 			Siswa:          s.Siswa.Nama,
             NISN: s.Siswa.Nisn,
 			Transaksi: s.Transaksi.Nama,
-			Semester:       s.Semester,
-			Kelas:      s.Kelas,
+			Bulan:       s.Bulan,
+            Semester: s.Semester,
 			Status:         s.Status,
 			Tanggal:        s.Tanggal,
 			Jumlah:         s.Jumlah,
@@ -226,21 +226,61 @@ func (c *semesterRepository) GetList(page, pageSize int) ([]models.PembayaranSem
 	return PembayaranSemesterResponse, totalPage, nil
 }
 
-func (c *semesterRepository) Search(siswa, tahunAjar, transaksi, semester, tanggal string) ([]models.PembayaranSemesterResponse, error){
+func (c *semesterRepository) GetListByCategory(page, pageSize int, category string) ([]models.PembayaranSemesterResponse, int, error) {
+	var PembayaranSemester []models.PembayaranSemester
+    err := c.db.Preload("Siswa").Preload("Transaksi").Where("transaksis.kategori = ?", category).
+    Joins("JOIN transaksis ON transaksis.id = pembayaran_semesters.transaksi_id").
+    Offset((page - 1) * pageSize).Limit(pageSize).Find(&PembayaranSemester).Error
+if err != nil {
+    return nil, 0, err
+}
+
+
+	var totalData int64
+	if err := c.db.Model(&models.PembayaranSemester{}).Count(&totalData).Error; err != nil {
+		return nil, 0, err
+	}
+
+	var PembayaranSemesterResponse []models.PembayaranSemesterResponse
+	for _, s := range PembayaranSemester {
+		PembayaranSemesterResponse = append(PembayaranSemesterResponse, models.PembayaranSemesterResponse{
+			ID:        s.ID,
+			Siswa:     s.Siswa.Nama,
+			NISN:      s.Siswa.Nisn,
+			Transaksi: s.Transaksi.Nama,
+			Bulan:     s.Bulan,
+			Semester:  s.Semester,
+			Status:    s.Status,
+			Tanggal:   s.Tanggal,
+			Jumlah:    s.Jumlah,
+			CreatedAt: s.CreatedAt,
+			UpdatedAt: s.UpdatedAt,
+		})
+	}
+	totalPage := int(math.Ceil(float64(totalData) / float64(pageSize)))
+
+	return PembayaranSemesterResponse, totalPage, nil
+}
+
+
+func (c *semesterRepository) Search(siswa, tahunAjar, transaksi, bulan, tanggal, nisn, kategori string) ([]models.PembayaranSemesterResponse, error){
     siswa = strings.ToLower(siswa)
     tahunAjar = strings.ToLower(tahunAjar)
     transaksi = strings.ToLower(transaksi)
-    semester = strings.ToLower(semester)
+    bulan = strings.ToLower(bulan)
     tanggal = strings.ToLower(tanggal)
+    nisn = strings.ToLower(nisn)
+    kategori = strings.ToLower(kategori)
+
     // penerima = strings.ToLower(penerima)
 
     var pembayaran []models.PembayaranSemesterResponse
 
     query := c.db.Table("pembayaran_semesters").
-    Select("pembayaran_semesters.id, siswas.nama as siswa, transaksis.nama as transaksi, pembayaran_semesters.semester, pembayaran_semesters.tahun_ajar, pembayaran_semesters.jumlah, pembayaran_semesters.tanggal, pembayaran_semesters.status, pembayaran_semesters.created_at, pembayaran_semesters.updated_at").
+    Select("pembayaran_semesters.id, siswas.nama as siswa, siswas.nisn as nisn, transaksis.nama as transaksi, transaksis.kategori as kategori, pembayaran_semesters.bulan, pembayaran_semesters.jumlah, pembayaran_semesters.tanggal, pembayaran_semesters.status, pembayaran_semesters.created_at, pembayaran_semesters.updated_at").
     Joins("JOIN siswas ON pembayaran_semesters.siswa_id = siswas.nisn").
     Joins("JOIN transaksis ON pembayaran_semesters.transaksi_id = transaksis.id").
-    Where("LOWER(siswas.nama) LIKE ? AND LOWER(pembayaran_semesters.tahun_ajar) LIKE ? AND LOWER(transaksis.nama) LIKE ? AND LOWER(pembayaran_semesters.semester) LIKE ? AND LOWER(pembayaran_semesters.tanggal) LIKE ?", "%"+siswa+"%", "%"+tahunAjar+"%", "%"+transaksi+"%", "%"+semester+"%", "%"+tanggal+"%")
+    Where("LOWER(siswas.nama) LIKE ? AND LOWER(pembayaran_semesters.tahun_ajar) LIKE ? AND LOWER(transaksis.nama) LIKE ? AND LOWER(pembayaran_semesters.bulan) LIKE ? AND LOWER(pembayaran_semesters.tanggal) LIKE ? AND siswas.nisn::TEXT LIKE ? AND LOWER(transaksis.kategori) LIKE ?", "%"+siswa+"%", "%"+tahunAjar+"%", "%"+transaksi+"%", "%"+bulan+"%", "%"+tanggal+"%", "%"+nisn+"%","%"+kategori+"%")
 
 if err := query.Find(&pembayaran).Error; err != nil {
     return nil, err

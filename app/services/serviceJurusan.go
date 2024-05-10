@@ -7,12 +7,12 @@ import (
 
 type JurusanService interface {
 	Store(Jurusan *models.Jurusan) error
-	Update(kode int, Jurusan models.Jurusan) error
-	Delete(kode int) error
+	Update(kode string, Jurusan models.Jurusan) error
+	Delete(kode string) error
 	GetList(page, pageSize int) ([]models.Jurusan,int, error)
 	GetTotalJurusanCount() (int, error)
 	Search(nama string) ([]models.Jurusan, error)
-	GetKode(kode int) (models.Jurusan, error)
+	GetKode(kode string) (models.Jurusan, error)
 }
 
 type jurusanService struct {
@@ -31,7 +31,7 @@ func (s *jurusanService) Store(jurusan *models.Jurusan) error {
 	return nil
 }
 
-func (s *jurusanService) Update(kode int, jurusan models.Jurusan) error {
+func (s *jurusanService) Update(kode string, jurusan models.Jurusan) error {
 	err := s.jurusanRepo.Update(kode, jurusan)
 	if err != nil {
 		return err
@@ -39,7 +39,7 @@ func (s *jurusanService) Update(kode int, jurusan models.Jurusan) error {
 	return nil
 }
 
-func (s *jurusanService) Delete(kode int) error {
+func (s *jurusanService) Delete(kode string) error {
 	err := s.jurusanRepo.Delete(kode)
 	if err != nil {
 		return err
@@ -73,6 +73,6 @@ func (s *jurusanService) Search(nama string) ([]models.Jurusan, error){
 }
 
 
-func (c *jurusanService) GetKode(kode int) (models.Jurusan, error) {
+func (c *jurusanService) GetKode(kode string) (models.Jurusan, error) {
 	return c.jurusanRepo.GetKode(kode)
 }

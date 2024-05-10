@@ -89,16 +89,16 @@ func (a *kelasAPI) Update(c *gin.Context) {
         return
     }
 
-    kode, err := strconv.Atoi(kodeKelas)
-    if err != nil {
-		log.Printf("Pesan error: %v", err)
+    // kode, err := strconv.Atoi(kodeKelas)
+    // if err != nil {
+	// 	log.Printf("Pesan error: %v", err)
 
-        c.JSON(http.StatusBadRequest, gin.H{
-            "message": "invalid request body",
-            "error" : err.Error(),
-        })
-        return
-    }
+    //     c.JSON(http.StatusBadRequest, gin.H{
+    //         "message": "invalid request body",
+    //         "error" : err.Error(),
+    //     })
+    //     return
+    // }
 
     var newKelas models.Kelas
     if err := c.ShouldBind(&newKelas); err != nil {
@@ -111,7 +111,7 @@ func (a *kelasAPI) Update(c *gin.Context) {
         return
     }
 
-    err = a.kelasService.Update(kode, newKelas)
+    err := a.kelasService.Update(kodeKelas, newKelas)
     if err != nil {
 		log.Printf("Update error: %v", err)
 
@@ -151,17 +151,17 @@ func (a *kelasAPI) Delete(c *gin.Context) {
 		return
 	}
 
-	kode, err := strconv.Atoi(kelasKode)
-	if err != nil {
-		log.Printf("Pesan error: %v", err)
-		c.JSON(400, gin.H{
-			"message" : "invalid request body",
-			"error":   err.Error(),
-		})
-		return
-	}
+	// kode, err := strconv.Atoi(kelasKode)
+	// if err != nil {
+	// 	log.Printf("Pesan error: %v", err)
+	// 	c.JSON(400, gin.H{
+	// 		"message" : "invalid request body",
+	// 		"error":   err.Error(),
+	// 	})
+	// 	return
+	// }
 
-	err = a.kelasService.Delete(kode)
+	err := a.kelasService.Delete(kelasKode)
 	if err != nil {
 		log.Printf("Pesan error: %v", err)
 		c.JSON(500, gin.H{

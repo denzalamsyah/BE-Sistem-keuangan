@@ -18,6 +18,7 @@ type SemesterAPI interface {
 	Delete(c *gin.Context)
 	GetByID(c *gin.Context)
 	GetList(c *gin.Context)
+	GetListByCategory(c *gin.Context)
 	Search(c *gin.Context)
 	DownloadPembayaranSiswa(c *gin.Context)
 	GetLunasByNIP(ctx *gin.Context)
@@ -178,9 +179,43 @@ func (s *semesterAPI) GetList(c *gin.Context) {
 
 	pageSize, err := strconv.Atoi(c.Query("pageSize"))
     if err != nil || pageSize <= 0 {
-        pageSize = 1000
+        pageSize = 10000
     }
 	result, totalPage, err := s.semesterService.GetList(page, pageSize)
+	if err != nil {
+		log.Printf("Error: %v", err)
+		c.JSON(500, gin.H{
+			"message" : "internal server error",
+			"error":   err.Error(),
+		})
+		return
+	}
+	meta := gin.H{
+        "current_page": page,
+        "total_pages":  totalPage,
+    }
+
+    response := gin.H{
+        "data": result,
+        "meta": meta,
+    }
+
+    c.JSON(200, response)
+}
+
+func (s *semesterAPI) GetListByCategory(c *gin.Context){
+	page, err := strconv.Atoi(c.Query("page"))
+	if err != nil || page <= 0 {
+        page = 1
+    }
+
+	pageSize, err := strconv.Atoi(c.Query("pageSize"))
+    if err != nil || pageSize <= 0 {
+        pageSize = 10000
+    }
+
+	category := c.Query("kategori")
+	result, totalPage, err := s.semesterService.GetListByCategory(page, pageSize, category)
 	if err != nil {
 		log.Printf("Error: %v", err)
 		c.JSON(500, gin.H{
@@ -208,9 +243,13 @@ func (s *semesterAPI) Search(c *gin.Context){
 	transaksi := c.Query("transaksi")
 	semester := c.Query("semester")
 	tanggal := c.Query("tanggal")
+	nisn := c.Query("nisn")
+	kategori := c.Query("kategori")
+
+
 	// penerima := c.Query("penerima")
 
-	pembayaran, err := s.semesterService.Search(siswa, tahunAjar, transaksi, semester, tanggal)
+	pembayaran, err := s.semesterService.Search(siswa, tahunAjar, transaksi, semester, tanggal, nisn, kategori)
 	if err != nil {
         log.Printf("Error: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -293,7 +332,7 @@ func (s *semesterAPI) DownloadPembayaranSiswa(c *gin.Context) {
     pdf.CellFormat(0, 10, "Nama : "+result.Siswa, "0", 1, "", false, 0, "")
 	pdf.CellFormat(0, 10, "NISN : "+strconv.Itoa(int(result.NISN)), "0", 1, "", false, 0, "")
 	pdf.CellFormat(0, 10, "Nama Pembayaran : "+result.Transaksi, "0", 1, "", false, 0, "")
-	pdf.CellFormat(0, 10, "Semester : "+result.Semester, "0", 1, "", false, 0, "")
+	pdf.CellFormat(0, 10, "Semester : "+result.Bulan, "0", 1, "", false, 0, "")
 	pdf.CellFormat(0, 10, "Kelas : "+result.Kelas, "0", 1, "", false, 0, "")
 	pdf.CellFormat(0, 10, "Jumlah Bayar : Rp. "+strconv.Itoa(result.Jumlah), "0", 1, "", false, 0, "")
     pdf.CellFormat(0, 10, "Tanggal Pembayaran : "+result.Tanggal, "0", 1, "", false, 0, "")
