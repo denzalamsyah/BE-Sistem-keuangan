@@ -7,15 +7,15 @@ import (
 
 type SiswaServices interface {
 	Store(Siswa *models.Siswa) error
-	Update(nisn int, Siswa models.Siswa) error
-	Delete(nisn int) error
-	GetByID(nisn int) (*models.SiswaResponse, error)
+	Update(nisn string, Siswa models.Siswa) error
+	Delete(nisn string) error
+	GetByID(nisn string) (*models.SiswaResponse, error)
 	GetList(page, pageSize int) ([]models.SiswaResponse, int, error)
-	HistoryPembayaranSiswa(siswaID, page, pageSize int) ([]models.HistoryPembayaran, int, error)
+	HistoryPembayaranSiswa(siswaID string, page, pageSize int) ([]models.HistoryPembayaran, int, error)
 	GetTotalGenderCount() (int, int, error)
 	Search(name, kelas, nisn, jurusan, angkatan string) ([]models.SiswaResponse, error)
 	SearchByKodeKelas(name, nisn, kodeKelas string) ([]models.SiswaResponse, error)
-	GetUserNisn(nisn int) (models.Siswa, error)
+	GetUserNisn(nisn string) (models.Siswa, error)
 
 }
 
@@ -35,7 +35,7 @@ func (c *siswaServices) Store(Siswa *models.Siswa) error {
     return nil
 }
 
-func (c *siswaServices) Update(nisn int, siswa models.Siswa) error {
+func (c *siswaServices) Update(nisn string, siswa models.Siswa) error {
 	err := c.siswaRepo.Update(nisn, siswa)
 	if err != nil {
 		
@@ -44,7 +44,7 @@ func (c *siswaServices) Update(nisn int, siswa models.Siswa) error {
 	return nil
 }
 
-func (c *siswaServices) Delete(nisn int) error {
+func (c *siswaServices) Delete(nisn string) error {
 	err := c.siswaRepo.Delete(nisn)
 	if err != nil {
 		return err
@@ -52,7 +52,7 @@ func (c *siswaServices) Delete(nisn int) error {
 	return nil
 }
 
-func (c *siswaServices) GetByID(nisn int) (*models.SiswaResponse, error) {
+func (c *siswaServices) GetByID(nisn string) (*models.SiswaResponse, error) {
 	siswa, err := c.siswaRepo.GetByID(nisn)
 	if err != nil {
 		return nil, err
@@ -69,7 +69,7 @@ func (c *siswaServices) GetList(page, pageSize int) ([]models.SiswaResponse, int
 }
 
 
-func (c *siswaServices) HistoryPembayaranSiswa(siswaID, page, pageSize int) ([]models.HistoryPembayaran, int, error) {
+func (c *siswaServices) HistoryPembayaranSiswa(siswaID string, page, pageSize int) ([]models.HistoryPembayaran, int, error) {
 	history, totalPage, err := c.siswaRepo.HistoryPembayaranSiswa(siswaID, page, pageSize)
 	if err != nil {
 		return nil, 0, err
@@ -101,6 +101,6 @@ func(c *siswaServices) SearchByKodeKelas(name, nisn, kodeKelas string) ([]models
 	return siswa, nil
 }
 
-func (c *siswaServices) GetUserNisn(nisn int) (models.Siswa, error) {
+func (c *siswaServices) GetUserNisn(nisn string) (models.Siswa, error) {
 	return c.siswaRepo.GetUserNisn(nisn)
 }

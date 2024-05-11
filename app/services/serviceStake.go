@@ -7,17 +7,17 @@ import (
 
 type GuruServices interface {
 	Store(Guru *models.Guru) error
-	Update(nip int, Guru models.Guru) error
-	Delete(nip int) error
-	GetByID(nip int) (*models.GuruResponse, error)
+	Update(nip string, Guru models.Guru) error
+	Delete(nip string) error
+	GetByID(nip string) (*models.GuruResponse, error)
 	GetList(page, pageSize int) ([]models.GuruResponse, int, error)
 	GetTotalGenderCount() (int, int, error)
 	Search(nama, nip, jabatan string) ([]models.GuruResponse, error)
-	GetUserNIP(nip int) (models.Guru, error)
-	HistoryPembayaranGuru(nip, page, pageSize int) ([]models.HistoryPembayaranKas, int, error)
-	SaldoKasByNIP(nip int) (int, error)
-	AmbilKasGuru(nip, jumlah int,nama, tanggal string) error
-	HistoryPengambilanKas(nip, page, pageSize int) ([]models.HistoryPengambilanKas, int, error)
+	GetUserNIP(nip string) (models.Guru, error)
+	HistoryPembayaranGuru(nip string, page, pageSize int) ([]models.HistoryPembayaranKas, int, error)
+	SaldoKasByNIP(nip string) (int, error)
+	AmbilKasGuru( jumlah int,nip, nama, tanggal string) error
+	HistoryPengambilanKas(nip string, page, pageSize int) ([]models.HistoryPengambilanKas, int, error)
 }
 
 type guruServices struct{
@@ -34,7 +34,7 @@ func (c *guruServices) Store(Guru *models.Guru) error{
 	return nil
 }
 
-func (c *guruServices) Update(nip int, Guru models.Guru) error {
+func (c *guruServices) Update(nip string, Guru models.Guru) error {
 	err := c.guruRepo.Update(nip, Guru)
 	if err != nil {
 		
@@ -42,7 +42,7 @@ func (c *guruServices) Update(nip int, Guru models.Guru) error {
 	}
 	return nil
 }
-func (c *guruServices) Delete(nip int) error{
+func (c *guruServices) Delete(nip string) error{
 	err := c.guruRepo.Delete(nip)
 	if err != nil {
 		return err
@@ -50,7 +50,7 @@ func (c *guruServices) Delete(nip int) error{
 	return nil
 }
 
-func (c *guruServices) GetByID(nip int) (*models.GuruResponse, error){
+func (c *guruServices) GetByID(nip string) (*models.GuruResponse, error){
 	guru, err := c.guruRepo.GetByID(nip)
 	if err != nil {
 		return nil, err
@@ -82,11 +82,11 @@ func(c *guruServices) Search(nama, nip, jabatan string) ([]models.GuruResponse, 
     }
 	return guru, nil
 }
-func (c *guruServices) GetUserNIP(guru int) (models.Guru, error) {
-	return c.guruRepo.GetUserNIP(guru)
+func (c *guruServices) GetUserNIP(nip string) (models.Guru, error) {
+	return c.guruRepo.GetUserNIP(nip)
 }
 
-func (c *guruServices) HistoryPembayaranGuru(nip, page, pageSize int) ([]models.HistoryPembayaranKas, int, error){
+func (c *guruServices) HistoryPembayaranGuru(nip string, page, pageSize int) ([]models.HistoryPembayaranKas, int, error){
 	history, totalPage, err := c.guruRepo.HistoryPembayaranGuru(nip, page, pageSize)
 	if err != nil {
 		return nil, 0, err
@@ -95,7 +95,7 @@ func (c *guruServices) HistoryPembayaranGuru(nip, page, pageSize int) ([]models.
 }
 
 // HitungTotalKasGuru menghitung total kas guru berdasarkan NIP
-func (c *guruServices) SaldoKasByNIP(nip int) (int, error) {
+func (c *guruServices) SaldoKasByNIP(nip string) (int, error) {
 	totalKas, err := c.guruRepo.SaldoKasByNIP(nip)
 	if err != nil {
 		return 0, err
@@ -104,8 +104,8 @@ func (c *guruServices) SaldoKasByNIP(nip int) (int, error) {
 }
 
 // AmbilKasGuru mengurangi saldo uang kas guru berdasarkan NIP
-func (c *guruServices) AmbilKasGuru(nip, jumlah int, nama, tanggal string) error {
-	err := c.guruRepo.AmbilKasGuru(nip, jumlah, nama, tanggal)
+func (c *guruServices) AmbilKasGuru( jumlah int, nip, nama, tanggal string) error {
+	err := c.guruRepo.AmbilKasGuru(jumlah, nip, nama, tanggal)
 	if err != nil {
 		return err
 	}
@@ -113,7 +113,7 @@ func (c *guruServices) AmbilKasGuru(nip, jumlah int, nama, tanggal string) error
 }
 
 
-func (c *guruServices) HistoryPengambilanKas(nip, page, pageSize int) ([]models.HistoryPengambilanKas, int, error){
+func (c *guruServices) HistoryPengambilanKas(nip string, page, pageSize int) ([]models.HistoryPengambilanKas, int, error){
 	history, totalPage, err := c.guruRepo.HistoryPengambilanKas(nip, page, pageSize)
 	if err != nil {
 		return nil, 0, err

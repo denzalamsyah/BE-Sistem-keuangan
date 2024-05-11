@@ -12,15 +12,15 @@ import (
 
 type SiswaRepository interface {
 	Store(Siswa *models.Siswa) error
-	Update(nisn int, Siswa models.Siswa) error
-	Delete(nisn int) error
-	GetByID(nisn int) (*models.SiswaResponse, error)
+	Update(nisn string, Siswa models.Siswa) error
+	Delete(nisn string) error
+	GetByID(nisn string) (*models.SiswaResponse, error)
 	GetList(page, pageSize int) ([]models.SiswaResponse, int, error)
-	HistoryPembayaranSiswa(siswaID, page, pageSize int) ([]models.HistoryPembayaran, int, error)
+	HistoryPembayaranSiswa(siswaID string, page, pageSize int) ([]models.HistoryPembayaran, int, error)
 	GetTotalGenderCount() (int, int, error)
 	Search(name, nisn, kelas, jurusan, angkatan string) ([]models.SiswaResponse, error)
 	SearchByKodeKelas(name, nisn, kodeKelas string) ([]models.SiswaResponse, error)
-	GetUserNisn(nisn int) (models.Siswa, error)
+	GetUserNisn(nisn string) (models.Siswa, error)
 	
 }
 
@@ -41,7 +41,7 @@ func (c *siswaRepository) Store(Siswa *models.Siswa) error {
 	return nil
 }
 
-func (c *siswaRepository) Update(nisn int, Siswa models.Siswa) error {
+func (c *siswaRepository) Update(nisn string, Siswa models.Siswa) error {
 	err := c.db.Model(&models.Siswa{}).Where("nisn = ?", nisn).Updates(&Siswa).Error
 	if err != nil {
 		return err
@@ -54,7 +54,7 @@ func (c *siswaRepository) Update(nisn int, Siswa models.Siswa) error {
 	return nil
 }
 
-func (c *siswaRepository) Delete(nisn int) error {
+func (c *siswaRepository) Delete(nisn string) error {
 	var Siswa models.Siswa
 	err := c.db.Where("nisn = ?", nisn).Delete(&Siswa).Error
 	if err != nil {
@@ -63,7 +63,7 @@ func (c *siswaRepository) Delete(nisn int) error {
 	return nil
 }
 
-func (c *siswaRepository) GetByID(nisn int) (*models.SiswaResponse, error) {
+func (c *siswaRepository) GetByID(nisn string) (*models.SiswaResponse, error) {
 	var siswa models.Siswa
 	err := c.db.Preload("Kelas").Preload("Jurusan").Preload("Agama").Preload("Gender").Where("nisn = ?", nisn).First(&siswa).Error
 	if err != nil {
@@ -132,7 +132,7 @@ func (c *siswaRepository) GetList(page, pageSize int) ([]models.SiswaResponse, i
     return SiswaResponse, totalPage, nil
 }
 
-func (c *siswaRepository) HistoryPembayaranSiswa(siswaID, page, pageSize int) ([]models.HistoryPembayaran,int, error) {
+func (c *siswaRepository) HistoryPembayaranSiswa(siswaID string, page, pageSize int) ([]models.HistoryPembayaran,int, error) {
     var historyPembayaran []models.HistoryPembayaran
 
     // Mengambil data pembayaran dari PembayaranSemester
@@ -184,6 +184,7 @@ func (c *siswaRepository) Search(name, nisn, kelas, jurusan, angkatan string) ([
     kelas = strings.ToLower(kelas)
     jurusan = strings.ToLower(jurusan)
 	angkatan = strings.ToLower(angkatan)
+	nisn = strings.ToLower(nisn)
 
     var siswaList []models.SiswaResponse
 
@@ -194,7 +195,7 @@ func (c *siswaRepository) Search(name, nisn, kelas, jurusan, angkatan string) ([
         Joins("JOIN jurusans ON siswas.jurusan_id = jurusans.kode_jurusan").
 		Joins("JOIN agamas ON siswas.agama_id = agamas.id_agama").
 		Joins("JOIN genders ON siswas.gender_id = genders.id_gender").
-        Where("LOWER(siswas.nama) LIKE ? AND siswas.nisn::TEXT LIKE ? AND LOWER(kelas.kelas) LIKE ? AND LOWER(jurusans.jurusan) LIKE ? AND LOWER(siswas.angkatan) LIKE ?", "%"+name+"%", "%"+nisn+"%", "%"+kelas+"%", "%"+jurusan+"%", "%"+angkatan+"%")
+        Where("LOWER(siswas.nama) LIKE ? AND LOWER(siswas.nisn) LIKE ? AND LOWER(kelas.kelas) LIKE ? AND LOWER(jurusans.jurusan) LIKE ? AND LOWER(siswas.angkatan) LIKE ?", "%"+name+"%", "%"+nisn+"%", "%"+kelas+"%", "%"+jurusan+"%", "%"+angkatan+"%")
     if err := query.Find(&siswaList).Error; err != nil {
         return nil, err
     }
@@ -206,8 +207,8 @@ func (c *siswaRepository) SearchByKodeKelas(name, nisn, kodeKelas string) ([]mod
 	var siswaList []models.SiswaResponse
 	name = strings.ToLower(name)
 	kodeKelas = strings.ToLower(kodeKelas)
-
-
+	nisn = strings.ToLower(nisn)
+	
     // Query dengan menggunakan Select untuk menentukan kolom yang akan diambil
     query := c.db.Table("siswas").
 		Select("siswas.nama, siswas.nisn, kelas.kelas as kelas, jurusans.jurusan as jurusan, agamas.nama as agama, siswas.tempat_lahir, siswas.tanggal_lahir, genders.nama as gender, siswas.nama_ayah, siswas.nama_ibu, siswas.nomor_telepon, siswas.angkatan, siswas.email, siswas.alamat, siswas.gambar, siswas.created_at, siswas.updated_at").
@@ -215,7 +216,7 @@ func (c *siswaRepository) SearchByKodeKelas(name, nisn, kodeKelas string) ([]mod
         Joins("JOIN jurusans ON siswas.jurusan_id = jurusans.kode_jurusan").
         Joins("JOIN agamas ON siswas.agama_id = agamas.id_agama").
         Joins("JOIN genders ON siswas.gender_id = genders.id_gender").
-        Where("LOWER(siswas.nama) LIKE ? AND siswas.nisn::TEXT LIKE ? AND LOWER(kelas.kode_kelas) LIKE ?", "%"+name+"%", "%"+nisn+"%", "%"+kodeKelas+"%")
+        Where("LOWER(siswas.nama) LIKE ? AND LOWER(siswas.nisn) LIKE ? AND LOWER(kelas.kode_kelas) LIKE ?", "%"+name+"%", "%"+nisn+"%", "%"+kodeKelas+"%")
     if err := query.Find(&siswaList).Error; err != nil {
         return nil, err
     }
@@ -223,7 +224,7 @@ func (c *siswaRepository) SearchByKodeKelas(name, nisn, kodeKelas string) ([]mod
     return siswaList, nil
 }
 
-func (c *siswaRepository) GetUserNisn(nisn int) (models.Siswa, error){
+func (c *siswaRepository) GetUserNisn(nisn string) (models.Siswa, error){
 	var Siswa models.Siswa
 
 	result :=c.db.Where("nisn = ?", nisn).First(&Siswa)

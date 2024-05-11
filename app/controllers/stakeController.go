@@ -104,15 +104,7 @@ func (s *guruAPI) Update(c *gin.Context) {
         return
     }
 
-    nip, err := strconv.Atoi(guruNIP)
-    if err != nil {
-		log.Printf("Pesan error: %v", err)
-
-        c.JSON(http.StatusBadRequest, gin.H{
-            "message": "invalid request body" + err.Error(),
-        })
-        return
-    }
+   
 
     var newGuru models.Guru
     if err := c.ShouldBind(&newGuru); err != nil {
@@ -150,7 +142,7 @@ func (s *guruAPI) Update(c *gin.Context) {
     }
 
 
-    err = s.guruService.Update(nip, newGuru)
+    err = s.guruService.Update(guruNIP, newGuru)
     if err != nil {
 		log.Printf("Update error: %v", err)
         existingSiswa, err := s.guruService.GetUserNIP(newGuru.Nip)
@@ -188,18 +180,9 @@ func (s *guruAPI) Delete(c *gin.Context){
 		return
 	}
 
-	nip, err := strconv.Atoi(stakeNIP)
-	if err != nil {
-		log.Printf("Pesan error: %v", err)
+	
 
-		c.JSON(400, gin.H{
-			"message" : "invalid request body",
-			"error":   err.Error(),
-		})
-		return
-	}
-
-	err = s.guruService.Delete(nip)
+	err := s.guruService.Delete(stakeNIP)
 	if err != nil {
 		log.Printf("Pesan error: %v", err)
 
@@ -216,24 +199,8 @@ func (s *guruAPI) Delete(c *gin.Context){
 }
 
 func (s *guruAPI) GetByID(c *gin.Context){
-	stakeNIP, err := strconv.Atoi(c.Param("nip"))
-	if stakeNIP == 0 {
-		c.JSON(400, gin.H{
-			"message" : "data notfound",
-			"error":   err.Error(),
-		})
-		return
-	}
-	if err != nil {
-		log.Printf("Pesan error: %v", err)
-
-		c.JSON(400, gin.H{
-			"message" : "invalid request body",
-			"error":   err.Error(),
-		})
-		return
-	}
-
+	stakeNIP := c.Param("nip")
+	
 	result, err := s.guruService.GetByID(stakeNIP)	
 	if err != nil {
 		log.Printf("Pesan error: %v", err)
@@ -322,7 +289,7 @@ func ( s *guruAPI) GetHistoriKas(c *gin.Context){
         pageSize = 100
     }
 
-	guruNIP, err := strconv.Atoi(c.Param("nip"))
+	guruNIP := c.Param("nip")
 	
 	if err != nil {
 		log.Printf("Pesan error: %v", err)
@@ -359,15 +326,7 @@ func ( s *guruAPI) GetHistoriKas(c *gin.Context){
 
 // GetTotalKasGuru mengembalikan total kas guru dalam bentuk JSON
 func (s *guruAPI) GetTotalKasByNIP(c *gin.Context) {
-	guruNIP, err := strconv.Atoi(c.Param("nip"))
-	if err != nil {
-		log.Printf("Pesan error: %v", err)
-
-		c.JSON(400, gin.H{
-			"message": "invalid request body",
-		})
-		return
-	}
+	guruNIP :=c.Param("nip")
 
 	totalKas, err := s.guruService.SaldoKasByNIP(guruNIP)
 	if err != nil {
@@ -418,16 +377,7 @@ func (s *guruAPI) AmbilKasGuru(c *gin.Context) {
 		return
 	}
 
-	guruNIP, err := strconv.Atoi(c.Param("nip"))
-	if err != nil {
-		log.Printf("Pesan error: %v", err)
-
-		c.JSON(400, gin.H{
-			"message": "invalid request body",
-		})
-		return
-	}
-
+	guruNIP := c.Param("nip")
 	 existingSiswa, err := s.guruService.GetUserNIP(guruNIP)
         if err != nil {
             log.Printf("Error checking NIP: %v", err)
@@ -437,7 +387,7 @@ func (s *guruAPI) AmbilKasGuru(c *gin.Context) {
             return
         }
 
-	err = s.guruService.AmbilKasGuru(guruNIP, requestBody.JumlahAmbil, existingSiswa.Nama, requestBody.TanggalAmbil)
+	err = s.guruService.AmbilKasGuru(requestBody.JumlahAmbil, guruNIP, existingSiswa.Nama, requestBody.TanggalAmbil)
 	if err != nil {
 		log.Printf("Pesan error: %v", err)
 
@@ -464,7 +414,7 @@ func ( s *guruAPI) GetHistoriPengambilanKas(c *gin.Context){
         pageSize = 100
     }
 
-	guruNIP, err := strconv.Atoi(c.Param("nip"))
+	guruNIP :=c.Param("nip")
 	
 	if err != nil {
 		log.Printf("Pesan error: %v", err)

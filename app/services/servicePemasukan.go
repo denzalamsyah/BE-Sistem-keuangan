@@ -13,9 +13,9 @@ type PemasukanService interface {
 	Delete(id int) error
 	GetByID(id int) (*models.Pemasukanlainnya, error)
 	GetList(page, pageSize int) ([]models.Pemasukanlainnya, int, error)
-	SearchAll(nama, tanggal string) ([]models.PemasukanResponse, error)
+	SearchAll(nama, tanggal string) ([]models.PemasukanResponse, int, error)
     Search(nama, tanggal string) ([]models.Pemasukanlainnya, error)
-	
+	// GetReportByMonthYear(month, year string) ([]models.PemasukanResponse, error)
 }
 type pemasukanService struct {
 	pemasukanRepository repository.PemasukanRepository
@@ -82,12 +82,12 @@ func (c *pemasukanService) TotalKeuangan() (int, int, int, error) {
     return saldo, totalPemasukan, totalPengeluaran, nil
 }
 
-func (c *pemasukanService) SearchAll(nama, tanggal string) ([]models.PemasukanResponse, error){
-	pemasukan, err := c.pemasukanRepository.SearchAll(nama, tanggal)
+func (c *pemasukanService) SearchAll(nama, tanggal string) ([]models.PemasukanResponse, int, error){
+	pemasukan, total, err := c.pemasukanRepository.SearchAll(nama, tanggal)
 	if err != nil {
-        return nil, err
+        return nil, 0, err
     }
-	return pemasukan, nil
+	return pemasukan, total, nil
 }
 
 func(c *pemasukanService) Search(nama, tanggal string) ([]models.Pemasukanlainnya, error){
@@ -98,3 +98,11 @@ func(c *pemasukanService) Search(nama, tanggal string) ([]models.Pemasukanlainny
 	return pemasukan, nil
 }
 
+// func(c *pemasukanService) GetReportByMonthYear(month, year string) ([]models.PemasukanResponse, error){
+// 	pemasukan, err := c.pemasukanRepository.GetReportByMonthYear(month, year)
+
+// 	if err != nil {
+//         return nil, err
+//     }
+// 	return pemasukan, nil
+// }

@@ -12,17 +12,17 @@ import (
 
 type GuruRepository interface {
 	Store(Guru *models.Guru) error
-	Update(nip int, Guru models.Guru) error
-	Delete(nip int) error
-	GetByID(nip int) (*models.GuruResponse, error)
+	Update(nip string, Guru models.Guru) error
+	Delete(nip string) error
+	GetByID(nip string) (*models.GuruResponse, error)
 	GetList(page, pageSize int) ([]models.GuruResponse, int, error)
 	GetTotalGenderCount() (int, int, error)
 	Search(nama, nip, jabatan string) ([]models.GuruResponse, error)
-	GetUserNIP(nip int) (models.Guru, error)
-	HistoryPembayaranGuru(nip, page, pageSize int) ([]models.HistoryPembayaranKas, int, error)
-	SaldoKasByNIP(nip int) (int, error)
-	AmbilKasGuru(nip, jumlah int, nama, tanggal string) error
-	HistoryPengambilanKas(nip, page, pageSize int) ([]models.HistoryPengambilanKas, int, error)
+	GetUserNIP(nip string) (models.Guru, error)
+	HistoryPembayaranGuru(nip string, page, pageSize int) ([]models.HistoryPembayaranKas, int, error)
+	SaldoKasByNIP(nip string) (int, error)
+	AmbilKasGuru( jumlah int, nip, nama, tanggal string) error
+	HistoryPengambilanKas(nip string, page, pageSize int) ([]models.HistoryPengambilanKas, int, error)
 	// HistoryPembayaranKas(GuruID, page, pageSize int) ([]models.HistoryPembayaranKas, int, error)
 
 }
@@ -46,7 +46,7 @@ func(c *guruRepository) Store(Guru *models.Guru) error{
 	return nil
 }
 
-func (c *guruRepository) Update(nip int, Guru models.Guru) error {
+func (c *guruRepository) Update(nip string, Guru models.Guru) error {
 	err := c.db.Model(&models.Guru{}).Where("nip = ?", nip).Updates(&Guru).Error
 	if err != nil {
 		return err
@@ -58,7 +58,7 @@ func (c *guruRepository) Update(nip int, Guru models.Guru) error {
 	return nil
 }
 
-func(c *guruRepository) Delete(nip int) (error){
+func(c *guruRepository) Delete(nip string) (error){
 	var guru models.Guru
 	err := c.db.Where("nip = ?", nip).Delete(&guru).Error
 
@@ -104,7 +104,7 @@ func (c *guruRepository) GetList(page, pageSize int) ([]models.GuruResponse, int
 	return guruResponse, totalPage, nil
 }
 
-func (c *guruRepository) GetByID(nip int) (*models.GuruResponse, error){
+func (c *guruRepository) GetByID(nip string) (*models.GuruResponse, error){
 	var guru models.Guru
 
 	err := c.db.Preload("Jabatan").Preload("Agama").Preload("Gender").Where("nip = ?", nip).First(&guru).Error
@@ -155,7 +155,7 @@ func (c *guruRepository) Search(nama, nip, jabatan string) ([]models.GuruRespons
 	Joins("JOIN agamas ON gurus.agama_id = agamas.id_agama").
 	Joins("JOIN jabatans on gurus.jabatan_id = jabatans.id_jabatan").
 	Joins("JOIN genders ON gurus.gender_id = genders.id_gender").
-	Where("LOWER(gurus.nama) LIKE ? AND gurus.nip::TEXT LIKE ? AND LOWER(jabatans.nama) LIKE ?", "%"+nama+"%", "%"+nip+"%", "%"+jabatan+"%")
+	Where("LOWER(gurus.nama) LIKE ? AND LOWER(gurus.nip) LIKE ? AND LOWER(jabatans.nama) LIKE ?", "%"+nama+"%", "%"+nip+"%", "%"+jabatan+"%")
 
 	if err := query.Find(&guruList).Error; err != nil {
         return nil, err
@@ -165,7 +165,7 @@ func (c *guruRepository) Search(nama, nip, jabatan string) ([]models.GuruRespons
 
 }
 
-func (c *guruRepository) GetUserNIP(nip int) (models.Guru, error){
+func (c *guruRepository) GetUserNIP(nip string) (models.Guru, error){
 	var Guru models.Guru
 
 	result :=c.db.Where("nip = ?", nip).First(&Guru)
@@ -178,7 +178,7 @@ func (c *guruRepository) GetUserNIP(nip int) (models.Guru, error){
 	return Guru, nil
 }
 
-func (c *guruRepository) HistoryPembayaranGuru(nip, page, pageSize int) ([]models.HistoryPembayaranKas, int, error){
+func (c *guruRepository) HistoryPembayaranGuru(nip string, page, pageSize int) ([]models.HistoryPembayaranKas, int, error){
 	var historiPembayaran []models.HistoryPembayaranKas
     var kasGuru []models.KasGuru
 
@@ -208,7 +208,7 @@ func (c *guruRepository) HistoryPembayaranGuru(nip, page, pageSize int) ([]model
     return historiPembayaran, totalPage, nil
 }
 
-func ( c *guruRepository) SaldoKasByNIP(nip int) (int, error){
+func ( c *guruRepository) SaldoKasByNIP(nip string) (int, error){
 	var totalKas int
 
 	if err := c.db.Model(&models.KasGuru{}).Where("guru_id = ?", nip).Select("SUM(saldo)").Scan(&totalKas).Error; err != nil {
@@ -218,7 +218,7 @@ func ( c *guruRepository) SaldoKasByNIP(nip int) (int, error){
 	return totalKas, nil
 }
 
-func (c *guruRepository) AmbilKasGuru(nip, jumlah int, nama, tanggal string) error {
+func (c *guruRepository) AmbilKasGuru(jumlah int, nip, nama, tanggal string) error {
 	var kasGuru models.KasGuru
 
 	if err := c.db.Where("guru_id = ?", nip).Last(&kasGuru).Error; err != nil {
@@ -236,7 +236,7 @@ func (c *guruRepository) AmbilKasGuru(nip, jumlah int, nama, tanggal string) err
 	}
 	// Menyimpan histori pengambilan kas
 	pengambilanKas := models.PengambilanKas{
-		GuruID:      uint(nip),
+		GuruID:      nip,
 		Nama: nama,
 		JumlahAmbil: jumlah,
 		TanggalAmbil: tanggal,
@@ -251,7 +251,7 @@ func (c *guruRepository) AmbilKasGuru(nip, jumlah int, nama, tanggal string) err
 	return nil
 }
 
-func ( c *guruRepository) HistoryPengambilanKas(nip, page, pageSize int) ([]models.HistoryPengambilanKas, int, error){
+func ( c *guruRepository) HistoryPengambilanKas(nip string, page, pageSize int) ([]models.HistoryPengambilanKas, int, error){
 	var historiPengambilan []models.HistoryPengambilanKas
 
 	var kasGuru []models.PengambilanKas

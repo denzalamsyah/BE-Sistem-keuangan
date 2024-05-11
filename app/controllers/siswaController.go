@@ -114,16 +114,16 @@ func (s *siswaAPI) Update(c *gin.Context) {
         return
     }
 
-    nisn, err := strconv.Atoi(siswaNISN)
-    if err != nil {
-		log.Printf("Pesan error: %v", err)
+    // nisn, err := strconv.Atoi(siswaNISN)
+    // if err != nil {
+	// 	log.Printf("Pesan error: %v", err)
 
-        c.JSON(http.StatusBadRequest, gin.H{
-            "message": "invalid request body",
-            "error" : err.Error(),
-        })
-        return
-    }
+    //     c.JSON(http.StatusBadRequest, gin.H{
+    //         "message": "invalid request body",
+    //         "error" : err.Error(),
+    //     })
+    //     return
+    // }
 
     var newSiswa models.Siswa
     if err := c.ShouldBind(&newSiswa); err != nil {
@@ -161,7 +161,7 @@ func (s *siswaAPI) Update(c *gin.Context) {
     }
 
 
-    err = s.siswaService.Update(nisn, newSiswa)
+    err = s.siswaService.Update(siswaNISN, newSiswa)
     if err != nil {
 		log.Printf("Update error: %v", err)
 
@@ -201,18 +201,18 @@ func (s *siswaAPI) Delete(c *gin.Context) {
 		return
 	}
 
-	nisn, err := strconv.Atoi(siswaNISN)
-	if err != nil {
-		log.Printf("Pesan error: %v", err)
+	// nisn, err := strconv.Atoi(siswaNISN)
+	// if err != nil {
+	// 	log.Printf("Pesan error: %v", err)
 
-		c.JSON(400, gin.H{
-			"message" : "invalid request body" + err.Error(),
+	// 	c.JSON(400, gin.H{
+	// 		"message" : "invalid request body" + err.Error(),
             
-		})
-		return
-	}
+	// 	})
+	// 	return
+	// }
 
-	err = s.siswaService.Delete(nisn)
+	err := s.siswaService.Delete(siswaNISN)
 	if err != nil {
 		log.Printf("Pesan error: %v", err)
 
@@ -230,17 +230,17 @@ func (s *siswaAPI) Delete(c *gin.Context) {
 }
 func (s *siswaAPI) GetByID(c *gin.Context) {
 
-	siswaNISN, err := strconv.Atoi(c.Param("nisn"))
+	siswaNISN := c.Param("nisn")
 	
-	if err != nil {
-		log.Printf("Pesan error: %v", err)
+	// if err != nil {
+	// 	log.Printf("Pesan error: %v", err)
 
-		c.JSON(400, gin.H{
-			"message" : "invalid request body",
-            "error" : err.Error(),
-		})
-		return
-	}
+	// 	c.JSON(400, gin.H{
+	// 		"message" : "invalid request body",
+    //         "error" : err.Error(),
+	// 	})
+	// 	return
+	// }
 
 	result, err := s.siswaService.GetByID(siswaNISN)	
 	if err != nil {
@@ -304,7 +304,7 @@ func (s *siswaAPI) History(c *gin.Context) {
         pageSize = 100
     }
 
-	siswaNISN, err := strconv.Atoi(c.Param("nisn"))
+	siswaNISN :=c.Param("nisn")
 	
 	if err != nil {
 		log.Printf("Pesan error: %v", err)

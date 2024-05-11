@@ -2,6 +2,7 @@ package repository
 
 import (
 	"errors"
+	"fmt"
 	"math"
 	"strings"
 	"time"
@@ -17,8 +18,8 @@ type SemesterRepository interface {
 	GetByID(id int) (*models.PembayaranSemesterResponse, error)
 	GetList(page, pageSize int) ([]models.PembayaranSemesterResponse, int, error)
     GetListByCategory(page, pageSize int, category string) ([]models.PembayaranSemesterResponse, int, error)
-    Search(siswa, tahunAjar, transaksi, bulan, tanggal, nisn, kategori  string) ([]models.PembayaranSemesterResponse, error)
-    GetLunasByNISN(nisn int) ([]models.PembayaranSemesterResponse, error)
+    Search(siswa, transaksi, bulan, tanggal, nisn, kategori  string) ([]models.PembayaranSemesterResponse, error)
+    GetLunasByNISN(nisn string) ([]models.PembayaranSemesterResponse, error)
 }
 
 type semesterRepository struct{
@@ -33,15 +34,16 @@ func (c *semesterRepository) Store(PembayaranSemester *models.PembayaranSemester
 	tx := c.db.Begin()
 
     var count int64
-    if err := tx.Model(&models.PembayaranSemester{}).
+        if err := tx.Model(&models.PembayaranSemester{}).
         Where("transaksi_id = ?", PembayaranSemester.TransaksiID).
         Where("siswa_id = ?", PembayaranSemester.SiswaID).
-        Where("bulan = ?", PembayaranSemester.Bulan).
         Where("semester = ?", PembayaranSemester.Semester).
+        Where("bulan = ?", PembayaranSemester.Bulan).
         Count(&count).Error; err != nil {
         tx.Rollback()
         return err
     }
+    
 
     if count > 0 {
         tx.Rollback()
@@ -60,7 +62,9 @@ func (c *semesterRepository) Store(PembayaranSemester *models.PembayaranSemester
         tx.Rollback()
         return err
     }
-
+    PembayaranSemester.Biaya = transaksi.Jumlah
+    PembayaranSemester.Tunggakan = PembayaranSemester.Biaya - PembayaranSemester.Jumlah
+    fmt.Println("Nilai transaksi.Jumlah sebelum: ", transaksi.Jumlah)
     if PembayaranSemester.Jumlah > transaksi.Jumlah {
         tx.Rollback()
         return errors.New("Nilai pembayaran terlalu besar")
@@ -185,6 +189,8 @@ func (c *semesterRepository) GetByID(id int) (*models.PembayaranSemesterResponse
 		Status:         PembayaranSemester.Status,
 		Tanggal:        PembayaranSemester.Tanggal,
 		Jumlah:         PembayaranSemester.Jumlah,
+        Biaya: PembayaranSemester.Biaya,
+        Tunggakan: PembayaranSemester.Tunggakan,
         CreatedAt: PembayaranSemester.CreatedAt,
         UpdatedAt: PembayaranSemester.UpdatedAt,
 	}
@@ -216,7 +222,9 @@ func (c *semesterRepository) GetList(page, pageSize int) ([]models.PembayaranSem
             Semester: s.Semester,
 			Status:         s.Status,
 			Tanggal:        s.Tanggal,
-			Jumlah:         s.Jumlah,
+            Jumlah: s.Jumlah,
+            Biaya: s.Biaya,
+            Tunggakan: s.Tunggakan,
             CreatedAt: s.CreatedAt,
             UpdatedAt: s.UpdatedAt,
 		})
@@ -253,6 +261,8 @@ if err != nil {
 			Status:    s.Status,
 			Tanggal:   s.Tanggal,
 			Jumlah:    s.Jumlah,
+            Biaya: s.Biaya,
+            Tunggakan: s.Tunggakan,
 			CreatedAt: s.CreatedAt,
 			UpdatedAt: s.UpdatedAt,
 		})
@@ -263,9 +273,8 @@ if err != nil {
 }
 
 
-func (c *semesterRepository) Search(siswa, tahunAjar, transaksi, bulan, tanggal, nisn, kategori string) ([]models.PembayaranSemesterResponse, error){
+func (c *semesterRepository) Search(siswa, transaksi, bulan, tanggal, nisn, kategori string) ([]models.PembayaranSemesterResponse, error){
     siswa = strings.ToLower(siswa)
-    tahunAjar = strings.ToLower(tahunAjar)
     transaksi = strings.ToLower(transaksi)
     bulan = strings.ToLower(bulan)
     tanggal = strings.ToLower(tanggal)
@@ -277,10 +286,10 @@ func (c *semesterRepository) Search(siswa, tahunAjar, transaksi, bulan, tanggal,
     var pembayaran []models.PembayaranSemesterResponse
 
     query := c.db.Table("pembayaran_semesters").
-    Select("pembayaran_semesters.id, siswas.nama as siswa, siswas.nisn as nisn, transaksis.nama as transaksi, transaksis.kategori as kategori, pembayaran_semesters.bulan, pembayaran_semesters.jumlah, pembayaran_semesters.tanggal, pembayaran_semesters.status, pembayaran_semesters.created_at, pembayaran_semesters.updated_at").
+    Select("pembayaran_semesters.id, siswas.nama as siswa, siswas.nisn as nisn, transaksis.nama as transaksi, transaksis.kategori as kategori, pembayaran_semesters.bulan, pembayaran_semesters.semester, pembayaran_semesters.jumlah, pembayaran_semesters.tanggal, pembayaran_semesters.status,  pembayaran_semesters.biaya,  pembayaran_semesters.tunggakan, pembayaran_semesters.created_at, pembayaran_semesters.updated_at").
     Joins("JOIN siswas ON pembayaran_semesters.siswa_id = siswas.nisn").
     Joins("JOIN transaksis ON pembayaran_semesters.transaksi_id = transaksis.id").
-    Where("LOWER(siswas.nama) LIKE ? AND LOWER(pembayaran_semesters.tahun_ajar) LIKE ? AND LOWER(transaksis.nama) LIKE ? AND LOWER(pembayaran_semesters.bulan) LIKE ? AND LOWER(pembayaran_semesters.tanggal) LIKE ? AND siswas.nisn::TEXT LIKE ? AND LOWER(transaksis.kategori) LIKE ?", "%"+siswa+"%", "%"+tahunAjar+"%", "%"+transaksi+"%", "%"+bulan+"%", "%"+tanggal+"%", "%"+nisn+"%","%"+kategori+"%")
+    Where("LOWER(siswas.nama) LIKE ? AND LOWER(transaksis.nama) LIKE ? AND LOWER(pembayaran_semesters.bulan) LIKE ? AND LOWER(pembayaran_semesters.tanggal) LIKE ? AND LOWER(siswas.nisn) LIKE ? AND LOWER(transaksis.kategori) LIKE ?", "%"+siswa+"%", "%"+transaksi+"%", "%"+bulan+"%", "%"+tanggal+"%", "%"+nisn+"%","%"+kategori+"%")
 
 if err := query.Find(&pembayaran).Error; err != nil {
     return nil, err
@@ -289,11 +298,11 @@ if err := query.Find(&pembayaran).Error; err != nil {
 return pembayaran, nil
 }
 
-func (c *semesterRepository) GetLunasByNISN(nisn int) ([]models.PembayaranSemesterResponse, error) {
+func (c *semesterRepository) GetLunasByNISN(nisn string) ([]models.PembayaranSemesterResponse, error) {
 	var pembayaran []models.PembayaranSemesterResponse
 
 	if err := c.db.Model(&models.PembayaranSemester{}).
-		Select("pembayaran_semesters.id, siswas.nisn, siswas.nama as siswa, transaksis.nama as transaksi, pembayaran_semesters.semester, pembayaran_semesters.tahun_ajar, pembayaran_semesters.tanggal, pembayaran_semesters.jumlah, pembayaran_semesters.status, pembayaran_semesters.created_at, pembayaran_semesters.updated_at").
+		Select("pembayaran_semesters.id, siswas.nisn, siswas.nama as siswa, transaksis.nama as transaksi, pembayaran_semesters.semester, pembayaran_semesters.tahun_ajar, pembayaran_semesters.tanggal, pembayaran_semesters.jumlah, pembayaran_semesters.status, pembayaran_semesters.biaya,  pembayaran_semesters.tunggakan, pembayaran_semesters.created_at, pembayaran_semesters.updated_at").
 		Joins("JOIN transaksis ON pembayaran_semesters.transaksi_id = transaksis.id").
 		Joins("JOIN siswas ON pembayaran_semesters.siswa_id = siswas.nisn").
 		Where("transaksis.jumlah_bayar = pembayaran_semesters.jumlah").

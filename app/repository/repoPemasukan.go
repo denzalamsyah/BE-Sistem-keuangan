@@ -17,8 +17,9 @@ type PemasukanRepository interface {
 	Delete(id int) error
 	GetByID(id int) (*models.Pemasukanlainnya, error)
     GetList(page, pageSize int) ([]models.Pemasukanlainnya, int, error)
-    SearchAll(nama, tanggal string) ([]models.PemasukanResponse, error)
+    SearchAll(nama, tanggal string) ([]models.PemasukanResponse, int, error)
     Search(nama, tanggal string) ([]models.Pemasukanlainnya, error)
+    // GetReportByMonthYear(month, year string) ([]models.PemasukanResponse, error)
 }
 
 type pemasukanRepository struct {
@@ -139,6 +140,7 @@ func (c *pemasukanRepository) GetList(page, pageSize int) ([]models.Pemasukanlai
     return pemasukan, totalPage, nil
 }
 
+// get pemasukan secara keseluruhan
 func (c *pemasukanRepository) FindAll(page, pageSize int) ([]models.PemasukanResponse, int, error) {
 	var pemasukan []models.Pemasukan
 
@@ -168,6 +170,8 @@ func (c *pemasukanRepository) FindAll(page, pageSize int) ([]models.PemasukanRes
 
 	return pemasukanResponse, totalPage, nil
 }
+
+// total keuangan pemasukan, pengeluaran dan saldo
 func (c *pemasukanRepository) TotalKeuangan() (int, int, int, error) {
     var totalPemasukan int
     var totalPengeluaran int
@@ -186,23 +190,32 @@ func (c *pemasukanRepository) TotalKeuangan() (int, int, int, error) {
     return saldo, totalPengeluaran, totalPemasukan, nil
 }
 
-func (c *pemasukanRepository) SearchAll(nama, tanggal string) ([]models.PemasukanResponse, error){
+// search pemasukan keseluruhan
+func (c *pemasukanRepository) SearchAll(nama, tanggal string) ([]models.PemasukanResponse, int, error) {
     nama = strings.ToLower(nama)
     tanggal = strings.ToLower(tanggal)
 
     var pemasukan []models.PemasukanResponse
+    var totalJumlah int
 
     query := c.db.Table("pemasukans").
-    Select("pemasukans.id, pemasukans.nama, pemasukans.tanggal, pemasukans.jumlah,  pemasukans.created_at, pemasukans.updated_at").
-    Where("LOWER(pemasukans.nama) LIKE ? AND LOWER(pemasukans.tanggal) LIKE ?", "%"+nama+"%", "%"+tanggal+"%")
+        Select("pemasukans.id, pemasukans.nama, pemasukans.tanggal, pemasukans.jumlah, pemasukans.created_at, pemasukans.updated_at").
+        Where("LOWER(pemasukans.nama) LIKE ? AND LOWER(pemasukans.tanggal) LIKE ?", "%"+nama+"%", "%"+tanggal+"%")
 
     if err := query.Find(&pemasukan).Error; err != nil {
-        return nil, err
+        return nil, 0, err
     }
 
-    return pemasukan, nil
+    // Menghitung total jumlah dari seluruh data
+    for _, p := range pemasukan {
+        totalJumlah += p.Jumlah
+    }
+
+    return pemasukan, totalJumlah, nil
 }
 
+
+// search pemasukan biasa
 func (c *pemasukanRepository) Search(nama, tanggal string) ([]models.Pemasukanlainnya, error){
     nama = strings.ToLower(nama)
     tanggal = strings.ToLower(tanggal)
@@ -219,3 +232,21 @@ func (c *pemasukanRepository) Search(nama, tanggal string) ([]models.Pemasukanla
 
     return pemasukan, nil
 }
+
+
+// func (c *pemasukanRepository) GetReportByMonthYear(month, year string) ([]models.PemasukanResponse, error) {
+// 	var pemasukan []models.PemasukanResponse
+// 	startDate := fmt.Sprintf("%s-%s-01", year, month)
+// 	endDate := fmt.Sprintf("%s-%s-31", year, month)
+
+// 	err := c.db.Table("pemasukans").
+// 		Select("id, nama, tanggal, jumlah").
+// 		Where("tanggal >= ? AND tanggal <= ?", startDate, endDate).
+// 		Scan(&pemasukan).Error
+
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+// 	return pemasukan, nil
+// }

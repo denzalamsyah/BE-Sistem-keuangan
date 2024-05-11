@@ -199,8 +199,7 @@ version := gin.Group("/api")
 		Semester.GET("/category", apiHandler.SemesterAPIHandler.GetListByCategory)
 		Semester.GET("/search", apiHandler.SemesterAPIHandler.Search)
 		Semester.GET("/kwitansi/histori/:id", apiHandler.SemesterAPIHandler.DownloadPembayaranSiswa)
-		Semester.GET("/lunas/:nisn", apiHandler.SemesterAPIHandler.GetLunasByNIP)
-		Semester.GET("/report/:nisn", apiHandler.SemesterAPIHandler.DownloadReportSiswa)
+		Semester.GET("/report", apiHandler.SemesterAPIHandler.DownloadReportSiswa)
 	}
 	pemasukan := version.Group("/pemasukan")
 	{
@@ -213,7 +212,9 @@ version := gin.Group("/api")
 		pemasukan.DELETE("/:id", apiHandler.PemasukanAPIHandler.Delete)
 		pemasukan.GET("/get", apiHandler.PemasukanAPIHandler.GetList)
 		pemasukan.GET("/searchAll", apiHandler.PemasukanAPIHandler.SearchAll)
+		pemasukan.GET("/download", apiHandler.PemasukanAPIHandler.DownloadLaporan)
 		pemasukan.GET("/search", apiHandler.PemasukanAPIHandler.Search)
+		// pemasukan.GET("/laporan", apiHandler.PemasukanAPIHandler.GetPemasukan)
 
 	}
 	pengeluaran := version.Group("/pengeluaran")

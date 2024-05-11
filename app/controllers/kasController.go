@@ -266,7 +266,7 @@ func (s *kasAPI) DownloadPembayaranKas(c *gin.Context) {
     pdf.Ln(10)
     pdf.SetFont("Arial", "B", 12)
     pdf.CellFormat(0, 10, "Nama: "+result.Nama, "0", 1, "", false, 0, "")
-	pdf.CellFormat(0, 10, "NIP : "+strconv.Itoa(int(result.NIP)), "0", 1, "", false, 0, "")
+	pdf.CellFormat(0, 10, "NIP : "+result.NIP, "0", 1, "", false, 0, "")
     pdf.CellFormat(0, 10, "Jumlah Bayar: Rp. "+strconv.Itoa(result.Jumlah_Bayar), "0", 1, "", false, 0, "")
     pdf.CellFormat(0, 10, "Tanggal Pembayaran: "+result.Tanggal, "0", 1, "", false, 0, "")
     pdf.Ln(10)
@@ -366,12 +366,13 @@ func (s *kasAPI) DownloadPengambilanKas(c *gin.Context) {
     pdf.Ln(10)
     pdf.SetFont("Arial", "B", 12)
     pdf.CellFormat(0, 10, "Nama : "+result.Nama, "0", 1, "", false, 0, "")
-	pdf.CellFormat(0, 10, "NIP : "+strconv.Itoa(int(result.NIP)), "0", 1, "", false, 0, "")
+	pdf.CellFormat(0, 10, "NIP : "+result.NIP, "0", 1, "", false, 0, "")
     pdf.CellFormat(0, 10, "Jumlah Ambil : Rp. "+strconv.Itoa(result.JumlahAmbil), "0", 1, "", false, 0, "")
     pdf.CellFormat(0, 10, "Tanggal Pengambilan : "+result.TanggalAmbil, "0", 1, "", false, 0, "")
     pdf.Ln(10)
 
 	pdf.SetFont("Arial", "", 12)
+	
     pdf.CellFormat(0, 10, "Bendahara Sekolah,", "0", 1, "", false, 0, "")
     pdf.Ln(20)
 
