@@ -3,11 +3,14 @@ package controllers
 import (
 	"log"
 	"net/http"
+	"os"
 	"strconv"
+	"time"
 
 	"github.com/denzalamsyah/simak/app/models"
 	"github.com/denzalamsyah/simak/app/services"
 	"github.com/gin-gonic/gin"
+	"github.com/jung-kurt/gofpdf"
 )
 
 type PengeluaranAPI interface {
@@ -17,6 +20,7 @@ type PengeluaranAPI interface {
 	GetByID(c *gin.Context)
 	GetList(c *gin.Context)
 	Search(c *gin.Context)
+	DownloadLaporan(c *gin.Context)
 }
 
 type pengeluaranAPI struct {
@@ -220,12 +224,110 @@ func (s *pengeluaranAPI) Search(c *gin.Context){
 	nama := c.Query("nama")
 	tanggal := c.Query("tanggal")
 
-	pengeluaran, err := s.pengeluaranService.Search(nama, tanggal)
+	pengeluaran, total, err := s.pengeluaranService.Search(nama, tanggal)
 	if err != nil {
         log.Printf("Error: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": pengeluaran})
+	c.JSON(http.StatusOK, gin.H{"data": pengeluaran, "total":total})
+}
+
+func (s *pengeluaranAPI) DownloadLaporan(c *gin.Context){
+	tanggal := c.Query("tanggal")
+	nama := c.Query("nama")
+
+	pemasukan, total, err := s.pengeluaranService.Search(nama, tanggal)
+	if err != nil {
+        log.Printf("Error: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	pdf := gofpdf.New("P", "mm", "A4", "")
+
+	pdf.SetHeaderFunc(func() {
+		// Simpan posisi Y saat ini untuk digunakan pada akhir teks
+		y := pdf.GetY()
+		// Hitung lebar gambar
+		imageWidth := 20 // Ubah sesuai kebutuhan
+		imageHeight := 20 // Ubah sesuai kebutuhan
+		// Tentukan posisi X untuk gambar dan teks
+		xImage := 10
+		xText := xImage + imageWidth + 5
+		// Gambar di sebelah kiri teks
+		pdf.Image("./app/files/logo.png", float64(xImage), y, float64(imageWidth), float64(imageHeight), false, "", 0, "")
+	
+		pdf.SetX(float64(xText))
+		pdf.SetFont("Arial", "B", 14)
+		pdf.Cell(0, 0, "SMA Plus Nurul Iman Leles",)
+		pdf.SetFont("Arial", "", 10)
+		pdf.Ln(2)
+		// pdf.SetX(float64(xText))
+		// pdf.Cell(0, 10, "SMA Plus Nurul Iman Leles")
+		// pdf.Ln(5)
+		pdf.SetX(float64(xText))
+		pdf.Cell(0, 10, "Kp. Galumpit Kidul RT 005/RW 004 Des. Cipancar Kec. Leles Garut Jawa Barat")
+		pdf.Ln(5)
+		pdf.SetX(float64(xText))
+		tanggalSekarang := time.Now().Format("02 January 2006") 
+		pdf.CellFormat(0, 10, "Garut, "+tanggalSekarang, "0", 1, "", false, 0, "")
+		// pdf.Ln(5)
+		pdf.SetX(float64(xText))
+		pdf.Cell(0, 0, "No. Telp: 123456789")
+		pdf.Ln(5)
+
+		xStart := 10 
+		xEnd := 200 
+		pdf.Line(float64(xStart), 33, float64(xEnd), 33)
+		pdf.Ln(5)
+
+    })
+
+	pdf.AddPage()
+	pdf.SetFont("Arial", "B", 12)
+	pdf.CellFormat(0, 10, "Laporan Pengeluaran : "+pemasukan[0].Tanggal, "0", 1, "", false, 0, "")
+	pdf.CellFormat(0, 10, "Jumlah Pemasukan : Rp. "+strconv.Itoa(int(total)), "0", 1, "", false, 0, "")
+    pdf.SetFont("Arial", "B", 14)
+	pdf.CellFormat(0, 10, "RINCIAN BIAYA", "0", 1, "C", false, 0, "")
+	pdf.Ln(3)
+
+		xStart := 10 
+		xEnd := 200 
+		tableWidth := xEnd - xStart
+		numColumns := 3
+		columnWidth := float64(tableWidth) / float64(numColumns)
+		// pdf.Ln(-1)
+	
+		pdf.CellFormat(columnWidth, 10, "Nama Transaksi", "1", 0, "C", false, 0, "")
+		pdf.CellFormat(columnWidth, 10, "Tanggal", "1", 0, "C", false, 0, "")
+		pdf.CellFormat(columnWidth, 10, "Jumlah", "1", 0, "C", false, 0, "")
+		pdf.Ln(-1) // Pindah ke baris baru
+		
+		for _, data := range pemasukan {
+			pdf.SetFont("Arial", "", 12)
+			pdf.CellFormat(columnWidth, 8, data.Nama, "1", 0, "C", false, 0, "")
+			pdf.CellFormat(columnWidth, 8, data.Tanggal, "1", 0, "C", false, 0, "")
+			pdf.CellFormat(columnWidth, 8, "Rp. " +strconv.Itoa(int(data.Jumlah)), "1", 0, "C", false, 0, "")
+			pdf.Ln(-1)	
+		}
+
+		
+
+    fileName := "pemasukan.pdf"
+    err = pdf.OutputFileAndClose("./app/files/" + fileName)
+    if err != nil {
+        c.JSON(500, gin.H{"error": err.Error()})
+        return
+    }
+
+    defer func() {
+        if err := os.Remove("./app/files/" + fileName); err != nil {
+            log.Printf("Gagal menghapus file: %v", err)
+        }
+    }()
+
+
+    c.File("./app/files/" + fileName)
+
 }

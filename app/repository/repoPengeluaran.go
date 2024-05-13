@@ -15,7 +15,7 @@ type PengeluaranRepository interface {
 	Delete(id int) error
 	GetByID(id int) (*models.Pengeluaran, error)
 	GetList(page, pageSize int) ([]models.Pengeluaran, int, error)
-	Search(nama, tanggal string) ([]models.Pengeluaran, error)
+	Search(nama, tanggal string) ([]models.Pengeluaran, int, error)
 }
 
 type pengeluaranRepository struct {
@@ -27,7 +27,7 @@ func NewPengeluaranRepo(db *gorm.DB) *pengeluaranRepository {
 }
 
 func (c *pengeluaranRepository) Store(pengeluaran *models.Pengeluaran) error{
-	pengeluaran.CreatedAt = time.Now()
+	pengeluaran.CreatedAt = time.Now().Format("02 January 2006 15:04:05")
 	err := c.db.Create(pengeluaran).Error
 	if err != nil {
 		return err
@@ -40,7 +40,7 @@ func (c *pengeluaranRepository) Update(id int, pengeluaran models.Pengeluaran) e
 	if err != nil {
 		return err
 	}
-	err = c.db.Model(&models.Pengeluaran{}).Where("id = ?", id).Update("updated_at", time.Now()).Error
+	err = c.db.Model(&models.Pengeluaran{}).Where("id = ?", id).Update("updated_at", time.Now().Format("02 January 2006 15:04:05")).Error
 	if err != nil {
 		return err
 	}
@@ -87,19 +87,24 @@ func (c *pengeluaranRepository) GetList(page, pageSize int) ([]models.Pengeluara
     return pengeluaran, totalPage, nil
 }
 
-func (c *pengeluaranRepository) Search(nama, tanggal string) ([]models.Pengeluaran, error){
+func (c *pengeluaranRepository) Search(nama, tanggal string) ([]models.Pengeluaran, int, error){
 	nama = strings.ToLower(nama)
     tanggal = strings.ToLower(tanggal)
 
     var pengeluaran []models.Pengeluaran
+    var totalJumlah int
+
 
     query := c.db.Table("pengeluarans").
     Select("pengeluarans.id, pengeluarans.nama, pengeluarans.tanggal, pengeluarans.jumlah, pengeluarans.created_at, pengeluarans.updated_at").
     Where("LOWER(pengeluarans.nama) LIKE ? AND LOWER(pengeluarans.tanggal) LIKE ?", "%"+nama+"%", "%"+tanggal+"%")
 
     if err := query.Find(&pengeluaran).Error; err != nil {
-        return nil, err
+        return nil, 0, err
+    }
+	for _, p := range pengeluaran {
+        totalJumlah += p.Jumlah
     }
 
-    return pengeluaran, nil
+    return pengeluaran, totalJumlah, nil
 }

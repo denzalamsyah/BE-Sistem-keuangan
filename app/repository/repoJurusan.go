@@ -29,7 +29,7 @@ func NewJurusanRepo(db *gorm.DB) *jurusanRepository {
 }
 
 func (c *jurusanRepository) Store(Jurusan *models.Jurusan) error {
-	Jurusan.CreatedAt = time.Now()
+	Jurusan.CreatedAt = time.Now().Format("02 January 2006 15:04:05")
 	err := c.db.Create(Jurusan).Error
 	if err != nil {
 		return err
@@ -43,7 +43,7 @@ func (c *jurusanRepository) Update(kode string, Jurusan models.Jurusan) error {
 		return err
 	}
 	// Atur nilai UpdatedAt dengan waktu sekarang
-	err = c.db.Model(&models.Jurusan{}).Where("kode_jurusan = ?", kode).Update("updated_at", time.Now()).Error
+	err = c.db.Model(&models.Jurusan{}).Where("kode_jurusan = ?", kode).Update("updated_at", time.Now().Format("02 January 2006 15:04:05")).Error
 	if err != nil {
 			return err
 		}

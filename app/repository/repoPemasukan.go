@@ -33,7 +33,7 @@ func NewPemasukanRepo(db *gorm.DB) *pemasukanRepository {
 func (c *pemasukanRepository) Store(pemasukan *models.Pemasukanlainnya) error {
     tx := c.db.Begin()
 
-    pemasukan.CreatedAt = time.Now()
+    pemasukan.CreatedAt = time.Now().Format("02 January 2006 15:04:05")
     if err := tx.Create(pemasukan).Error; err != nil {
         tx.Rollback()
         return err
@@ -76,7 +76,7 @@ func (c *pemasukanRepository) Update(id int, pemasukan models.Pemasukanlainnya) 
             "nama" : pemasukanlainnya.Nama,
             "tanggal": pemasukanlainnya.Tanggal,
             "jumlah":  pemasukanlainnya.Jumlah,
-            "updated_at": time.Now(),
+            "updated_at": time.Now().Format("02 January 2006 15:04:05"),
         }).Error; err != nil {
         tx.Rollback()
         return err

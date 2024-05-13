@@ -359,7 +359,7 @@ func (s *pemasukanAPI) DownloadLaporan(c *gin.Context){
 
 	pdf.AddPage()
 	pdf.SetFont("Arial", "B", 12)
-	pdf.CellFormat(0, 10, "Laporan pemasukan : "+pemasukan[0].Tanggal, "0", 1, "", false, 0, "")
+	pdf.CellFormat(0, 10, "Laporan Pemasukan : "+pemasukan[0].Tanggal, "0", 1, "", false, 0, "")
 	pdf.CellFormat(0, 10, "Jumlah Pemasukan : Rp. "+strconv.Itoa(int(total)), "0", 1, "", false, 0, "")
     pdf.SetFont("Arial", "B", 14)
 	pdf.CellFormat(0, 10, "RINCIAN BIAYA", "0", 1, "C", false, 0, "")
@@ -379,9 +379,9 @@ func (s *pemasukanAPI) DownloadLaporan(c *gin.Context){
 		
 		for _, data := range pemasukan {
 			pdf.SetFont("Arial", "", 12)
-			pdf.CellFormat(columnWidth, 7, data.Nama, "1", 0, "C", false, 0, "")
-			pdf.CellFormat(columnWidth, 7, data.Tanggal, "1", 0, "C", false, 0, "")
-			pdf.CellFormat(columnWidth, 7, "Rp. " +strconv.Itoa(int(data.Jumlah)), "1", 0, "C", false, 0, "")
+			pdf.CellFormat(columnWidth, 8, data.Nama, "1", 0, "C", false, 0, "")
+			pdf.CellFormat(columnWidth, 8, data.Tanggal, "1", 0, "C", false, 0, "")
+			pdf.CellFormat(columnWidth, 8, "Rp. " +strconv.Itoa(int(data.Jumlah)), "1", 0, "C", false, 0, "")
 			pdf.Ln(-1)	
 		}
 

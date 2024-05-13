@@ -11,7 +11,7 @@ type PengeluaranService interface {
 	Delete(id int) error
 	GetByID(id int) (*models.Pengeluaran, error)
 	GetList(page, pageSize int) ([]models.Pengeluaran,int, error)
-	Search(nama, tanggal string) ([]models.Pengeluaran, error)
+	Search(nama, tanggal string) ([]models.Pengeluaran, int, error)
 }
 
 type pengeluaranService struct {
@@ -63,10 +63,10 @@ func (c *pengeluaranService) GetList(page, pageSize int) ([]models.Pengeluaran,i
 	return Pengeluarans, totalPage, nil
 }
 
-func (c *pengeluaranService) Search(nama, tanggal string) ([]models.Pengeluaran, error){
-	pengeluaran, err := c.pengeluaranRepository.Search(nama, tanggal)
+func (c *pengeluaranService) Search(nama, tanggal string) ([]models.Pengeluaran, int, error){
+	pengeluaran,total, err := c.pengeluaranRepository.Search(nama, tanggal)
 	if err != nil {
-        return nil, err
+        return nil,0, err
     }
-	return pengeluaran, nil
+	return pengeluaran,total, nil
 }

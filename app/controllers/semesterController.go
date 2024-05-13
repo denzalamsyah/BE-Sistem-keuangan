@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/denzalamsyah/simak/app/models"
 	"github.com/denzalamsyah/simak/app/services"
@@ -320,7 +321,8 @@ func (s *semesterAPI) DownloadPembayaranSiswa(c *gin.Context) {
 		pdf.Cell(0, 10, "Kp. Galumpit Kidul RT 005/RW 004 Des. Cipancar Kec. Leles Garut Jawa Barat")
 		pdf.Ln(5)
 		pdf.SetX(float64(xText))
-		pdf.CellFormat(0, 10, "Garut, ", "0", 1, "", false, 0, "")
+		tanggalSekarang := time.Now().Format("02 January 2006") 
+		pdf.CellFormat(0, 10, "Garut, "+tanggalSekarang, "0", 1, "", false, 0, "")
 		// pdf.Ln(5)
 		pdf.SetX(float64(xText))
 		pdf.Cell(0, 0, "No. Telp: 123456789")
@@ -346,6 +348,7 @@ func (s *semesterAPI) DownloadPembayaranSiswa(c *gin.Context) {
 	pdf.CellFormat(0, 10, "Jumlah Bayar : Rp. "+strconv.Itoa(result.Jumlah), "0", 1, "", false, 0, "")
     pdf.CellFormat(0, 10, "Tanggal Pembayaran : "+result.Tanggal, "0", 1, "", false, 0, "")
 	pdf.CellFormat(0, 10, "Status : "+result.Status, "0", 1, "", false, 0, "")
+	pdf.CellFormat(0, 10, "Waktu Update : "+result.UpdatedAt, "0", 1, "", false, 0, "")
     pdf.Ln(10)
 
 	pdf.SetFont("Arial", "", 12)
@@ -415,7 +418,8 @@ func (s *semesterAPI) DownloadReportSiswa(c *gin.Context) {
 		pdf.Cell(0, 10, "Kp. Galumpit Kidul RT 005/RW 004 Des. Cipancar Kec. Leles Garut Jawa Barat")
 		pdf.Ln(5)
 		pdf.SetX(float64(xText))
-		pdf.CellFormat(0, 10, "Garut, ", "0", 1, "", false, 0, "")
+		tanggalSekarang := time.Now().Format("02 January 2006") 
+		pdf.CellFormat(0, 10, "Garut, "+tanggalSekarang, "0", 1, "", false, 0, "")
 		// pdf.Ln(5)
 		pdf.SetX(float64(xText))
 		pdf.Cell(0, 0, "No. Telp: 123456789")

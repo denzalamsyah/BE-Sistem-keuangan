@@ -3,12 +3,14 @@ package controllers
 import (
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/denzalamsyah/simak/app/middleware"
 	"github.com/denzalamsyah/simak/app/models"
 	"github.com/denzalamsyah/simak/app/services"
 	"github.com/gin-gonic/gin"
+	"github.com/xuri/excelize/v2"
 )
 
 type GuruAPI interface {
@@ -23,6 +25,7 @@ type GuruAPI interface {
     GetTotalKasByNIP(c *gin.Context)
 	AmbilKasGuru(c *gin.Context)
     GetHistoriPengambilanKas(c *gin.Context)
+    ExportGuru(c *gin.Context)
 
 }
 
@@ -403,6 +406,7 @@ func (s *guruAPI) AmbilKasGuru(c *gin.Context) {
 	})
 }
 
+// histori pengambilan
 func ( s *guruAPI) GetHistoriPengambilanKas(c *gin.Context){
     page, err := strconv.Atoi(c.Query("page"))
     if err != nil || page <= 0 {
@@ -447,4 +451,86 @@ func ( s *guruAPI) GetHistoriPengambilanKas(c *gin.Context){
     }
 
 	c.JSON(200, response)
+}
+
+// download data guru
+func (s *guruAPI) ExportGuru(c *gin.Context) {
+    page, err := strconv.Atoi(c.Query("page"))
+    if err != nil || page <= 0 {
+        page = 1
+    }
+
+    pageSize, err := strconv.Atoi(c.Query("pageSize"))
+    if err != nil || pageSize <= 0 {
+        pageSize = 5000
+    }
+
+    result, _, err := s.guruService.GetList(page, pageSize)
+    if err != nil {
+        log.Printf("Pesan error: %v", err)
+
+        c.JSON(500, gin.H{
+            "message": "internal server error",
+            "error":   err.Error(),
+        })
+        return
+    }
+
+    file := excelize.NewFile()
+    index, err := file.NewSheet("Siswa")
+    if err != nil {
+        log.Printf("Pesan error: %v", err)
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+    file.SetActiveSheet(index)
+
+    // Add header row
+    header := []string{"NO","NIP", "Nama", "Agama", "Jabatan", "Tempat Lahir", "Tanggal Lahir", "Gender", "Nomor Telepon", "Email", "Alamat"}
+    for col, val := range header {
+        colName, err := excelize.ColumnNumberToName(col + 1)
+        if err != nil {
+        log.Printf("Pesan error: %v", err)
+            c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+            return
+        }
+        cell := colName + "1"
+        file.SetCellValue("Siswa", cell, val)
+    }
+
+    // Add data rows
+    for i, data := range result {
+        row := i + 2
+        file.SetCellValue("Siswa", "A"+strconv.Itoa(row), i+1)
+        file.SetCellValue("Siswa", "B"+strconv.Itoa(row), data.Nip)
+        file.SetCellValue("Siswa", "C"+strconv.Itoa(row), data.Nama)
+        file.SetCellValue("Siswa", "D"+strconv.Itoa(row), data.Agama)
+        file.SetCellValue("Siswa", "E"+strconv.Itoa(row), data.Jabatan)
+        file.SetCellValue("Siswa", "F"+strconv.Itoa(row), data.TempatLahir)
+        file.SetCellValue("Siswa", "G"+strconv.Itoa(row), data.TanggalLahir)
+        file.SetCellValue("Siswa", "H"+strconv.Itoa(row), data.Gender)
+        file.SetCellValue("Siswa", "I"+strconv.Itoa(row), data.NomorTelepon)
+        file.SetCellValue("Siswa", "J"+strconv.Itoa(row), data.Email)
+        file.SetCellValue("Siswa", "K"+strconv.Itoa(row), data.Alamat)
+    }
+
+    fileName := "siswa.xlsx"
+    err = file.SaveAs("./app/files/"+fileName)
+    if err != nil {
+        log.Printf("Pesan error: %v", err)
+
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+    filePath := "./app/files/" + fileName
+    defer func() {
+        if err := os.Remove(filePath); err != nil {
+            log.Printf("Gagal menghapus file: %v", err)
+        }
+    }()
+    c.Header("Content-Description", "File Transfer")
+    c.Header("Content-Disposition", "attachment; filename="+fileName)
+    c.Header("Content-Type", "application/octet-stream")
+    c.Header("Content-Transfer-Encoding", "binary")
+    c.File(filePath)
 }

@@ -186,6 +186,7 @@ version := gin.Group("/api")
 		stake.GET("/saldo/:nip", apiHandler.GuruAPIHandler.GetTotalKasByNIP)
 		stake.POST("/ambil/:nip", apiHandler.GuruAPIHandler.AmbilKasGuru)
 		stake.GET("/histori/ambil/:nip", apiHandler.GuruAPIHandler.GetHistoriPengambilanKas)
+		stake.GET("/download", apiHandler.GuruAPIHandler.ExportGuru)
 	}
 
 	Semester := version.Group("/semester")
@@ -226,6 +227,7 @@ version := gin.Group("/api")
 		pengeluaran.DELETE("/:id", apiHandler.PengeluaranAPIHandler.Delete)
 		pengeluaran.GET("/", apiHandler.PengeluaranAPIHandler.GetList)
 		pengeluaran.GET("/search", apiHandler.PengeluaranAPIHandler.Search)
+		pengeluaran.GET("/download", apiHandler.PengeluaranAPIHandler.DownloadLaporan)
 	}
 
 	kelas := version.Group("/kelas")

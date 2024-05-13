@@ -41,7 +41,7 @@ func (c *transaksiRepository) Store(Transaksi *models.Transaksi) error {
         return errors.New("Transaksi sudah ada")
     }
 
-	Transaksi.CreatedAt = time.Now()
+	Transaksi.CreatedAt = time.Now().Format("02 January 2006 15:04:05")
 	err := c.db.Create(Transaksi).Error
 	if err != nil {
 		return err
@@ -54,7 +54,7 @@ func (c *transaksiRepository) Update(id int, Transaksi models.Transaksi) error {
 	if err != nil {
 		return err
 	}
-	err = c.db.Model(&models.Transaksi{}).Where("id = ?", id).Update("updated_at", time.Now()).Error
+	err = c.db.Model(&models.Transaksi{}).Where("id = ?", id).Update("updated_at", time.Now().Format("02 January 2006 15:04:05")).Error
 	if err != nil {
 		return err
 	}

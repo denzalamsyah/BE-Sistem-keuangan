@@ -427,7 +427,7 @@ func (s *siswaAPI) ExportSiswa(c *gin.Context) {
     file.SetActiveSheet(index)
 
     // Add header row
-    header := []string{"NO", "Nama", "NISN", "Kelas", "Jurusan", "Agama", "Tempat Lahir", "Tanggal Lahir", "Gender", "Nama Ayah", "Nama Ibu", "Nomor Telepon", "Angkatan", "Email", "Alamat"}
+    header := []string{"NO",  "NISN", "Nama", "Kelas", "Jurusan", "Agama", "Tempat Lahir", "Tanggal Lahir", "Gender", "Nama Ayah", "Nama Ibu", "Nomor Telepon", "Angkatan", "Email", "Alamat"}
     for col, val := range header {
         colName, err := excelize.ColumnNumberToName(col + 1)
         if err != nil {
@@ -443,8 +443,8 @@ func (s *siswaAPI) ExportSiswa(c *gin.Context) {
     for i, data := range result {
         row := i + 2
         file.SetCellValue("Siswa", "A"+strconv.Itoa(row), i+1)
-        file.SetCellValue("Siswa", "B"+strconv.Itoa(row), data.Nama)
-        file.SetCellValue("Siswa", "C"+strconv.Itoa(row), data.NISN)
+        file.SetCellValue("Siswa", "B"+strconv.Itoa(row), data.NISN)
+        file.SetCellValue("Siswa", "C"+strconv.Itoa(row), data.Nama)
         file.SetCellValue("Siswa", "D"+strconv.Itoa(row), data.Kelas)
         file.SetCellValue("Siswa", "E"+strconv.Itoa(row), data.Jurusan)
         file.SetCellValue("Siswa", "F"+strconv.Itoa(row), data.Agama)

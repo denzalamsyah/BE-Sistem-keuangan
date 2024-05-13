@@ -29,7 +29,7 @@ func NewKelasRepo(db *gorm.DB) *kelasRepository {
 }
 
 func (c *kelasRepository) Store(Kelas *models.Kelas) error {
-	Kelas.CreatedAt = time.Now()
+	Kelas.CreatedAt = time.Now().Format("02 January 2006 15:04:05")
 	err := c.db.Create(Kelas).Error
 	if err != nil {
 		return err
@@ -42,7 +42,7 @@ func (c *kelasRepository) Update(kode string, Kelas models.Kelas) error {
 	if err != nil {
 		return err
 	}
-	err = c.db.Model(&models.Kelas{}).Where("kode_kelas = ?", kode).Update("updated_at", time.Now()).Error
+	err = c.db.Model(&models.Kelas{}).Where("kode_kelas = ?", kode).Update("updated_at", time.Now().Format("02 January 2006 15:04:05")).Error
 	if err != nil {
 		return err
 	}

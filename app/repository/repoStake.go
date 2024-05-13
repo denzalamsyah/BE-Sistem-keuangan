@@ -38,7 +38,7 @@ func NewGuruRepo(db *gorm.DB) *guruRepository{
 
 
 func(c *guruRepository) Store(Guru *models.Guru) error{
-	Guru.CreatedAt = time.Now()
+	Guru.CreatedAt = time.Now().Format("02 January 2006 15:04:05")
 	err := c.db.Create(Guru).Error
 	if err != nil{
 		return err
@@ -51,7 +51,7 @@ func (c *guruRepository) Update(nip string, Guru models.Guru) error {
 	if err != nil {
 		return err
 	}
-	err = c.db.Model(&models.Guru{}).Where("nip = ?", nip).Update("updated_at", time.Now()).Error
+	err = c.db.Model(&models.Guru{}).Where("nip = ?", nip).Update("updated_at", time.Now().Format("02 January 2006 15:04:05")).Error
 	if err != nil {
 		return err
 	}
@@ -240,8 +240,8 @@ func (c *guruRepository) AmbilKasGuru(jumlah int, nip, nama, tanggal string) err
 		Nama: nama,
 		JumlahAmbil: jumlah,
 		TanggalAmbil: tanggal,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		CreatedAt:time.Now().Format("02 January 2006 15:04:05"),
+		UpdatedAt:time.Now().Format("02 January 2006 15:04:05"),
 	}
 	if err := c.db.Create(&pengambilanKas).Error; err != nil {
 		return err

@@ -32,8 +32,8 @@ type Siswa struct {
 	Email        string `gorm:"type:varchar(35)" json:"email" form:"email"`
 	Alamat       string `gorm:"type:varchar(100)" json:"alamat" form:"alamat"`
 	Gambar string `gorm:"type:varchar(255)" json:"gambar" form:"gambar"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	CreatedAt string `gorm:"type:varchar(35)" json:"created_at"`
+	UpdatedAt string `gorm:"type:varchar(35)" json:"updated_at"`
 }
 
 type PembayaranSemester struct {
@@ -43,14 +43,14 @@ type PembayaranSemester struct {
 	TransaksiID    int         `gorm:"foreignKey:FkId_transaksi;references:ID" json:"id_transaksi"`
 	Transaksi  Transaksi   `json:"transaksi"`
 	Bulan       string      `gorm:"type:varchar(15)" json:"bulan"`
-	Semester       string      `gorm:"type:varchar(15)" json:"semester"`
+	Semester       string      `gorm:"type:varchar(10)" json:"semester"`
 	Tanggal        string      `gorm:"type:varchar(15)" json:"tanggal"`
 	Jumlah         int         `json:"total_jumlah"`
 	Status         string      `gorm:"type:varchar(15)" json:"status"`
 	Biaya  int  `json:"biaya"`
 	Tunggakan int  `json:"tunggakan"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	CreatedAt string `gorm:"type:varchar(35)" json:"created_at"`
+	UpdatedAt string `gorm:"type:varchar(35)" json:"updated_at"`
 }
 type HistoryPembayaran struct {
 	ID             int    `json:"id"`
@@ -60,29 +60,29 @@ type HistoryPembayaran struct {
 	Biaya          int    `json:"biaya"`
 	Tanggal        string `gorm:"type:varchar(15)" json:"tanggal"`
 	Status         string `gorm:"type:varchar(15)" json:"status"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	CreatedAt string `gorm:"type:varchar(35)" json:"created_at"`
+	UpdatedAt string `gorm:"type:varchar(35)" json:"updated_at"`
 }
 type Transaksi struct {
 	ID        int    `gorm:"primaryKey" json:"id"`
 	Nama      string `gorm:"type:varchar(35)" json:"nama"`
 	Jumlah 	int `json:"jumlah"`
 	Kategori 	string `gorm:"type:varchar(5)" json:"kategori"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	CreatedAt string `gorm:"type:varchar(35)" json:"created_at"`
+	UpdatedAt string `gorm:"type:varchar(35)" json:"updated_at"`
 }
 
 type Kelas struct {
 	KodeKelas string    `gorm:"primaryKey" json:"kode_kelas"`
 	Kelas         string `gorm:"type:varchar(35)" json:"kelas"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	CreatedAt string `gorm:"type:varchar(35)" json:"created_at"`
+	UpdatedAt string `gorm:"type:varchar(35)" json:"updated_at"`
 }
 type Jurusan struct{
 	KodeJurusan string    `gorm:"primaryKey" json:"kode_jurusan" `
 	Jurusan    string `gorm:"type:varchar(35)" json:"jurusan" `
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	CreatedAt string `gorm:"type:varchar(35)" json:"created_at"`
+	UpdatedAt string `gorm:"type:varchar(35)" json:"updated_at"`
 }
 type Guru struct {
 	Nip        string    `gorm:"type:varchar(10);primaryKey" json:"nip" form:"nip"`
@@ -99,10 +99,9 @@ type Guru struct {
 	Email        string `gorm:"type:varchar(35)" json:"email" form:"email"`
 	Alamat       string `gorm:"type:varchar(100)" json:"alamat" form:"alamat"`
 	Gambar string `gorm:"type:varchar(255)" json:"gambar" form:"gambar"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	CreatedAt string `gorm:"type:varchar(35)" json:"created_at"`
+	UpdatedAt string `gorm:"type:varchar(35)" json:"updated_at"`
 }
-
 
 type Pemasukan struct {
 	ID        int    `gorm:"primaryKey" json:"id"`
@@ -110,16 +109,16 @@ type Pemasukan struct {
 	Nama      string `gorm:"type:varchar(35)" json:"nama_pemasukan"`
 	Tanggal   string `gorm:"type:varchar(15)" json:"tanggal"`
 	Jumlah    int    `json:"total_jumlah"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	CreatedAt string `gorm:"type:varchar(35)" json:"created_at"`
+	UpdatedAt string `gorm:"type:varchar(35)" json:"updated_at"`
 }
 type Pemasukanlainnya struct {
 	ID        int    `gorm:"primaryKey" json:"id"`
 	Nama      string `gorm:"type:varchar(35)" json:"nama_pemasukan"`
 	Tanggal   string `gorm:"type:varchar(15)" json:"tanggal"`
 	Jumlah    int    `json:"total_jumlah"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	CreatedAt string `gorm:"type:varchar(35)" json:"created_at"`
+	UpdatedAt string `gorm:"type:varchar(35)" json:"updated_at"`
 }
 
 type Pengeluaran struct {
@@ -127,10 +126,9 @@ type Pengeluaran struct {
 	Nama    string `gorm:"type:varchar(35)" json:"nama_pengeluaran"`
 	Tanggal string `gorm:"type:varchar(15)" json:"tanggal"`
 	Jumlah  int    `json:"total_jumlah"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	CreatedAt string `gorm:"type:varchar(35)" json:"created_at"`
+	UpdatedAt string `gorm:"type:varchar(35)" json:"updated_at"`
 }
-
 
 
 type Login struct {
@@ -145,7 +143,6 @@ type Login struct {
 type Gender struct {
 	IDGender int    `gorm:"primaryKey" json:"id"`
 	Nama     string `gorm:"type:varchar(15)" json:"nama"`
-	
 }
 
 type Agama struct {
@@ -174,8 +171,8 @@ type UserRegister struct {
 type User struct {
 	ID        int       `gorm:"primaryKey" json:"id"`
 	Email     string    `json:"email" gorm:"type:varchar(55);not null"`
-	Password  string    `json:"-" gorm:"type:varchar(105);not null"`
-	ConfirmPassword  string `json:"-" gorm:"type:varchar(105);not null"`
+	Password  string    `json:"-" gorm:"type:varchar(255);not null"`
+	ConfirmPassword  string `json:"-" gorm:"type:varchar(255);not null"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
@@ -201,8 +198,8 @@ type KasGuru struct{
 	Jumlah int `json:"jumlah_bayar"`
 	Saldo int `json:"saldo"`
 	TanggalBayar string `gorm:"type:varchar(15)" json:"tanggal_bayar"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	CreatedAt string `gorm:"type:varchar(35)" json:"created_at"`
+	UpdatedAt string `gorm:"type:varchar(35)" json:"updated_at"`
 }
 
 type PengambilanKas struct {
@@ -211,15 +208,15 @@ type PengambilanKas struct {
 	Nama      string    `gorm:"type:varchar(35)" json:"nama"`
 	JumlahAmbil int       `json:"jumlah_ambil"`
 	TanggalAmbil string `gorm:"type:varchar(15)" json:"tanggal_ambil"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	CreatedAt string `gorm:"type:varchar(35)" json:"created_at"`
+	UpdatedAt string `gorm:"type:varchar(35)" json:"updated_at"`
 }
 
 type TotalSaldoKas struct {
 	Nama     string `json:"nama"`
 	NIP      string    `gorm:"type:varchar(10)" json:"nip"`
 	TotalKas int    `json:"total_kas"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	CreatedAt string `gorm:"type:varchar(35)" json:"created_at"`
+	UpdatedAt string `gorm:"type:varchar(35)" json:"updated_at"`
 }
 

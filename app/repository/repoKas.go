@@ -29,7 +29,7 @@ func NewKasRepo(db *gorm.DB) *kasRepository{
 }
 
 func (c *kasRepository) Store(KasGuru *models.KasGuru) error{
-	KasGuru.CreatedAt = time.Now()
+	KasGuru.CreatedAt = time.Now().Format("02 January 2006 15:04:05")
 	if err := c.db.Create(KasGuru).Error; err != nil {
 		return fmt.Errorf("failed to store new siswa: %v", err)
 	}
@@ -41,7 +41,7 @@ func (c *kasRepository) Update(id int, KasGuru models.KasGuru) error{
 	if err != nil {
 		return err
 	}
-	err = c.db.Model(&models.KasGuru{}).Where("id = ?", id).Update("updated_at", time.Now()).Error
+	err = c.db.Model(&models.KasGuru{}).Where("id = ?", id).Update("updated_at", time.Now().Format("02 January 2006 15:04:05")).Error
 	if err != nil {
 		return err
 	}

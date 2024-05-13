@@ -33,7 +33,7 @@ func NewSiswaRepo(db *gorm.DB) *siswaRepository {
 }
 
 func (c *siswaRepository) Store(Siswa *models.Siswa) error {
-	Siswa.CreatedAt = time.Now()
+	Siswa.CreatedAt = time.Now().Format("02 January 2006 15:04:05")
 	if err := c.db.Create(Siswa).Error; err != nil {
 		return fmt.Errorf("failed to store new siswa: %v", err)
 	}
@@ -47,7 +47,7 @@ func (c *siswaRepository) Update(nisn string, Siswa models.Siswa) error {
 		return err
 	}
 
-	err = c.db.Model(&models.Siswa{}).Where("nisn = ?", nisn).Update("updated_at", time.Now()).Error
+	err = c.db.Model(&models.Siswa{}).Where("nisn = ?", nisn).Update("updated_at", time.Now().Format("02 January 2006 15:04:05")).Error
 	if err != nil {
 		return err
 	}

@@ -49,8 +49,7 @@ func (c *semesterRepository) Store(PembayaranSemester *models.PembayaranSemester
         tx.Rollback()
         return errors.New("Pembayaran sudah ada")
     }
-
-    PembayaranSemester.CreatedAt = time.Now()
+    PembayaranSemester.CreatedAt = time.Now().Format("02 January 2006 15:04:05")
     
     if err := tx.Create(PembayaranSemester).Error; err != nil {
         tx.Rollback()
@@ -115,6 +114,7 @@ func (c *semesterRepository) Update(id int, PembayaranSemester models.Pembayaran
         return errors.New("Jumlah terlalu besar")
     }
 
+    PembayaranSemester.UpdatedAt = time.Now().Format("02 January 2006 15:04:05")
     // Memperbarui data PembayaranSemester dengan nilai baru
     if err := tx.Model(&pembayaranSemester).Updates(&PembayaranSemester).Error; err != nil {
         tx.Rollback()
@@ -129,7 +129,7 @@ func (c *semesterRepository) Update(id int, PembayaranSemester models.Pembayaran
             "nama":    transaksi.Nama,
             "tanggal": pembayaranSemester.Tanggal,
             "jumlah":  pembayaranSemester.Jumlah,
-            "updated_at": time.Now(),
+            "updated_at": time.Now().Format("02 January 2006 15:04:05"),
         }).Error; err != nil {
         tx.Rollback()
         return err
