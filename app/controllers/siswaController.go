@@ -305,7 +305,9 @@ func (s *siswaAPI) History(c *gin.Context) {
     }
 
 	siswaNISN :=c.Param("nisn")
-	
+    kategori := c.Query("kategori")
+    nama := c.Query("nama")
+    tanggal := c.Query("tanggal")
 	if err != nil {
 		log.Printf("Pesan error: %v", err)
 
@@ -315,7 +317,7 @@ func (s *siswaAPI) History(c *gin.Context) {
 		return
 	}
 
-	result, totalPage, err := s.siswaService.HistoryPembayaranSiswa(siswaNISN, page, pageSize)
+	result, totalPage, err := s.siswaService.HistoryPembayaranSiswa(siswaNISN,nama,tanggal,kategori, page, pageSize)
 	if err != nil {
 		log.Printf("Pesan error: %v", err)
 

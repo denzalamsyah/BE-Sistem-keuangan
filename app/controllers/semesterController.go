@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -273,7 +274,6 @@ func (s *semesterAPI) Search(c *gin.Context){
 func (s *semesterAPI) DownloadPembayaranSiswa(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 
-	
 	if err != nil {
 		log.Printf("Pesan error: %v", err)
 
@@ -295,68 +295,86 @@ func (s *semesterAPI) DownloadPembayaranSiswa(c *gin.Context) {
 		return
 	}
 
-	pdf := gofpdf.New("P", "mm", "A4", "")
+	// pdf := gofpdf.New("P", "mm", "A4", "")
+	// pdf.SetPage(7)
+	pageWidth := 65.0
+	pageHeight := 75.0
 
+	// Membuat instance PDF baru dengan ukuran halaman kustom
+	pdf := gofpdf.NewCustom(&gofpdf.InitType{
+		UnitStr: "mm",
+		Size: gofpdf.SizeType{
+			Wd: pageWidth,
+			Ht: pageHeight,
+		},
+	})
+
+	topMargin := 5.0
+	pdf.SetTopMargin(topMargin)
+	pdf.SetAutoPageBreak(true, topMargin)
 	pdf.SetHeaderFunc(func() {
-		// Simpan posisi Y saat ini untuk digunakan pada akhir teks
+
 		y := pdf.GetY()
-		// Hitung lebar gambar
-		imageWidth := 20 // Ubah sesuai kebutuhan
-		imageHeight := 20 // Ubah sesuai kebutuhan
-		// Tentukan posisi X untuk gambar dan teks
-		xImage := 10
-		xText := xImage + imageWidth + 5
-		// Gambar di sebelah kiri teks
+		imageWidth := 8 
+		imageHeight := 8 
+
+		xImage := 6
+		xText := xImage + imageWidth + 2
 		pdf.Image("./app/files/logo.png", float64(xImage), y, float64(imageWidth), float64(imageHeight), false, "", 0, "")
 	
 		pdf.SetX(float64(xText))
-		pdf.SetFont("Arial", "B", 14)
+		pdf.SetFont("Arial", "B", 7)
 		pdf.Cell(0, 0, "SMA Plus Nurul Iman Leles",)
-		pdf.SetFont("Arial", "", 10)
+		pdf.SetFont("Arial", "", 5)
 		pdf.Ln(2)
-		// pdf.SetX(float64(xText))
-		// pdf.Cell(0, 10, "SMA Plus Nurul Iman Leles")
-		// pdf.Ln(5)
 		pdf.SetX(float64(xText))
-		pdf.Cell(0, 10, "Kp. Galumpit Kidul RT 005/RW 004 Des. Cipancar Kec. Leles Garut Jawa Barat")
-		pdf.Ln(5)
+		pdf.Cell(0, 2, "Kp. Galumpit Kidul RT 005/RW 004 Cipancar Leles")
+		pdf.Ln(2)
 		pdf.SetX(float64(xText))
 		tanggalSekarang := time.Now().Format("02 January 2006") 
-		pdf.CellFormat(0, 10, "Garut, "+tanggalSekarang, "0", 1, "", false, 0, "")
-		// pdf.Ln(5)
+		pdf.CellFormat(0, 2, "Garut, "+tanggalSekarang, "0", 1, "", false, 0, "")
 		pdf.SetX(float64(xText))
-		pdf.Cell(0, 0, "No. Telp: 123456789")
+		pdf.Cell(0, 2, "No. Telp: 123456789")
 		pdf.Ln(5)
 
-		xStart := 10 
-		xEnd := 200 
-		pdf.Line(float64(xStart), 33, float64(xEnd), 33)
-		pdf.Ln(10)
+		xStart := 5 
+		xEnd := 60.0
+		pdf.Line(float64(xStart), 14, float64(xEnd), 14)
+		pdf.Ln(3)
 
     })
 
     pdf.AddPage()
-	pdf.SetFont("Arial", "B", 14)
-	pdf.CellFormat(0, 0, "Kwetansi Pembayaran", "0", 1, "C", false, 0, "")
-    pdf.Ln(10)
-    pdf.SetFont("Arial", "B", 12)
-    pdf.CellFormat(0, 10, "Nama : "+result.Siswa, "0", 1, "", false, 0, "")
-	pdf.CellFormat(0, 10, "NISN : "+result.NISN, "0", 1, "", false, 0, "")
-	pdf.CellFormat(0, 10, "Nama Pembayaran : "+result.Transaksi, "0", 1, "", false, 0, "")
-	pdf.CellFormat(0, 10, "Semester : "+result.Bulan, "0", 1, "", false, 0, "")
-	pdf.CellFormat(0, 10, "Kelas : "+result.Semester, "0", 1, "", false, 0, "")
-	pdf.CellFormat(0, 10, "Jumlah Bayar : Rp. "+strconv.Itoa(result.Jumlah), "0", 1, "", false, 0, "")
-    pdf.CellFormat(0, 10, "Tanggal Pembayaran : "+result.Tanggal, "0", 1, "", false, 0, "")
-	pdf.CellFormat(0, 10, "Status : "+result.Status, "0", 1, "", false, 0, "")
-	pdf.CellFormat(0, 10, "Waktu Update : "+result.UpdatedAt, "0", 1, "", false, 0, "")
-    pdf.Ln(10)
+	pdf.SetFont("Arial", "B", 6)
+	pdf.CellFormat(0, 0, "Kwitansi Pembayaran", "0", 1, "C", false, 0, "")
+    pdf.Ln(3)
+    pdf.SetFont("Arial", "B", 6)
+	pdf.SetX(float64(6))
+    pdf.CellFormat(0, 4, "Nama : "+result.Siswa, "0", 1, "", false, 0, "")
+	pdf.SetX(float64(6))
+	pdf.CellFormat(0, 4, "NISN : "+result.NISN, "0", 1, "", false, 0, "")
+	pdf.SetX(float64(6))
+	pdf.CellFormat(0, 4, "Nama Pembayaran : "+result.Transaksi, "0", 1, "", false, 0, "")
+	pdf.SetX(float64(6))
+	pdf.CellFormat(0, 4, "Semester : "+result.Semester, "0", 1, "", false, 0, "")
+	pdf.SetX(float64(6))
+	pdf.CellFormat(0, 4, "Bulan : "+result.Bulan, "0", 1, "", false, 0, "")
+	pdf.SetX(float64(6))
+	pdf.CellFormat(0, 4, "Jumlah Bayar : Rp. "+strconv.Itoa(result.Jumlah), "0", 1, "", false, 0, "")
+	pdf.SetX(float64(6))
+    pdf.CellFormat(0, 4, "Tanggal Pembayaran : "+result.Tanggal, "0", 1, "", false, 0, "")
+	pdf.SetX(float64(6))
+	pdf.CellFormat(0, 4, "Status : "+result.Status, "0", 1, "", false, 0, "")
+	pdf.SetX(float64(6))
+	pdf.CellFormat(0, 4, "Waktu Update : "+result.UpdatedAt, "0", 1, "", false, 0, "")
+    pdf.Ln(4)
 
-	pdf.SetFont("Arial", "", 12)
-    pdf.CellFormat(0, 10, "Bendahara Sekolah,", "0", 1, "", false, 0, "")
-    pdf.Ln(20)
-
-	pdf.SetFont("Arial", "I", 12)
-    pdf.CellFormat(0, 10, "Sambas S.Pd.", "0", 1, "", false, 0, "")
+	pdf.SetFont("Arial", "I", 6)
+	pdf.SetX(float64(6))
+	pdf.CellFormat(0, 2, "Mengetahui,", "0", 1, "", false, 0, "")
+	pdf.SetFont("Arial", "B", 6)
+	pdf.SetX(float64(6))
+    pdf.CellFormat(0, 3, "*Bendahara Sekolah*", "0", 1, "", false, 0, "")
     // Simpan file PDF
     fileName := "semester.pdf"
     err = pdf.OutputFileAndClose("./app/files/" + fileName)
@@ -378,6 +396,15 @@ func (s *semesterAPI) DownloadPembayaranSiswa(c *gin.Context) {
 
 // download report pembayaran berdasarkan nisn siswa
 func (s *semesterAPI) DownloadReportSiswa(c *gin.Context) {
+	nama := c.Query("nama")
+	kategories := c.Query("kategories")
+
+	trans, err := s.semesterService.SearchTransaksi(nama, kategories)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+
 	siswa := c.Query("siswa")
 	transaksi := c.Query("transaksi")
 	bulan := c.Query("bulan")
@@ -387,142 +414,137 @@ func (s *semesterAPI) DownloadReportSiswa(c *gin.Context) {
 
 	result, err := s.semesterService.Search(siswa, transaksi, bulan, tanggal, nisn, kategori)
 	if err != nil {
-        log.Printf("Error: %v", err)
+		log.Printf("Error: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
+	}
+
+	resultMap := make(map[int][]models.PembayaranSemesterResponse)
+	for _, r := range result {
+		resultMap[r.TransaksiID] = append(resultMap[r.TransaksiID], r)
 	}
 
 	pdf := gofpdf.New("P", "mm", "A4", "")
 
 	pdf.SetHeaderFunc(func() {
-		// Simpan posisi Y saat ini untuk digunakan pada akhir teks
 		y := pdf.GetY()
-		// Hitung lebar gambar
-		imageWidth := 20 // Ubah sesuai kebutuhan
-		imageHeight := 20 // Ubah sesuai kebutuhan
-		// Tentukan posisi X untuk gambar dan teks
+		imageWidth := 20
+		imageHeight := 20
+
 		xImage := 10
 		xText := xImage + imageWidth + 5
-		// Gambar di sebelah kiri teks
+
 		pdf.Image("./app/files/logo.png", float64(xImage), y, float64(imageWidth), float64(imageHeight), false, "", 0, "")
-	
+
 		pdf.SetX(float64(xText))
 		pdf.SetFont("Arial", "B", 14)
-		pdf.Cell(0, 0, "SMA Plus Nurul Iman Leles",)
+		pdf.Cell(0, 0, "SMA Plus Nurul Iman Leles")
 		pdf.SetFont("Arial", "", 10)
 		pdf.Ln(2)
-		// pdf.SetX(float64(xText))
-		// pdf.Cell(0, 10, "SMA Plus Nurul Iman Leles")
-		// pdf.Ln(5)
 		pdf.SetX(float64(xText))
 		pdf.Cell(0, 10, "Kp. Galumpit Kidul RT 005/RW 004 Des. Cipancar Kec. Leles Garut Jawa Barat")
 		pdf.Ln(5)
 		pdf.SetX(float64(xText))
-		tanggalSekarang := time.Now().Format("02 January 2006") 
+		tanggalSekarang := time.Now().Format("02 January 2006")
 		pdf.CellFormat(0, 10, "Garut, "+tanggalSekarang, "0", 1, "", false, 0, "")
-		// pdf.Ln(5)
 		pdf.SetX(float64(xText))
 		pdf.Cell(0, 0, "No. Telp: 123456789")
 		pdf.Ln(5)
 
-		xStart := 10 
-		xEnd := 200 
+		xStart := 10
+		xEnd := 200
 		pdf.Line(float64(xStart), 33, float64(xEnd), 33)
 		pdf.Ln(5)
+	})
 
-    })
-
-    pdf.AddPage()
-    pdf.SetFont("Arial", "B", 14)
-	pdf.CellFormat(0, 10, "RINCIAN BIAYA", "0", 1, "C", false, 0, "")
-    pdf.Ln(5)
-
+	pdf.AddPage()
 	pdf.SetFont("Arial", "B", 12)
+	pdf.CellFormat(0, 10, "RINCIAN BIAYA", "0", 1, "C", false, 0, "")
+	pdf.Ln(5)
+
+	pdf.SetFont("Arial", "B", 11)
 
 	// Tampilkan data siswa
 	pdf.CellFormat(0, 10, "Nama : "+result[0].Siswa, "0", 1, "", false, 0, "")
 	pdf.CellFormat(0, 10, "NISN : "+result[0].NISN, "0", 1, "", false, 0, "")
-	pdf.CellFormat(0, 10, "TIPE : "+kategori, "0", 1, "", false, 0, "")
-	// pdf.Ln(10)
+	pdf.CellFormat(0, 10, "TIPE : "+kategories, "0", 1, "", false, 0, "")
+	pdf.Ln(5)
 
-		xStart := 10 
-		xEnd := 200 
-		tableWidth := xEnd - xStart
 
-		// Jumlah kolom dalam tabel
-		numColumns := 4
+	pdf.SetFont("Arial", "B", 11)
 
-		// Menghitung lebar setiap sel
-		columnWidth := float64(tableWidth) / float64(numColumns)
+	header := []string{"NO.", "Pembayaran", "Bulan", "Semester", "Jumlah","Status"}
+	widths := []float64{10, 40, 30, 30,40, 40}
 
-		
-		printedTitle := false
-		for _, data := range result {
-			if data.Transaksi == "SPP" {
-				if !printedTitle {
-					// Buat tabel khusus untuk pembayaran SPP
-					// pdf.CellFormat(columnWidth*4, 7, "Data Pembayaran Siswa", "1", 0, "C", false, 0, "")
-					pdf.Ln(-1)
-					pdf.CellFormat(columnWidth, 7, "Nama", "1", 0, "C", false, 0, "")
-					pdf.CellFormat(columnWidth, 7, "Bulan/Semester", "1", 0, "C", false, 0, "")
-					// pdf.CellFormat(columnWidth, 7, "Biaya", "1", 0, "C", false, 0, "")
-					pdf.CellFormat(columnWidth, 7, "Bayar", "1", 0, "C", false, 0, "")
-					// pdf.CellFormat(columnWidth, 7, "Tunggakan", "1", 0, "C", false, 0, "")
-					pdf.CellFormat(columnWidth, 7, "Status", "1", 0, "C", false, 0, "")
-					pdf.Ln(-1)
-					printedTitle = true
-				}
-			} else {
-				if !printedTitle {
-					// Buat tabel untuk pembayaran selain SPP
-					// pdf.CellFormat(columnWidth*6, 7, "Data Pembayaran", "1", 0, "C", false, 0, "")
-					pdf.Ln(-1)
-					pdf.CellFormat(columnWidth, 7, "Nama Pembayaran", "1", 0, "C", false, 0, "")
-					pdf.CellFormat(columnWidth, 7, "Semester", "1", 0, "C", false, 0, "")
-					// pdf.CellFormat(columnWidth, 7, "Biaya", "1", 0, "C", false, 0, "")
-					pdf.CellFormat(columnWidth, 7, "Bayar", "1", 0, "C", false, 0, "")
-					// pdf.CellFormat(columnWidth, 7, "Tunggakan", "1", 0, "C", false, 0, "")
-					pdf.CellFormat(columnWidth, 7, "Status", "1", 0, "C", false, 0, "")
-					pdf.Ln(-1)
-					printedTitle = true
-				}
-			}
+	for i, str := range header {
+		pdf.CellFormat(widths[i], 10, str, "1", 0, "C", false, 0, "")
+	}
+	pdf.Ln(-1)
 
-			// Set font untuk data
-			pdf.SetFont("Arial", "", 12)
+	totalAmount := 0
+	totalPaid := 0
 
-			// Menampilkan data
-			pdf.CellFormat(columnWidth, 7, data.Transaksi, "1", 0, "C", false, 0, "")
-			if data.Transaksi == "SPP" {
-				// Hilangkan kolom semester jika pembayaran SPP
-				pdf.CellFormat(columnWidth, 7, data.Bulan, "1", 0, "C", false, 0, "")
-			} else {
-				pdf.CellFormat(columnWidth, 7, data.Semester, "1", 0, "C", false, 0, "")
-			}
-			// pdf.CellFormat(columnWidth, 7, strconv.Itoa(int(data.Biaya)), "1", 0, "C", false, 0, "")
-			pdf.CellFormat(columnWidth, 7, "Rp. " +strconv.Itoa(int(data.Jumlah)), "1", 0, "C", false, 0, "")
-			// pdf.CellFormat(columnWidth, 7, strconv.Itoa(int(data.Tunggakan)), "1", 0, "C", false, 0, "")
-			pdf.CellFormat(columnWidth, 7, data.Status, "1", 0, "C", false, 0, "")
-			pdf.Ln(-1)
+	pdf.SetFont("Arial", "", 11)
+	rowNum := 1
+	for _, t := range trans {
+		if t.Nama == "SPP" {
+			totalAmount += t.Jumlah * 12
+		} else if t.Nama == "LKS" {
+			totalAmount += t.Jumlah * 2
+		} else {
+			totalAmount += t.Jumlah
 		}
 
-		
+		if details, exists := resultMap[t.ID]; exists {
+			for _, detail := range details {
+				pdf.CellFormat(widths[0], 10, fmt.Sprintf("%d", rowNum), "1", 0, "C", false, 0, "")
+				pdf.CellFormat(widths[1], 10, t.Nama, "1", 0, "C", false, 0, "")
+				pdf.CellFormat(widths[2], 10, detail.Bulan, "1", 0, "C", false, 0, "")
+				pdf.CellFormat(widths[3], 10, detail.Semester, "1", 0, "C", false, 0, "")
+				pdf.CellFormat(widths[4], 10, "Rp. "+strconv.Itoa(int(detail.Jumlah)), "1", 0, "C", false, 0, "")
+				pdf.CellFormat(widths[5], 10, detail.Status, "1", 0, "C", false, 0, "")
+				totalPaid += detail.Jumlah
+				pdf.Ln(-1)
+				rowNum++
+			}
+		} else {
+			// Tampilkan transaksi tanpa detail secara umum
+			pdf.CellFormat(widths[0], 10, fmt.Sprintf("%d", rowNum), "1", 0, "C", false, 0, "")
+			pdf.CellFormat(widths[1], 10, t.Nama, "1", 0, "C", false, 0, "")
+			pdf.CellFormat(widths[2], 10, "", "1", 0, "C", false, 0, "")
+			pdf.CellFormat(widths[3], 10, "", "1", 0, "C", false, 0, "")
+			pdf.CellFormat(widths[4], 10, "", "1", 0, "C", false, 0, "")
+			pdf.CellFormat(widths[5], 10, "", "1", 0, "C", false, 0, "")
+			pdf.Ln(-1)
+			rowNum++
+		}
+	}
 
-    fileName := "semester.pdf"
-    err = pdf.OutputFileAndClose("./app/files/" + fileName)
-    if err != nil {
-        c.JSON(500, gin.H{"error": err.Error()})
-        return
-    }
+	// Calculate the outstanding amount
+	outstanding := totalAmount - totalPaid
 
-    defer func() {
-        if err := os.Remove("./app/files/" + fileName); err != nil {
-            log.Printf("Gagal menghapus file: %v", err)
-        }
-    }()
+	// Add totals row
+	pdf.SetFont("Arial", "B", 11)
+	pdf.Ln(10)
+	pdf.CellFormat(0, 10, "Keterangan :", "0", 1, "L", false, 0, "")
+	pdf.CellFormat(0, 10, fmt.Sprintf("Wajib Bayar: Rp. %d", totalAmount), "0", 1, "L", false, 0, "")
+	pdf.CellFormat(0, 10, fmt.Sprintf("Dibayar: Rp. %d", totalPaid), "0", 1, "L", false, 0, "")
+	pdf.CellFormat(0, 10, fmt.Sprintf("Tunggakan: Rp. %d", outstanding), "0", 1, "L", false, 0, "")
 
+	fileName := "semester.pdf"
+	err = pdf.OutputFileAndClose("./app/files/" + fileName)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
 
-    c.File("./app/files/" + fileName)
+	defer func() {
+		if err := os.Remove("./app/files/" + fileName); err != nil {
+			log.Printf("Gagal menghapus file: %v", err)
+		}
+	}()
 
+	c.File("./app/files/" + fileName)
 }
+
 

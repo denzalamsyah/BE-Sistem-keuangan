@@ -222,64 +222,74 @@ func (s *kasAPI) DownloadPembayaranKas(c *gin.Context) {
 		return
 	}
 
-	pdf := gofpdf.New("P", "mm", "A4", "")
+	pageWidth := 65.0
+	pageHeight := 75.0
 
+	// Membuat instance PDF baru dengan ukuran halaman kustom
+	pdf := gofpdf.NewCustom(&gofpdf.InitType{
+		UnitStr: "mm",
+		Size: gofpdf.SizeType{
+			Wd: pageWidth,
+			Ht: pageHeight,
+		},
+	})
+	topMargin := 5.0
+	pdf.SetTopMargin(topMargin)
+	pdf.SetAutoPageBreak(true, topMargin)
 	pdf.SetHeaderFunc(func() {
-		// Simpan posisi Y saat ini untuk digunakan pada akhir teks
 		y := pdf.GetY()
-		// Hitung lebar gambar
-		imageWidth := 20 // Ubah sesuai kebutuhan
-		imageHeight := 20 // Ubah sesuai kebutuhan
-		// Tentukan posisi X untuk gambar dan teks
-		xImage := 10
-		xText := xImage + imageWidth + 5
-		// Gambar di sebelah kiri teks
+		imageWidth := 8 
+		imageHeight := 8 
+
+		xImage := 6
+		xText := xImage + imageWidth + 2
 		pdf.Image("./app/files/logo.png", float64(xImage), y, float64(imageWidth), float64(imageHeight), false, "", 0, "")
 	
 		pdf.SetX(float64(xText))
-		pdf.SetFont("Arial", "B", 14)
+		pdf.SetFont("Arial", "B", 7)
 		pdf.Cell(0, 0, "SMA Plus Nurul Iman Leles",)
-		pdf.SetFont("Arial", "", 10)
+		pdf.SetFont("Arial", "", 5)
 		pdf.Ln(2)
-		// pdf.SetX(float64(xText))
-		// pdf.Cell(0, 10, "SMA Plus Nurul Iman Leles")
-		// pdf.Ln(5)
 		pdf.SetX(float64(xText))
-		pdf.Cell(0, 10, "Kp. Galumpit Kidul RT 005/RW 004 Des. Cipancar Kec. Leles Garut Jawa Barat")
-		pdf.Ln(5)
+		pdf.Cell(0, 2, "Kp. Galumpit Kidul RT 005/RW 004 Cipancar Leles")
+		pdf.Ln(2)
 		pdf.SetX(float64(xText))
 		tanggalSekarang := time.Now().Format("02 January 2006") 
-		pdf.CellFormat(0, 10, "Garut, "+tanggalSekarang, "0", 1, "", false, 0, "")
-		// pdf.Ln(5)
+		pdf.CellFormat(0, 2, "Garut, "+tanggalSekarang, "0", 1, "", false, 0, "")
 		pdf.SetX(float64(xText))
-		pdf.Cell(0, 0, "No. Telp: 123456789")
+		pdf.Cell(0, 2, "No. Telp: 123456789")
 		pdf.Ln(5)
 
-		xStart := 10 
-		xEnd := 200 
-		pdf.Line(float64(xStart), 33, float64(xEnd), 33)
-		pdf.Ln(10)
+		xStart := 5 
+		xEnd := 60.0
+		pdf.Line(float64(xStart), 14, float64(xEnd), 14)
+		pdf.Ln(3)
 
     })
 
     pdf.AddPage()
-	pdf.SetFont("Arial", "B", 14)
+	pdf.SetFont("Arial", "B", 6)
 	pdf.CellFormat(0, 0, "Kwetansi Pembayaran", "0", 1, "C", false, 0, "")
-    pdf.Ln(10)
-    pdf.SetFont("Arial", "B", 12)
-    pdf.CellFormat(0, 10, "Nama: "+result.Nama, "0", 1, "", false, 0, "")
-	pdf.CellFormat(0, 10, "NIP : "+result.NIP, "0", 1, "", false, 0, "")
-    pdf.CellFormat(0, 10, "Jumlah Bayar: Rp. "+strconv.Itoa(result.Jumlah_Bayar), "0", 1, "", false, 0, "")
-    pdf.CellFormat(0, 10, "Tanggal Pembayaran: "+result.Tanggal, "0", 1, "", false, 0, "")
-	pdf.CellFormat(0, 10, "Waktu Update : "+result.UpdatedAt, "0", 1, "", false, 0, "")
-    pdf.Ln(10)
+    pdf.Ln(3)
+    pdf.SetFont("Arial", "B", 6)
+	pdf.SetX(float64(6))
+    pdf.CellFormat(0, 4, "Nama: "+result.Nama, "0", 1, "", false, 0, "")
+	pdf.SetX(float64(6))
+	pdf.CellFormat(0, 4, "NIP : "+result.NIP, "0", 1, "", false, 0, "")
+	pdf.SetX(float64(6))
+    pdf.CellFormat(0, 4, "Jumlah Bayar: Rp. "+strconv.Itoa(result.Jumlah_Bayar), "0", 1, "", false, 0, "")
+	pdf.SetX(float64(6))
+    pdf.CellFormat(0, 4, "Tanggal Pembayaran: "+result.Tanggal, "0", 1, "", false, 0, "")
+	pdf.SetX(float64(6))
+	pdf.CellFormat(0, 4, "Waktu Update : "+result.UpdatedAt, "0", 1, "", false, 0, "")
+    pdf.Ln(4)
 
-	pdf.SetFont("Arial", "", 12)
-    pdf.CellFormat(0, 10, "Bendahara Sekolah,", "0", 1, "", false, 0, "")
-    pdf.Ln(20)
-
-	pdf.SetFont("Arial", "I", 12)
-    pdf.CellFormat(0, 10, "Sambas S.Pd.", "0", 1, "", false, 0, "")
+	pdf.SetFont("Arial", "I", 6)
+	pdf.SetX(float64(6))
+	pdf.CellFormat(0, 2, "Mengetahui,", "0", 1, "", false, 0, "")
+	pdf.SetFont("Arial", "B", 6)
+	pdf.SetX(float64(6))
+    pdf.CellFormat(0, 3, "*Bendahara Sekolah*", "0", 1, "", false, 0, "")
     // Simpan file PDF
     fileName := "kas.pdf"
     err = pdf.OutputFileAndClose("./app/files/" + fileName)
@@ -324,67 +334,78 @@ func (s *kasAPI) DownloadPengambilanKas(c *gin.Context) {
 		return
 	}
 
-	pdf := gofpdf.New("P", "mm", "A4", "")
+	pageWidth := 65.0
+	pageHeight := 75.0
+
+	// Membuat instance PDF baru dengan ukuran halaman kustom
+	pdf := gofpdf.NewCustom(&gofpdf.InitType{
+		UnitStr: "mm",
+		Size: gofpdf.SizeType{
+			Wd: pageWidth,
+			Ht: pageHeight,
+		},
+	})
+	topMargin := 5.0
+	pdf.SetTopMargin(topMargin)
+	pdf.SetAutoPageBreak(true, topMargin)
 
 	pdf.SetHeaderFunc(func() {
-		// Simpan posisi Y saat ini untuk digunakan pada akhir teks
+	
 		y := pdf.GetY()
-		// Hitung lebar gambar
-		imageWidth := 20 // Ubah sesuai kebutuhan
-		imageHeight := 20 // Ubah sesuai kebutuhan
-		// Tentukan posisi X untuk gambar dan teks
-		xImage := 10
-		xText := xImage + imageWidth + 5
+		imageWidth := 8 
+		imageHeight := 8 
+		xImage := 6
+		xText := xImage + imageWidth + 2
 		// Gambar di sebelah kiri teks
 		pdf.Image("./app/files/logo.png", float64(xImage), y, float64(imageWidth), float64(imageHeight), false, "", 0, "")
 	
 		pdf.SetX(float64(xText))
-		pdf.SetFont("Arial", "B", 14)
+		pdf.SetFont("Arial", "B", 7)
 		pdf.Cell(0, 0, "SMA Plus Nurul Iman Leles",)
-		pdf.SetFont("Arial", "", 10)
+		pdf.SetFont("Arial", "", 5)
 		pdf.Ln(2)
-		// pdf.SetX(float64(xText))
-		// pdf.Cell(0, 10, "SMA Plus Nurul Iman Leles")
-		// pdf.Ln(5)
 		pdf.SetX(float64(xText))
-		pdf.Cell(0, 10, "Kp. Galumpit Kidul RT 005/RW 004 Des. Cipancar Kec. Leles Garut Jawa Barat")
-		pdf.Ln(5)
+		pdf.Cell(0, 2, "Kp. Galumpit Kidul RT 005/RW 004 Cipancar Leles")
+		pdf.Ln(2)
 		pdf.SetX(float64(xText))
 		tanggalSekarang := time.Now().Format("02 January 2006") 
-		pdf.CellFormat(0, 10, "Garut, "+tanggalSekarang, "0", 1, "", false, 0, "")
+		pdf.CellFormat(0, 2, "Garut, "+tanggalSekarang, "0", 1, "", false, 0, "")
 		// pdf.Ln(5)
 		pdf.SetX(float64(xText))
-		pdf.Cell(0, 0, "No. Telp: 123456789")
+		pdf.Cell(0, 2, "No. Telp: 123456789")
 		pdf.Ln(5)
 
-		xStart := 10 
-		xEnd := 200 
-		pdf.Line(float64(xStart), 33, float64(xEnd), 33)
-		pdf.Ln(10)
+		xStart := 5 
+		xEnd := 60.0
+		pdf.Line(float64(xStart), 14, float64(xEnd), 14)
+		pdf.Ln(3)
 
     })
 
     pdf.AddPage()
-	pdf.SetFont("Arial", "B", 14)
+	pdf.SetFont("Arial", "B", 6)
 	pdf.CellFormat(0, 0, "Kwetansi Pembayaran", "0", 1, "C", false, 0, "")
-    pdf.Ln(10)
-    pdf.SetFont("Arial", "B", 12)
-    pdf.CellFormat(0, 10, "Nama : "+result.Nama, "0", 1, "", false, 0, "")
-	pdf.CellFormat(0, 10, "NIP : "+result.NIP, "0", 1, "", false, 0, "")
-    pdf.CellFormat(0, 10, "Jumlah Ambil : Rp. "+strconv.Itoa(result.JumlahAmbil), "0", 1, "", false, 0, "")
-    pdf.CellFormat(0, 10, "Tanggal Pengambilan : "+result.TanggalAmbil, "0", 1, "", false, 0, "")
-	pdf.CellFormat(0, 10, "Waktu Update : "+result.UpdatedAt, "0", 1, "", false, 0, "")
+    pdf.Ln(3)
+    pdf.SetFont("Arial", "B", 6)
+	pdf.SetX(float64(6))
+    pdf.CellFormat(0, 4, "Nama : "+result.Nama, "0", 1, "", false, 0, "")
+	pdf.SetX(float64(6))
+	pdf.CellFormat(0, 4, "NIP : "+result.NIP, "0", 1, "", false, 0, "")
+	pdf.SetX(float64(6))
+    pdf.CellFormat(0, 4, "Jumlah Ambil : Rp. "+strconv.Itoa(result.JumlahAmbil), "0", 1, "", false, 0, "")
+	pdf.SetX(float64(6))
+    pdf.CellFormat(0, 4, "Tanggal Pengambilan : "+result.TanggalAmbil, "0", 1, "", false, 0, "")
+	pdf.SetX(float64(6))
+	pdf.CellFormat(0, 4, "Waktu Update : "+result.UpdatedAt, "0", 1, "", false, 0, "")
+    pdf.Ln(4)
 
-    pdf.Ln(10)
+	pdf.SetFont("Arial", "I", 6)
+	pdf.SetX(float64(6))
+	pdf.CellFormat(0, 2, "Mengetahui,", "0", 1, "", false, 0, "")
+	pdf.SetFont("Arial", "B", 6)
+	pdf.SetX(float64(6))
+    pdf.CellFormat(0, 3, "*Bendahara Sekolah*", "0", 1, "", false, 0, "")
 
-	pdf.SetFont("Arial", "", 12)
-	
-    pdf.CellFormat(0, 10, "Bendahara Sekolah,", "0", 1, "", false, 0, "")
-    pdf.Ln(20)
-
-	pdf.SetFont("Arial", "I", 12)
-    pdf.CellFormat(0, 10, "Sambas S.Pd.", "0", 1, "", false, 0, "")
-    // Simpan file PDF
     fileName := "kas.pdf"
     err = pdf.OutputFileAndClose("./app/files/" + fileName)
     if err != nil {

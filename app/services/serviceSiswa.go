@@ -11,7 +11,7 @@ type SiswaServices interface {
 	Delete(nisn string) error
 	GetByID(nisn string) (*models.SiswaResponse, error)
 	GetList(page, pageSize int) ([]models.SiswaResponse, int, error)
-	HistoryPembayaranSiswa(siswaID string, page, pageSize int) ([]models.HistoryPembayaran, int, error)
+	HistoryPembayaranSiswa(siswaID,nama, tanggal, kategori string, page, pageSize int) ([]models.HistoryPembayaran, int, error)
 	GetTotalGenderCount() (int, int, error)
 	Search(name, kelas, nisn, jurusan, angkatan string) ([]models.SiswaResponse, error)
 	SearchByKodeKelas(name, nisn, kodeKelas string) ([]models.SiswaResponse, error)
@@ -69,8 +69,8 @@ func (c *siswaServices) GetList(page, pageSize int) ([]models.SiswaResponse, int
 }
 
 
-func (c *siswaServices) HistoryPembayaranSiswa(siswaID string, page, pageSize int) ([]models.HistoryPembayaran, int, error) {
-	history, totalPage, err := c.siswaRepo.HistoryPembayaranSiswa(siswaID, page, pageSize)
+func (c *siswaServices) HistoryPembayaranSiswa(siswaID,nama, tanggal, kategori string, page, pageSize int) ([]models.HistoryPembayaran, int, error) {
+	history, totalPage, err := c.siswaRepo.HistoryPembayaranSiswa(siswaID,nama, tanggal, kategori, page, pageSize)
 	if err != nil {
 		return nil, 0, err
 	}

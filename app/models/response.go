@@ -52,20 +52,21 @@ type GuruResponse struct {
 // }
 
 type PembayaranSemesterResponse struct {
-	ID        int    `json:"id"`
-	Siswa     string `json:"siswa"`
-	NISN      string `json:"nisn"`
-	Kelas     string `json:"kelas"`
-	Bulan     string `json:"bulan"`
-	Semester  string `json:"semester"`
-	Transaksi string `json:"nama_transaksi"`
-	Tanggal   string `json:"tanggal"`
-	Jumlah    int    `json:"total_jumlah"`
-	Status    string `json:"status"`
-	Biaya     int    `json:"biaya"`
-	Tunggakan int    `json:"tunggakan"`
-	CreatedAt string `json:"created_at"`
-	UpdatedAt string `json:"updated_at"`
+	ID          int    `json:"id"`
+	Siswa       string `json:"siswa"`
+	NISN        string `json:"nisn"`
+	Kelas       string `json:"kelas"`
+	Bulan       string `json:"bulan"`
+	Semester    string `json:"semester"`
+	Transaksi   string `json:"nama_transaksi"`
+	TransaksiID int    `json:"id_transaksi"`
+	Tanggal     string `json:"tanggal"`
+	Jumlah      int    `json:"total_jumlah"`
+	Status      string `json:"status"`
+	Biaya       int    `json:"biaya"`
+	Tunggakan   int    `json:"tunggakan"`
+	CreatedAt   string `json:"created_at"`
+	UpdatedAt   string `json:"updated_at"`
 }
 
 type PemasukanResponse struct {

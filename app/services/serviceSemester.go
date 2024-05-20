@@ -14,6 +14,8 @@ type SemesterServices interface {
 	GetListByCategory(page, pageSize int, category string) ([]models.PembayaranSemesterResponse, int, error)
 	Search(siswa, transaksi, semester, tanggal, nisn, kategori  string) ([]models.PembayaranSemesterResponse, error)
 	GetLunasByNISN(nisn string) ([]models.PembayaranSemesterResponse, error)
+    SearchTransaksi(nama, kategori  string) ([]models.Transaksi, error)
+
 }
 
 type semesterServices struct{
@@ -83,4 +85,12 @@ func (c *semesterServices)  Search(siswa, transaksi, semester, tanggal, nisn, ka
 }
 func (s *semesterServices) GetLunasByNISN(nisn string) ([]models.PembayaranSemesterResponse, error) {
 	return s.semesterRepo.GetLunasByNISN(nisn)
+}
+func (c *semesterServices) SearchTransaksi(nama, kategori string) ([]models.Transaksi, error){
+	transaksi, err := c.semesterRepo.SearchTransaksi(nama, kategori)
+
+	if err != nil {
+        return nil, err
+    }
+	return transaksi, nil
 }

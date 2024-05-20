@@ -20,6 +20,7 @@ type SemesterRepository interface {
     GetListByCategory(page, pageSize int, category string) ([]models.PembayaranSemesterResponse, int, error)
     Search(siswa, transaksi, bulan, tanggal, nisn, kategori  string) ([]models.PembayaranSemesterResponse, error)
     GetLunasByNISN(nisn string) ([]models.PembayaranSemesterResponse, error)
+    SearchTransaksi(nama, kategori  string) ([]models.Transaksi, error)
 }
 
 type semesterRepository struct{
@@ -286,7 +287,7 @@ func (c *semesterRepository) Search(siswa, transaksi, bulan, tanggal, nisn, kate
     var pembayaran []models.PembayaranSemesterResponse
 
     query := c.db.Table("pembayaran_semesters").
-    Select("pembayaran_semesters.id, siswas.nama as siswa, siswas.nisn as nisn, transaksis.nama as transaksi, transaksis.kategori as kategori, pembayaran_semesters.bulan, pembayaran_semesters.semester, pembayaran_semesters.jumlah, pembayaran_semesters.tanggal, pembayaran_semesters.status,  pembayaran_semesters.biaya,  pembayaran_semesters.tunggakan, pembayaran_semesters.created_at, pembayaran_semesters.updated_at").
+    Select("pembayaran_semesters.id, siswas.nama as siswa, siswas.nisn as nisn, transaksis.nama as transaksi, transaksis.id as transaksi_id, transaksis.kategori as kategori, pembayaran_semesters.bulan, pembayaran_semesters.semester, pembayaran_semesters.jumlah, pembayaran_semesters.tanggal, pembayaran_semesters.status,  pembayaran_semesters.biaya,  pembayaran_semesters.tunggakan, pembayaran_semesters.created_at, pembayaran_semesters.updated_at").
     Joins("JOIN siswas ON pembayaran_semesters.siswa_id = siswas.nisn").
     Joins("JOIN transaksis ON pembayaran_semesters.transaksi_id = transaksis.id").
     Where("LOWER(siswas.nama) LIKE ? AND LOWER(transaksis.nama) LIKE ? AND LOWER(pembayaran_semesters.bulan) LIKE ? AND LOWER(pembayaran_semesters.tanggal) LIKE ? AND LOWER(siswas.nisn) LIKE ? AND LOWER(transaksis.kategori) LIKE ?", "%"+siswa+"%", "%"+transaksi+"%", "%"+bulan+"%", "%"+tanggal+"%", "%"+nisn+"%","%"+kategori+"%")
@@ -312,4 +313,22 @@ func (c *semesterRepository) GetLunasByNISN(nisn string) ([]models.PembayaranSem
 	}
 
 	return pembayaran, nil
+}
+
+func (c *semesterRepository) SearchTransaksi(nama, kategori string) ([]models.Transaksi, error){
+	var trans []models.Transaksi
+	query := c.db
+
+	if nama != "" {
+		query = query.Where("nama LIKE ?", "%"+nama+"%")
+	}
+	if kategori != "" {
+		query = query.Where("kategori = ?", kategori)
+	}
+
+	err := query.Find(&trans).Error
+	if err != nil {
+		return nil, err
+	}
+	return trans, nil
 }

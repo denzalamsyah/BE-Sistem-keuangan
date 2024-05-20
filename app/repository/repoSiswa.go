@@ -16,7 +16,7 @@ type SiswaRepository interface {
 	Delete(nisn string) error
 	GetByID(nisn string) (*models.SiswaResponse, error)
 	GetList(page, pageSize int) ([]models.SiswaResponse, int, error)
-	HistoryPembayaranSiswa(siswaID string, page, pageSize int) ([]models.HistoryPembayaran, int, error)
+	HistoryPembayaranSiswa(siswaID, nama, tanggal, kategori string, page, pageSize int) ([]models.HistoryPembayaran, int, error)
 	GetTotalGenderCount() (int, int, error)
 	Search(name, nisn, kelas, jurusan, angkatan string) ([]models.SiswaResponse, error)
 	SearchByKodeKelas(name, nisn, kodeKelas string) ([]models.SiswaResponse, error)
@@ -132,39 +132,54 @@ func (c *siswaRepository) GetList(page, pageSize int) ([]models.SiswaResponse, i
     return SiswaResponse, totalPage, nil
 }
 
-func (c *siswaRepository) HistoryPembayaranSiswa(siswaID string, page, pageSize int) ([]models.HistoryPembayaran,int, error) {
-    var historyPembayaran []models.HistoryPembayaran
+func (c *siswaRepository) HistoryPembayaranSiswa(siswaID, nama, tanggal, kategori string, page, pageSize int) ([]models.HistoryPembayaran, int, error) {
+	var historyPembayaran []models.HistoryPembayaran
 
-    // Mengambil data pembayaran dari PembayaranSemester
-    var pembayaranSemester []models.PembayaranSemester
-    if err := c.db.Preload("Siswa").Preload("Transaksi").Where("siswa_id = ?", siswaID).
-	Offset((page - 1) * pageSize).Limit(pageSize).Find(&pembayaranSemester).Error; err != nil {
-        return nil,0, err
-    }
+	// Mengambil data pembayaran dari PembayaranSemester dengan join ke tabel Transaksi
+	var pembayaranSemester []models.PembayaranSemester
+	query := c.db.Preload("Siswa").Preload("Transaksi").
+		Joins("JOIN transaksis ON transaksis.id = pembayaran_semesters.transaksi_id").
+		Where("pembayaran_semesters.siswa_id = ?", siswaID)
+
+		if nama != "" {
+			query = query.Where("LOWER(transaksis.nama) LIKE LOWER(?)", "%"+nama+"%")
+		}
+		if tanggal != "" {
+			query = query.Where("LOWER(pembayaran_semesters.tanggal) LIKE LOWER(?)","%"+tanggal+"%")
+		}
+		if kategori != "" {
+			query = query.Where("LOWER(transaksis.kategori) LIKE LOWER(?)", "%"+kategori+"%")
+		}
+
+	if err := query.Offset((page - 1) * pageSize).Limit(pageSize).Find(&pembayaranSemester).Error; err != nil {
+		return nil, 0, err
+	}
 
 	var totalData int64
-    if err := c.db.Model(&models.PembayaranSemester{}).Count(&totalData).Error; err != nil {
-        return nil, 0, err
-    }
+	if err := query.Model(&models.PembayaranSemester{}).Count(&totalData).Error; err != nil {
+		return nil, 0, err
+	}
 
-    // Mengonversi data PembayaranSemester ke HistoryPembayaran
-    for _, p := range pembayaranSemester {
-        historyPembayaran = append(historyPembayaran, models.HistoryPembayaran{
-			ID: p.ID,
-            Siswa:          p.Siswa.Nama,
-			NISN: p.Siswa.Nisn,
-            Nama_transaksi: p.Transaksi.Nama,
-            Biaya:          p.Jumlah,
-            Tanggal:        p.Tanggal,
-			Status: p.Status,
-			CreatedAt: p.CreatedAt,
-			UpdatedAt: p.UpdatedAt,
-        })
-    }
+	// Mengonversi data PembayaranSemester ke HistoryPembayaran
+	for _, p := range pembayaranSemester {
+		historyPembayaran = append(historyPembayaran, models.HistoryPembayaran{
+			ID:             p.ID,
+			Siswa:          p.Siswa.Nama,
+			NISN:           p.Siswa.Nisn,
+			Nama_transaksi: p.Transaksi.Nama,
+			Biaya:          p.Jumlah,
+			Tanggal:        p.Tanggal,
+			Status:         p.Status,
+			CreatedAt:      p.CreatedAt,
+			UpdatedAt:      p.UpdatedAt,
+		})
+	}
+
 	totalPage := int(math.Ceil(float64(totalData) / float64(pageSize)))
 
-    return historyPembayaran, totalPage, nil
+	return historyPembayaran, totalPage, nil
 }
+
 
 func (c *siswaRepository) GetTotalGenderCount() (int, int, error) {
     var countLakiLaki, countPerempuan int64
