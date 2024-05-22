@@ -171,6 +171,7 @@ version := gin.Group("/api")
 		siswa.GET("/search/bykelas", apiHandler.SiswaAPIHandler.SearchByKode)
 		siswa.GET("/export", apiHandler.SiswaAPIHandler.ExportSiswa)
 		siswa.GET("/download", apiHandler.SiswaAPIHandler.DownloadSiswa)
+		siswa.GET("/biodata", apiHandler.SiswaAPIHandler.BiodataSiswa)
 	}
 	stake := version.Group("/stake")
 	{

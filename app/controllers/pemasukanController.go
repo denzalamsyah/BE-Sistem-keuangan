@@ -332,9 +332,9 @@ func (s *pemasukanAPI) DownloadLaporan(c *gin.Context){
 		pdf.Image("./app/files/logo.png", float64(xImage), y, float64(imageWidth), float64(imageHeight), false, "", 0, "")
 	
 		pdf.SetX(float64(xText))
-		pdf.SetFont("Arial", "B", 14)
+		pdf.SetFont("Times", "B", 14)
 		pdf.Cell(0, 0, "SMA Plus Nurul Iman Leles",)
-		pdf.SetFont("Arial", "", 10)
+		pdf.SetFont("Times", "", 12)
 		pdf.Ln(2)
 		// pdf.SetX(float64(xText))
 		// pdf.Cell(0, 10, "SMA Plus Nurul Iman Leles")
@@ -358,11 +358,12 @@ func (s *pemasukanAPI) DownloadLaporan(c *gin.Context){
     })
 
 	pdf.AddPage()
-	pdf.SetFont("Arial", "B", 12)
+	pdf.SetFont("Times", "B", 12)
 	pdf.CellFormat(0, 10, "Laporan Pemasukan : "+pemasukan[0].Tanggal, "0", 1, "", false, 0, "")
-	pdf.CellFormat(0, 10, "Jumlah Pemasukan : Rp. "+strconv.Itoa(int(total)), "0", 1, "", false, 0, "")
-    pdf.SetFont("Arial", "B", 14)
-	pdf.CellFormat(0, 10, "RINCIAN BIAYA", "0", 1, "C", false, 0, "")
+	pdf.CellFormat(0, 10, "Jumlah Pemasukan : Rp. "+formatNumber(int(total)), "0", 1, "", false, 0, "")
+	pdf.Ln(5)
+    pdf.SetFont("Times", "BU", 12)
+	pdf.CellFormat(0, 10, "RINCIAN BIAYA PEMASUKAN", "0", 1, "C", false, 0, "")
 	pdf.Ln(3)
 
 		xStart := 10 
@@ -370,21 +371,29 @@ func (s *pemasukanAPI) DownloadLaporan(c *gin.Context){
 		tableWidth := xEnd - xStart
 		numColumns := 3
 		columnWidth := float64(tableWidth) / float64(numColumns)
-		// pdf.Ln(-1)
-	
+		
+		pdf.SetFont("Times", "B", 12)
 		pdf.CellFormat(columnWidth, 10, "Nama Transaksi", "1", 0, "C", false, 0, "")
 		pdf.CellFormat(columnWidth, 10, "Tanggal", "1", 0, "C", false, 0, "")
 		pdf.CellFormat(columnWidth, 10, "Jumlah", "1", 0, "C", false, 0, "")
 		pdf.Ln(-1) // Pindah ke baris baru
 		
 		for _, data := range pemasukan {
-			pdf.SetFont("Arial", "", 12)
+			pdf.SetFont("Times", "", 12)
 			pdf.CellFormat(columnWidth, 8, data.Nama, "1", 0, "C", false, 0, "")
 			pdf.CellFormat(columnWidth, 8, data.Tanggal, "1", 0, "C", false, 0, "")
-			pdf.CellFormat(columnWidth, 8, "Rp. " +strconv.Itoa(int(data.Jumlah)), "1", 0, "C", false, 0, "")
+			pdf.CellFormat(columnWidth, 8, "Rp. " +formatNumber(int(data.Jumlah)), "1", 0, "C", false, 0, "")
 			pdf.Ln(-1)	
 		}
 
+	pdf.Ln(15)
+	pdf.SetFont("Times", "I", 11)
+	pdf.SetX(float64(150))
+	pdf.CellFormat(0, 2, "Mengetahui,", "0", 1, "", false, 0, "")
+	pdf.Ln(25)
+	pdf.SetFont("Times", "BU", 11)
+	pdf.SetX(float64(150))
+    pdf.CellFormat(0, 3, "Kepala Sekolah", "0", 1, "", false, 0, "")
 		
 
     fileName := "pemasukan.pdf"
@@ -405,18 +414,3 @@ func (s *pemasukanAPI) DownloadLaporan(c *gin.Context){
 
 }
 
-
-
-
-// func (s *pemasukanAPI) GetPemasukan(c *gin.Context) {
-// 	month := c.Query("bulan")
-// 	year := c.Query("tahun")
-
-// 	pemasukan, err := s.pemasukanService.GetReportByMonthYear(month, year)
-// 	if err != nil {
-// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-// 		return
-// 	}
-
-// 	c.JSON(http.StatusOK, pemasukan)
-// }

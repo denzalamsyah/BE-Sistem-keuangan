@@ -6,11 +6,13 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/denzalamsyah/simak/app/middleware"
 	"github.com/denzalamsyah/simak/app/models"
 	"github.com/denzalamsyah/simak/app/services"
 	"github.com/gin-gonic/gin"
+	"github.com/jung-kurt/gofpdf"
 	"github.com/xuri/excelize/v2"
 )
 
@@ -26,6 +28,7 @@ type SiswaAPI interface {
     SearchByKode(c *gin.Context)
     ExportSiswa(c *gin.Context)
     DownloadSiswa(c *gin.Context)
+    BiodataSiswa(c *gin.Context)
 }
 
 type siswaAPI struct {
@@ -565,4 +568,117 @@ func (s *siswaAPI) DownloadSiswa(c *gin.Context) {
     c.Header("Content-Transfer-Encoding", "binary")
     c.File(filePath)
     
+}
+
+func (s *siswaAPI) BiodataSiswa(c *gin.Context) {
+	name := c.Query("nama")
+	kelas := c.Query("kelas")
+	nisn := c.Query("nisn")
+	jurusan := c.Query("jurusan")
+	angkatan := c.Query("angkatan")
+
+	result, err := s.siswaService.Search(name, nisn, kelas, jurusan, angkatan)
+	if err != nil {
+		log.Printf("Error: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	if len(result) == 0 {
+		log.Printf("Error: %v", "data tidak ada")
+		c.JSON(http.StatusNotFound, gin.H{"message": "Data tidak ditemukan"})
+		return
+	}
+
+	pdf := gofpdf.New("P", "mm", "A4", "")
+
+	pdf.SetHeaderFunc(func() {
+
+		y := pdf.GetY()
+
+		imageWidth := 20 
+		imageHeight := 20 
+
+		xImage := 10
+		xText := xImage + imageWidth + 5
+		// Gambar di sebelah kiri teks
+		pdf.Image("./app/files/logo.png", float64(xImage), y, float64(imageWidth), float64(imageHeight), false, "", 0, "")
+	
+		pdf.SetX(float64(xText))
+		pdf.SetFont("Times", "B", 14)
+		pdf.Cell(0, 0, "SMA Plus Nurul Iman Leles",)
+		pdf.SetFont("Times", "", 12)
+		pdf.Ln(2)
+		// pdf.SetX(float64(xText))
+		// pdf.Cell(0, 10, "SMA Plus Nurul Iman Leles")
+		// pdf.Ln(5)
+		pdf.SetX(float64(xText))
+		pdf.Cell(0, 10, "Kp. Galumpit Kidul RT 005/RW 004 Des. Cipancar Kec. Leles Garut Jawa Barat")
+		pdf.Ln(5)
+		pdf.SetX(float64(xText))
+		tanggalSekarang := time.Now().Format("02 January 2006") 
+		pdf.CellFormat(0, 10, "Garut, "+tanggalSekarang, "0", 1, "", false, 0, "")
+		// pdf.Ln(5)
+		pdf.SetX(float64(xText))
+		pdf.Cell(0, 0, "No. Telp: 123456789")
+		pdf.Ln(5)
+
+		xStart := 10 
+		xEnd := 200 
+		pdf.Line(float64(xStart), 33, float64(xEnd), 33)
+		pdf.Ln(5)
+
+    })
+
+
+	pdf.AddPage()
+	pdf.SetFont("Times", "BU", 14)
+	pdf.CellFormat(0, 10, "Biodata Siswa", "0", 1, "C", false, 0, "")
+	pdf.Ln(3)
+	pdf.SetFont("Times", "", 12)
+	pdf.SetX(10)
+	pdf.CellFormat(0, 10, "Nama : "+result[0].Nama, "0", 1, "", false, 0, "")
+	pdf.SetX(10)
+	pdf.CellFormat(0, 10, "NISN : "+result[0].NISN, "0", 1, "", false, 0, "")
+	pdf.SetX(10)
+	pdf.CellFormat(0, 10, "Kelas : "+result[0].Kelas, "0", 1, "", false, 0, "")
+	pdf.SetX(10)
+	pdf.CellFormat(0, 10, "Jurusan : "+result[0].Jurusan, "0", 1, "", false, 0, "")
+	pdf.SetX(10)
+	pdf.CellFormat(0, 10, "Angkatan : "+result[0].Angkatan, "0", 1, "", false, 0, "")
+	pdf.SetX(10)
+	pdf.CellFormat(0, 10, "Alamat : "+result[0].Alamat, "0", 1, "", false, 0, "")
+	pdf.SetX(10)
+	pdf.CellFormat(0, 10, "Nomor Telepon : "+result[0].NomorTelepon, "0", 1, "", false, 0, "")
+	pdf.SetX(10)
+	pdf.CellFormat(0, 10, "Email : "+result[0].Email, "0", 1, "", false, 0, "")
+	pdf.SetX(10)
+	pdf.CellFormat(0, 10, "Tempat, Tanggal Lahir : "+result[0].TempatLahir+", "+result[0].TanggalLahir, "0", 1, "", false, 0, "")
+	pdf.SetX(10)
+	pdf.CellFormat(0, 10, "Nama Ayah : "+result[0].NamaAyah, "0", 1, "", false, 0, "")
+	pdf.SetX(10)
+	pdf.CellFormat(0, 10, "Nama Ibu : "+result[0].NamaIbu, "0", 1, "", false, 0, "")
+	pdf.Ln(10)
+
+    pdf.SetFont("Times", "BI", 12)
+	// pdf.SetX(float64(10))
+	pdf.CellFormat(0, 2, "*Staf Tata Usaha SMA Plus Nurul Iman Leles,*", "0", 1, "C", false, 0, "")
+	// pdf.Ln(25)
+	// pdf.SetFont("Times", "B", 11)
+	// pdf.SetX(float64(150))
+    // pdf.CellFormat(0, 3, "*Bendahara Sekolah*", "0", 1, "", false, 0, "")
+
+	fileName := "biodata_siswa.pdf"
+	err = pdf.OutputFileAndClose("./app/files/" + fileName)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	defer func() {
+		if err := os.Remove("./app/files/" + fileName); err != nil {
+			log.Printf("Gagal menghapus file: %v", err)
+		}
+	}()
+
+	c.File("./app/files/" + fileName)
 }

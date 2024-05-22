@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/denzalamsyah/simak/app/models"
@@ -360,7 +361,7 @@ func (s *semesterAPI) DownloadPembayaranSiswa(c *gin.Context) {
 	pdf.SetX(float64(6))
 	pdf.CellFormat(0, 4, "Bulan : "+result.Bulan, "0", 1, "", false, 0, "")
 	pdf.SetX(float64(6))
-	pdf.CellFormat(0, 4, "Jumlah Bayar : Rp. "+strconv.Itoa(result.Jumlah), "0", 1, "", false, 0, "")
+	pdf.CellFormat(0, 4, "Jumlah Bayar : Rp. "+formatNumber(int(result.Jumlah)), "0", 1, "", false, 0, "")
 	pdf.SetX(float64(6))
     pdf.CellFormat(0, 4, "Tanggal Pembayaran : "+result.Tanggal, "0", 1, "", false, 0, "")
 	pdf.SetX(float64(6))
@@ -437,9 +438,9 @@ func (s *semesterAPI) DownloadReportSiswa(c *gin.Context) {
 		pdf.Image("./app/files/logo.png", float64(xImage), y, float64(imageWidth), float64(imageHeight), false, "", 0, "")
 
 		pdf.SetX(float64(xText))
-		pdf.SetFont("Arial", "B", 14)
+		pdf.SetFont("Times", "B", 14)
 		pdf.Cell(0, 0, "SMA Plus Nurul Iman Leles")
-		pdf.SetFont("Arial", "", 10)
+		pdf.SetFont("Times", "", 10)
 		pdf.Ln(2)
 		pdf.SetX(float64(xText))
 		pdf.Cell(0, 10, "Kp. Galumpit Kidul RT 005/RW 004 Des. Cipancar Kec. Leles Garut Jawa Barat")
@@ -458,11 +459,11 @@ func (s *semesterAPI) DownloadReportSiswa(c *gin.Context) {
 	})
 
 	pdf.AddPage()
-	pdf.SetFont("Arial", "B", 12)
+	pdf.SetFont("Times", "BU", 12)
 	pdf.CellFormat(0, 10, "RINCIAN BIAYA", "0", 1, "C", false, 0, "")
 	pdf.Ln(5)
 
-	pdf.SetFont("Arial", "B", 11)
+	pdf.SetFont("Times", "B", 11)
 
 	// Tampilkan data siswa
 	pdf.CellFormat(0, 10, "Nama : "+result[0].Siswa, "0", 1, "", false, 0, "")
@@ -471,20 +472,20 @@ func (s *semesterAPI) DownloadReportSiswa(c *gin.Context) {
 	pdf.Ln(5)
 
 
-	pdf.SetFont("Arial", "B", 11)
+	pdf.SetFont("Times", "B", 11)
 
 	header := []string{"NO.", "Pembayaran", "Bulan", "Semester", "Jumlah","Status"}
 	widths := []float64{10, 40, 30, 30,40, 40}
 
 	for i, str := range header {
-		pdf.CellFormat(widths[i], 10, str, "1", 0, "C", false, 0, "")
+		pdf.CellFormat(widths[i], 15, str, "1", 0, "C", false, 0, "")
 	}
 	pdf.Ln(-1)
 
 	totalAmount := 0
 	totalPaid := 0
 
-	pdf.SetFont("Arial", "", 11)
+	pdf.SetFont("Times", "", 11)
 	rowNum := 1
 	for _, t := range trans {
 		if t.Nama == "SPP" {
@@ -501,7 +502,7 @@ func (s *semesterAPI) DownloadReportSiswa(c *gin.Context) {
 				pdf.CellFormat(widths[1], 10, t.Nama, "1", 0, "C", false, 0, "")
 				pdf.CellFormat(widths[2], 10, detail.Bulan, "1", 0, "C", false, 0, "")
 				pdf.CellFormat(widths[3], 10, detail.Semester, "1", 0, "C", false, 0, "")
-				pdf.CellFormat(widths[4], 10, "Rp. "+strconv.Itoa(int(detail.Jumlah)), "1", 0, "C", false, 0, "")
+				pdf.CellFormat(widths[4], 10, "Rp. "+formatNumber(int(detail.Jumlah)), "1", 0, "C", false, 0, "")
 				pdf.CellFormat(widths[5], 10, detail.Status, "1", 0, "C", false, 0, "")
 				totalPaid += detail.Jumlah
 				pdf.Ln(-1)
@@ -524,12 +525,20 @@ func (s *semesterAPI) DownloadReportSiswa(c *gin.Context) {
 	outstanding := totalAmount - totalPaid
 
 	// Add totals row
-	pdf.SetFont("Arial", "B", 11)
+	pdf.SetFont("Times", "B", 11)
 	pdf.Ln(10)
 	pdf.CellFormat(0, 10, "Keterangan :", "0", 1, "L", false, 0, "")
-	pdf.CellFormat(0, 10, fmt.Sprintf("Wajib Bayar: Rp. %d", totalAmount), "0", 1, "L", false, 0, "")
-	pdf.CellFormat(0, 10, fmt.Sprintf("Dibayar: Rp. %d", totalPaid), "0", 1, "L", false, 0, "")
-	pdf.CellFormat(0, 10, fmt.Sprintf("Tunggakan: Rp. %d", outstanding), "0", 1, "L", false, 0, "")
+	pdf.CellFormat(0, 10, fmt.Sprintf("Wajib Bayar: Rp. %s", formatNumber(totalAmount)), "0", 1, "L", false, 0, "")
+	pdf.CellFormat(0, 10, fmt.Sprintf("Dibayar: Rp. %s", formatNumber(totalPaid)), "0", 1, "L", false, 0, "")
+	pdf.CellFormat(0, 10, fmt.Sprintf("Tunggakan: Rp. %s",formatNumber(outstanding)), "0", 1, "L", false, 0, "")
+	pdf.Ln(8)
+	pdf.SetFont("Times", "I", 11)
+	pdf.SetX(float64(150))
+	pdf.CellFormat(0, 2, "Mengetahui,", "0", 1, "", false, 0, "")
+	pdf.Ln(25)
+	pdf.SetFont("Times", "B", 11)
+	pdf.SetX(float64(150))
+    pdf.CellFormat(0, 3, "*Bendahara Sekolah*", "0", 1, "", false, 0, "")
 
 	fileName := "semester.pdf"
 	err = pdf.OutputFileAndClose("./app/files/" + fileName)
@@ -545,6 +554,24 @@ func (s *semesterAPI) DownloadReportSiswa(c *gin.Context) {
 	}()
 
 	c.File("./app/files/" + fileName)
+}
+
+func formatNumber(number int) string {
+    str := strconv.Itoa(number)
+    if len(str) <= 3 {
+        return str
+    }
+
+    var result []string
+    for i := len(str); i > 0; i -= 3 {
+        start := i - 3
+        if start < 0 {
+            start = 0
+        }
+        result = append([]string{str[start:i]}, result...)
+    }
+
+    return strings.Join(result, ".")
 }
 
 

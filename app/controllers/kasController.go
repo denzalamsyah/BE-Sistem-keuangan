@@ -269,7 +269,7 @@ func (s *kasAPI) DownloadPembayaranKas(c *gin.Context) {
 
     pdf.AddPage()
 	pdf.SetFont("Arial", "B", 6)
-	pdf.CellFormat(0, 0, "Kwetansi Pembayaran", "0", 1, "C", false, 0, "")
+	pdf.CellFormat(0, 0, "Kwitansi Pembayaran", "0", 1, "C", false, 0, "")
     pdf.Ln(3)
     pdf.SetFont("Arial", "B", 6)
 	pdf.SetX(float64(6))
@@ -277,7 +277,7 @@ func (s *kasAPI) DownloadPembayaranKas(c *gin.Context) {
 	pdf.SetX(float64(6))
 	pdf.CellFormat(0, 4, "NIP : "+result.NIP, "0", 1, "", false, 0, "")
 	pdf.SetX(float64(6))
-    pdf.CellFormat(0, 4, "Jumlah Bayar: Rp. "+strconv.Itoa(result.Jumlah_Bayar), "0", 1, "", false, 0, "")
+    pdf.CellFormat(0, 4, "Jumlah Bayar: Rp. "+formatNumber(int(result.Jumlah_Bayar)), "0", 1, "", false, 0, "")
 	pdf.SetX(float64(6))
     pdf.CellFormat(0, 4, "Tanggal Pembayaran: "+result.Tanggal, "0", 1, "", false, 0, "")
 	pdf.SetX(float64(6))
@@ -384,7 +384,7 @@ func (s *kasAPI) DownloadPengambilanKas(c *gin.Context) {
 
     pdf.AddPage()
 	pdf.SetFont("Arial", "B", 6)
-	pdf.CellFormat(0, 0, "Kwetansi Pembayaran", "0", 1, "C", false, 0, "")
+	pdf.CellFormat(0, 0, "Kwitansi Pembayaran", "0", 1, "C", false, 0, "")
     pdf.Ln(3)
     pdf.SetFont("Arial", "B", 6)
 	pdf.SetX(float64(6))
@@ -392,7 +392,7 @@ func (s *kasAPI) DownloadPengambilanKas(c *gin.Context) {
 	pdf.SetX(float64(6))
 	pdf.CellFormat(0, 4, "NIP : "+result.NIP, "0", 1, "", false, 0, "")
 	pdf.SetX(float64(6))
-    pdf.CellFormat(0, 4, "Jumlah Ambil : Rp. "+strconv.Itoa(result.JumlahAmbil), "0", 1, "", false, 0, "")
+    pdf.CellFormat(0, 4, "Jumlah Ambil : Rp. "+formatNumber(int(result.JumlahAmbil)), "0", 1, "", false, 0, "")
 	pdf.SetX(float64(6))
     pdf.CellFormat(0, 4, "Tanggal Pengambilan : "+result.TanggalAmbil, "0", 1, "", false, 0, "")
 	pdf.SetX(float64(6))
@@ -423,5 +423,3 @@ func (s *kasAPI) DownloadPengambilanKas(c *gin.Context) {
     c.File("./app/files/" + fileName)
 
 }
-
-	
