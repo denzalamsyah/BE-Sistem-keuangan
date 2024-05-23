@@ -173,6 +173,7 @@ version := gin.Group("/api")
 		siswa.GET("/download", apiHandler.SiswaAPIHandler.DownloadSiswa)
 		siswa.GET("/biodata", apiHandler.SiswaAPIHandler.BiodataSiswa)
 		siswa.POST("/import/excel", apiHandler.SiswaAPIHandler.ImportFromExcel)
+		siswa.PUT("/update/excel",apiHandler.SiswaAPIHandler.UpdateFromExcel)
 	}
 	stake := version.Group("/stake")
 	{

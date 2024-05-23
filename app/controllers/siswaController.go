@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strconv"
 	"time"
 
@@ -30,6 +31,8 @@ type SiswaAPI interface {
     DownloadSiswa(c *gin.Context)
     BiodataSiswa(c *gin.Context)
     ImportFromExcel(c *gin.Context)
+    UpdateFromExcel(c *gin.Context) 
+    
 }
 
 type siswaAPI struct {
@@ -711,4 +714,27 @@ func (s *siswaAPI) ImportFromExcel(c *gin.Context) {
 	}()
 
 	c.JSON(http.StatusOK, gin.H{"message": "Berhasil menambahkan data"})
+}
+
+func (s *siswaAPI) UpdateFromExcel(c *gin.Context) {
+	file, err := c.FormFile("file")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "File is required"})
+		return
+	}
+
+	filePath := filepath.Join("./app/files/", file.Filename)
+	if err := c.SaveUploadedFile(file, filePath); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save the file"})
+		return
+	}
+	defer os.Remove(filePath)
+
+	updatedSiswaList, err := s.siswaService.UpdateFromExcel(filePath)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Update Data Berhasil", "data": updatedSiswaList})
 }

@@ -19,7 +19,7 @@ type SiswaServices interface {
 	SearchByKodeKelas(name, nisn, kodeKelas string) ([]models.SiswaResponse, error)
 	GetUserNisn(nisn string) (models.Siswa, error)
 	ImportFromExcel(filePath string) error
-
+	UpdateFromExcel(filePath string) ([]models.Siswa, error)
 }
 
 type siswaServices struct {
@@ -115,4 +115,13 @@ func (c *siswaServices) ImportFromExcel(filePath string) error {
         return err
     }
     return nil
+}
+
+func (c *siswaServices) UpdateFromExcel(filePath string) ([]models.Siswa, error){
+	result, err := c.siswaRepo.UpdateFromExcel(filePath)
+	if err != nil {
+        log.Printf("Error importing from Excel: %v", err)
+        return nil,err
+    }
+    return result, nil
 }

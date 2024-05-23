@@ -25,7 +25,7 @@ type SiswaRepository interface {
 	GetUserNisn(nisn string) (models.Siswa, error)
 	ImportFromExcel(filePath string) error
 	StoreBatch(siswaList []models.Siswa) error
-	
+	UpdateFromExcel(filePath string) ([]models.Siswa, error)
 }
 
 type siswaRepository struct{
@@ -256,6 +256,7 @@ func (c *siswaRepository) GetUserNisn(nisn string) (models.Siswa, error){
 	return Siswa, nil
 }
 
+// tambah data dengan file excel
 func (c *siswaRepository) ImportFromExcel(filePath string) error {
     var siswaList []models.Siswa
     nisnSet := make(map[string]bool)
@@ -269,7 +270,7 @@ func (c *siswaRepository) ImportFromExcel(filePath string) error {
     sheet := xlFile.Sheets[0]
     for i, row := range sheet.Rows[1:] {
         var siswa models.Siswa
-        siswa.Nisn = row.Cells[0].String()
+        siswa.Nisn = row.Cells[2].String()
         
         // Check for duplicate NISN in the file
         if _, exists := nisnSet[siswa.Nisn]; exists {
@@ -278,21 +279,25 @@ func (c *siswaRepository) ImportFromExcel(filePath string) error {
         nisnSet[siswa.Nisn] = true
 
         siswa.Nama = row.Cells[1].String()
-        siswa.KelasID = row.Cells[2].String()
-        siswa.JurusanID = row.Cells[3].String()
-        siswa.AgamaID, _ = strconv.Atoi(row.Cells[4].String())
-        siswa.TempatLahir = row.Cells[5].String()
-        siswa.TanggalLahir = row.Cells[6].String()
-        siswa.GenderID, _ = strconv.Atoi(row.Cells[7].String())
-        siswa.NamaAyah = row.Cells[8].String()
-        siswa.NamaIbu = row.Cells[9].String()
-        siswa.NomorTelepon = row.Cells[10].String()
-        siswa.Angkatan = row.Cells[11].String()
-        siswa.Email = row.Cells[12].String()
-        siswa.Alamat = row.Cells[13].String()
+        siswa.KelasID = row.Cells[3].String()
+        siswa.JurusanID = row.Cells[4].String()
+        siswa.AgamaID, _ = strconv.Atoi(row.Cells[5].String())
+        siswa.TempatLahir = row.Cells[6].String()
+		tanggalLahir, err := parseExcelDate(row.Cells[7].String())
+		if err != nil {
+			return fmt.Errorf("invalid date format for TanggalLahir: %v", err)
+		}
+		siswa.TanggalLahir = tanggalLahir
+        siswa.GenderID, _ = strconv.Atoi(row.Cells[8].String())
+        siswa.NamaAyah = row.Cells[9].String()
+        siswa.NamaIbu = row.Cells[10].String()
+        siswa.NomorTelepon = row.Cells[11].String()
+        siswa.Angkatan = row.Cells[12].String()
+        siswa.Email = row.Cells[13].String()
+        siswa.Alamat = row.Cells[14].String()
 		 // Check apakah menyertakan url gambar
-		 if len(row.Cells) > 14 && row.Cells[14].String() != "" {
-            siswa.Gambar = row.Cells[14].String()
+		 if len(row.Cells) > 15 && row.Cells[15].String() != "" {
+            siswa.Gambar = row.Cells[15].String()
         } else {
             siswa.Gambar = defaultImageURL
         }
@@ -349,3 +354,77 @@ func (c *siswaRepository) StoreBatch(siswaList []models.Siswa) error {
 	return tx.Commit().Error
 }
 
+// update data dengan file excel
+func (c *siswaRepository) UpdateFromExcel(filePath string) ([]models.Siswa, error) {
+	var updatedSiswaList []models.Siswa
+
+	xlFile, err := xlsx.OpenFile(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open excel file: %v", err)
+	}
+
+	sheet := xlFile.Sheets[0]
+	for _, row := range sheet.Rows[1:] { // Mulai dari baris kedua untuk menghindari header
+		var siswa models.Siswa
+		siswa.Nama = row.Cells[1].String()
+		siswa.Nisn = row.Cells[2].String()
+		siswa.KelasID = row.Cells[3].String()
+		siswa.JurusanID = row.Cells[4].String()
+		siswa.AgamaID, _ = strconv.Atoi(row.Cells[5].String())
+		siswa.TempatLahir = row.Cells[6].String()
+		tanggalLahir, err := parseExcelDate(row.Cells[7].String())
+		if err != nil {
+			return nil, fmt.Errorf("invalid date format for TanggalLahir: %v", err)
+		}
+		siswa.TanggalLahir = tanggalLahir
+		siswa.GenderID, _ = strconv.Atoi(row.Cells[8].String())
+		siswa.NamaAyah = row.Cells[9].String()
+		siswa.NamaIbu = row.Cells[10].String()
+		siswa.NomorTelepon = row.Cells[11].String()
+		siswa.Angkatan = row.Cells[12].String()
+		siswa.Email = row.Cells[13].String()
+		siswa.Alamat = row.Cells[14].String()
+		siswa.UpdatedAt = time.Now().Format("02 January 2006 15:04:05")
+
+		var existingSiswa models.Siswa
+		if err := c.db.Where("nisn = ?", siswa.Nisn).First(&existingSiswa).Error; err != nil {
+			if err == gorm.ErrRecordNotFound {
+				return nil, fmt.Errorf("siswa with NISN %s not found", siswa.Nisn)
+			}
+			return nil, fmt.Errorf("failed to query siswa: %v", err)
+		}
+
+		if err := c.db.Model(&existingSiswa).Updates(siswa).Error; err != nil {
+			return nil, fmt.Errorf("failed to update siswa: %v", err)
+		}
+
+		updatedSiswaList = append(updatedSiswaList, siswa)
+	}
+
+	return updatedSiswaList, nil
+}
+
+// parse tanggal hari di excel
+func parseExcelDate(dateStr string) (string, error) {
+    var date time.Time
+    var err error
+    formats := []string{"02/01/2006", "02-01-2006", "2006-01-02"}
+
+    // Coba parsing dengan format tanggal yang berbeda
+    for _, format := range formats {
+        date, err = time.Parse(format, dateStr)
+        if err == nil {
+            return date.Format("02/01/2006"), nil
+        }
+    }
+
+    // Jika gagal, coba parsing sebagai nomor seri Excel
+    serialDate, err := strconv.ParseFloat(dateStr, 64)
+    if err == nil {
+        excelEpoch := time.Date(1899, 12, 30, 0, 0, 0, 0, time.UTC) // Excel epoch date
+        date = excelEpoch.AddDate(0, 0, int(serialDate))
+        return date.Format("02/01/2006"), nil
+    }
+
+    return "", fmt.Errorf("invalid date format: %v", dateStr)
+}

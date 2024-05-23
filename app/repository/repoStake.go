@@ -286,6 +286,7 @@ func ( c *guruRepository) HistoryPengambilanKas(nip string, page, pageSize int) 
     return historiPengambilan, totalPage, nil
 }
 
+// create data dengan file excel
 func (c *guruRepository) ImportFromExcel(filePath string) error {
     var guruList []models.Guru
     nipSet := make(map[string]bool)
@@ -309,7 +310,11 @@ func (c *guruRepository) ImportFromExcel(filePath string) error {
         guru.Nama = row.Cells[1].String()
         guru.AgamaID, _ = strconv.Atoi(row.Cells[2].String())
         guru.TempatLahir = row.Cells[3].String()
-        guru.TanggalLahir = row.Cells[4].String()
+		tanggalLahir, err := parseExcelDate(row.Cells[4].String())
+		if err != nil {
+			return fmt.Errorf("invalid date format for TanggalLahir: %v", err)
+		}
+        guru.TanggalLahir = tanggalLahir
         guru.GenderID, _ = strconv.Atoi(row.Cells[5].String())
         guru.JabatanID, _ = strconv.Atoi(row.Cells[6].String())
         guru.NomorTelepon = row.Cells[7].String()
@@ -373,3 +378,4 @@ func (c *guruRepository) StoreBatch(guruList []models.Guru) error {
 	}
 	return tx.Commit().Error
 }
+
