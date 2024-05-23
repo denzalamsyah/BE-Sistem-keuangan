@@ -3,10 +3,12 @@ package repository
 import (
 	"fmt"
 	"math"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/denzalamsyah/simak/app/models"
+	"github.com/tealeg/xlsx"
 	"gorm.io/gorm"
 )
 
@@ -21,6 +23,8 @@ type SiswaRepository interface {
 	Search(name, nisn, kelas, jurusan, angkatan string) ([]models.SiswaResponse, error)
 	SearchByKodeKelas(name, nisn, kodeKelas string) ([]models.SiswaResponse, error)
 	GetUserNisn(nisn string) (models.Siswa, error)
+	ImportFromExcel(filePath string) error
+	StoreBatch(siswaList []models.Siswa) error
 	
 }
 
@@ -252,5 +256,96 @@ func (c *siswaRepository) GetUserNisn(nisn string) (models.Siswa, error){
 	return Siswa, nil
 }
 
+func (c *siswaRepository) ImportFromExcel(filePath string) error {
+    var siswaList []models.Siswa
+    nisnSet := make(map[string]bool)
+	defaultImageURL := "https://res.cloudinary.com/dgvkpzi4p/image/upload/v1706338009/149071_fxemnm.png"
 
+    xlFile, err := xlsx.OpenFile(filePath)
+    if err != nil {
+        return fmt.Errorf("failed to open excel file: %v", err)
+    }
+
+    sheet := xlFile.Sheets[0]
+    for i, row := range sheet.Rows[1:] {
+        var siswa models.Siswa
+        siswa.Nisn = row.Cells[0].String()
+        
+        // Check for duplicate NISN in the file
+        if _, exists := nisnSet[siswa.Nisn]; exists {
+            return fmt.Errorf("terjadi duplikasi NISN pada file excel baris %d: %s", i+2, siswa.Nisn)
+        }
+        nisnSet[siswa.Nisn] = true
+
+        siswa.Nama = row.Cells[1].String()
+        siswa.KelasID = row.Cells[2].String()
+        siswa.JurusanID = row.Cells[3].String()
+        siswa.AgamaID, _ = strconv.Atoi(row.Cells[4].String())
+        siswa.TempatLahir = row.Cells[5].String()
+        siswa.TanggalLahir = row.Cells[6].String()
+        siswa.GenderID, _ = strconv.Atoi(row.Cells[7].String())
+        siswa.NamaAyah = row.Cells[8].String()
+        siswa.NamaIbu = row.Cells[9].String()
+        siswa.NomorTelepon = row.Cells[10].String()
+        siswa.Angkatan = row.Cells[11].String()
+        siswa.Email = row.Cells[12].String()
+        siswa.Alamat = row.Cells[13].String()
+		 // Check apakah menyertakan url gambar
+		 if len(row.Cells) > 14 && row.Cells[14].String() != "" {
+            siswa.Gambar = row.Cells[14].String()
+        } else {
+            siswa.Gambar = defaultImageURL
+        }
+
+        siswa.CreatedAt = time.Now().Format("02 January 2006 15:04:05")
+        siswaList = append(siswaList, siswa)
+    }
+
+    // Check for duplicate NISN in the database
+    var existingSiswa []models.Siswa
+    var nisnList []string
+    for _, siswa := range siswaList {
+        nisnList = append(nisnList, siswa.Nisn)
+    }
+
+    if err := c.db.Where("nisn IN (?)", nisnList).Find(&existingSiswa).Error; err != nil {
+        return fmt.Errorf("failed to query database for duplicate NISN: %v", err)
+    }
+
+    if len(existingSiswa) > 0 {
+        var duplicateNisns []string
+        for _, siswa := range existingSiswa {
+            duplicateNisns = append(duplicateNisns, siswa.Nisn)
+        }
+        return fmt.Errorf("NISN sudah ada di database: %v", duplicateNisns)
+    }
+
+    // Use transaction to save data
+    tx := c.db.Begin()
+    for _, siswa := range siswaList {
+        if err := tx.Create(&siswa).Error; err != nil {
+            tx.Rollback()
+            return fmt.Errorf("failed to store siswa: %v", err)
+        }
+    }
+
+    if err := tx.Commit().Error; err != nil {
+        return fmt.Errorf("failed to commit transaction: %v", err)
+    }
+
+    return nil
+}
+
+
+func (c *siswaRepository) StoreBatch(siswaList []models.Siswa) error {
+	tx := c.db.Begin()
+	for _, siswa := range siswaList {
+		siswa.CreatedAt = time.Now().Format("02 January 2006 15:04:05")
+		if err := tx.Create(&siswa).Error; err != nil {
+			tx.Rollback()
+			return fmt.Errorf("failed to store siswa: %v", err)
+		}
+	}
+	return tx.Commit().Error
+}
 

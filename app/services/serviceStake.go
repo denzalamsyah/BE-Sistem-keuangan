@@ -1,6 +1,8 @@
 package services
 
 import (
+	"log"
+
 	"github.com/denzalamsyah/simak/app/models"
 	"github.com/denzalamsyah/simak/app/repository"
 )
@@ -18,6 +20,7 @@ type GuruServices interface {
 	SaldoKasByNIP(nip string) (int, error)
 	AmbilKasGuru( jumlah int,nip, nama, tanggal string) error
 	HistoryPengambilanKas(nip string, page, pageSize int) ([]models.HistoryPengambilanKas, int, error)
+	ImportFromExcel(filePath string) error 
 }
 
 type guruServices struct{
@@ -120,3 +123,13 @@ func (c *guruServices) HistoryPengambilanKas(nip string, page, pageSize int) ([]
 	}
 	return history, totalPage, nil
 }
+
+func (c *guruServices) ImportFromExcel(filePath string) error {
+    err := c.guruRepo.ImportFromExcel(filePath)
+    if err != nil {
+        log.Printf("Error importing from Excel: %v", err)
+        return err
+    }
+    return nil
+}
+

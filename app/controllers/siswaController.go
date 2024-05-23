@@ -29,6 +29,7 @@ type SiswaAPI interface {
     ExportSiswa(c *gin.Context)
     DownloadSiswa(c *gin.Context)
     BiodataSiswa(c *gin.Context)
+    ImportFromExcel(c *gin.Context)
 }
 
 type siswaAPI struct {
@@ -681,4 +682,33 @@ func (s *siswaAPI) BiodataSiswa(c *gin.Context) {
 	}()
 
 	c.File("./app/files/" + fileName)
+}
+
+func (s *siswaAPI) ImportFromExcel(c *gin.Context) {
+	file, err := c.FormFile("file")
+	if err != nil {
+		log.Printf("Pesan error: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Tidak ada file yang diterima"})
+		return
+	}
+
+	filePath := "./app/files/" + file.Filename
+	if err := c.SaveUploadedFile(file, filePath); err != nil {
+		log.Printf("Pesan error: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menyimpan file"})
+		return
+	}
+
+	if err := s.siswaService.ImportFromExcel(filePath); err != nil {
+		log.Printf("Pesan error: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+    defer func() {
+		if err := os.Remove("./app/files/" + file.Filename); err != nil {
+			log.Printf("Gagal menghapus file: %v", err)
+		}
+	}()
+
+	c.JSON(http.StatusOK, gin.H{"message": "Berhasil menambahkan data"})
 }

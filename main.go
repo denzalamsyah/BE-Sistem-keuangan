@@ -172,6 +172,7 @@ version := gin.Group("/api")
 		siswa.GET("/export", apiHandler.SiswaAPIHandler.ExportSiswa)
 		siswa.GET("/download", apiHandler.SiswaAPIHandler.DownloadSiswa)
 		siswa.GET("/biodata", apiHandler.SiswaAPIHandler.BiodataSiswa)
+		siswa.POST("/import/excel", apiHandler.SiswaAPIHandler.ImportFromExcel)
 	}
 	stake := version.Group("/stake")
 	{
@@ -188,6 +189,7 @@ version := gin.Group("/api")
 		stake.POST("/ambil/:nip", apiHandler.GuruAPIHandler.AmbilKasGuru)
 		stake.GET("/histori/ambil/:nip", apiHandler.GuruAPIHandler.GetHistoriPengambilanKas)
 		stake.GET("/download", apiHandler.GuruAPIHandler.ExportGuru)
+		stake.POST("/import/excel", apiHandler.GuruAPIHandler.ImportFromExcel)
 	}
 
 	Semester := version.Group("/semester")

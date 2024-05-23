@@ -1,6 +1,8 @@
 package services
 
 import (
+	"log"
+
 	"github.com/denzalamsyah/simak/app/models"
 	"github.com/denzalamsyah/simak/app/repository"
 )
@@ -16,6 +18,7 @@ type SiswaServices interface {
 	Search(name, kelas, nisn, jurusan, angkatan string) ([]models.SiswaResponse, error)
 	SearchByKodeKelas(name, nisn, kodeKelas string) ([]models.SiswaResponse, error)
 	GetUserNisn(nisn string) (models.Siswa, error)
+	ImportFromExcel(filePath string) error
 
 }
 
@@ -103,4 +106,13 @@ func(c *siswaServices) SearchByKodeKelas(name, nisn, kodeKelas string) ([]models
 
 func (c *siswaServices) GetUserNisn(nisn string) (models.Siswa, error) {
 	return c.siswaRepo.GetUserNisn(nisn)
+}
+
+func (c *siswaServices) ImportFromExcel(filePath string) error {
+    err := c.siswaRepo.ImportFromExcel(filePath)
+    if err != nil {
+        log.Printf("Error importing from Excel: %v", err)
+        return err
+    }
+    return nil
 }

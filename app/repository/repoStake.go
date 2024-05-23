@@ -2,11 +2,14 @@ package repository
 
 import (
 	"errors"
+	"fmt"
 	"math"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/denzalamsyah/simak/app/models"
+	"github.com/tealeg/xlsx"
 	"gorm.io/gorm"
 )
 
@@ -24,6 +27,8 @@ type GuruRepository interface {
 	AmbilKasGuru( jumlah int, nip, nama, tanggal string) error
 	HistoryPengambilanKas(nip string, page, pageSize int) ([]models.HistoryPengambilanKas, int, error)
 	// HistoryPembayaranKas(GuruID, page, pageSize int) ([]models.HistoryPembayaranKas, int, error)
+	ImportFromExcel(filePath string) error 
+	StoreBatch(guruList []models.Guru) error
 
 }
 
@@ -281,3 +286,90 @@ func ( c *guruRepository) HistoryPengambilanKas(nip string, page, pageSize int) 
     return historiPengambilan, totalPage, nil
 }
 
+func (c *guruRepository) ImportFromExcel(filePath string) error {
+    var guruList []models.Guru
+    nipSet := make(map[string]bool)
+	defaultImageURL := "https://res.cloudinary.com/dgvkpzi4p/image/upload/v1706338009/149071_fxemnm.png"
+
+    xlFile, err := xlsx.OpenFile(filePath)
+    if err != nil {
+        return fmt.Errorf("failed to open excel file: %v", err)
+    }
+
+    sheet := xlFile.Sheets[0]
+    for i, row := range sheet.Rows[1:] {
+        var guru models.Guru
+        guru.Nip = row.Cells[0].String()
+        
+        if _, exists := nipSet[guru.Nip]; exists {
+            return fmt.Errorf("terjadi duplikasi NIP pada file excel baris %d: %s", i+2, guru.Nip)
+        }
+        nipSet[guru.Nip] = true
+
+        guru.Nama = row.Cells[1].String()
+        guru.AgamaID, _ = strconv.Atoi(row.Cells[2].String())
+        guru.TempatLahir = row.Cells[3].String()
+        guru.TanggalLahir = row.Cells[4].String()
+        guru.GenderID, _ = strconv.Atoi(row.Cells[5].String())
+        guru.JabatanID, _ = strconv.Atoi(row.Cells[6].String())
+        guru.NomorTelepon = row.Cells[7].String()
+        guru.Email = row.Cells[8].String()
+        guru.Alamat = row.Cells[9].String()
+		 // Check apakah menyertakan url gambar
+		 if len(row.Cells) > 10 && row.Cells[10].String() != "" {
+            guru.Gambar = row.Cells[10].String()
+        } else {
+            guru.Gambar = defaultImageURL
+        }
+
+        guru.CreatedAt = time.Now().Format("02 January 2006 15:04:05")
+        guruList = append(guruList, guru)
+    }
+
+    // Check for duplicate NIP in the database
+    var existingguru []models.Guru
+    var nipList []string
+    for _, guru := range guruList {
+        nipList = append(nipList, guru.Nip)
+    }
+
+    if err := c.db.Where("nip IN (?)", nipList).Find(&existingguru).Error; err != nil {
+        return fmt.Errorf("failed to query database for duplicate NIP: %v", err)
+    }
+
+    if len(existingguru) > 0 {
+        var duplicateNips []string
+        for _, guru := range existingguru {
+            duplicateNips = append(duplicateNips, guru.Nip)
+        }
+        return fmt.Errorf("NIP sudah ada di database: %v", duplicateNips)
+    }
+
+    // Use transaction to save data
+    tx := c.db.Begin()
+    for _, guru := range guruList {
+        if err := tx.Create(&guru).Error; err != nil {
+            tx.Rollback()
+            return fmt.Errorf("failed to store guru: %v", err)
+        }
+    }
+
+    if err := tx.Commit().Error; err != nil {
+        return fmt.Errorf("failed to commit transaction: %v", err)
+    }
+
+    return nil
+}
+
+
+func (c *guruRepository) StoreBatch(guruList []models.Guru) error {
+	tx := c.db.Begin()
+	for _, guru := range guruList {
+		guru.CreatedAt = time.Now().Format("02 January 2006 15:04:05")
+		if err := tx.Create(&guru).Error; err != nil {
+			tx.Rollback()
+			return fmt.Errorf("failed to store guru: %v", err)
+		}
+	}
+	return tx.Commit().Error
+}

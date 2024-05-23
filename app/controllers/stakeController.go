@@ -26,7 +26,7 @@ type GuruAPI interface {
 	AmbilKasGuru(c *gin.Context)
     GetHistoriPengambilanKas(c *gin.Context)
     ExportGuru(c *gin.Context)
-
+    ImportFromExcel(c *gin.Context)
 }
 
 type guruAPI struct{
@@ -533,4 +533,35 @@ func (s *guruAPI) ExportGuru(c *gin.Context) {
     c.Header("Content-Type", "application/octet-stream")
     c.Header("Content-Transfer-Encoding", "binary")
     c.File(filePath)
+}
+
+// import data guru
+    
+func (s *guruAPI) ImportFromExcel(c *gin.Context){
+    file, err := c.FormFile("file")
+	if err != nil {
+		log.Printf("Pesan error: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Tidak ada file yang diterima"})
+		return
+	}
+
+	filePath := "./app/files/" + file.Filename
+	if err := c.SaveUploadedFile(file, filePath); err != nil {
+		log.Printf("Pesan error: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menyimpan file"})
+		return
+	}
+
+	if err := s.guruService.ImportFromExcel(filePath); err != nil {
+		log.Printf("Pesan error: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+    defer func() {
+		if err := os.Remove("./app/files/" + file.Filename); err != nil {
+			log.Printf("Gagal menghapus file: %v", err)
+		}
+	}()
+
+	c.JSON(http.StatusOK, gin.H{"message": "Berhasil menambahkan data"})
 }
