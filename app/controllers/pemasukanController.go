@@ -393,7 +393,7 @@ func (s *pemasukanAPI) DownloadLaporan(c *gin.Context){
 	pdf.Ln(25)
 	pdf.SetFont("Times", "BU", 11)
 	pdf.SetX(float64(150))
-    pdf.CellFormat(0, 3, "Kepala Sekolah", "0", 1, "", false, 0, "")
+    pdf.CellFormat(0, 3, "Bendahara Sekolah", "0", 1, "", false, 0, "")
 		
 
     fileName := "pemasukan.pdf"
