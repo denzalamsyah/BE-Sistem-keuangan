@@ -1,4 +1,7 @@
-Perhatian
+# Backend Sistem Informasi Administrasi Keuangan
+dikembangkan dengan menggunakan teknologi Golang, GIN, GORM, Cloudinary, PostgreSQL dan lain-lain
+
+# Perhatian
 
 install compile daemon
 
